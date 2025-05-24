@@ -6,6 +6,7 @@ from PIL import Image
 import pytesseract
 import cv2
 import numpy as np
+from openai import OpenAI
 
 def process_image_ocr(image_path):
     """Processa uma imagem e extrai texto usando OCR"""
@@ -35,6 +36,59 @@ def process_image_ocr(image_path):
         
     except Exception as e:
         return f"Erro no OCR: {str(e)}"
+
+def extract_total_value_with_chatgpt(ocr_text):
+    """Usa a API do ChatGPT para identificar o valor total da compra no texto OCR"""
+    try:
+        # Verifica se a chave da API está disponível
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            return "Chave API não encontrada"
+        
+        # Verifica se há texto para processar
+        if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
+            return "Sem texto para analisar"
+        
+        # Inicializa o cliente OpenAI
+        client = OpenAI(api_key=api_key)
+        
+        # Prompt para o ChatGPT
+        prompt = f"""
+        Analise o seguinte texto extraído de um comprovante financeiro e identifique APENAS o valor total da transação.
+        
+        Texto: {ocr_text}
+        
+        Instruções:
+        - Retorne APENAS o valor numérico no formato brasileiro (ex: 29,90 ou 1.533,27)
+        - Se houver múltiplos valores, retorne o valor da transação principal
+        - Se não conseguir identificar um valor, retorne "N/A"
+        - Não inclua "R$" ou outros símbolos
+        - Não retorne explicações, apenas o número
+        
+        Valor total:
+        """
+        
+        # Chama a API do ChatGPT
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Você é um especialista em análise de comprovantes financeiros. Extraia apenas o valor total das transações."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=50,
+            temperature=0.1
+        )
+        
+        # Extrai a resposta
+        valor = response.choices[0].message.content.strip()
+        
+        # Limpa a resposta removendo caracteres indesejados
+        valor = re.sub(r'[^\d,.]', '', valor)
+        
+        return valor if valor else "N/A"
+        
+    except Exception as e:
+        return f"Erro API: {str(e)}"
 
 def txt_to_csv(input_file, output_file):
     """Funcionalidade original - extrai todos os dados das mensagens"""
@@ -68,7 +122,7 @@ def txt_to_csv(input_file, output_file):
     print(f"CSV completo salvo: {output_file}")
 
 def txt_to_csv_anexos_only(input_file, output_file):
-    """Nova funcionalidade - extrai apenas dados de anexos (DATA/HORA, remetente, anexos e OCR)"""
+    """Nova funcionalidade - extrai apenas dados de anexos (DATA/HORA, remetente, anexos e OCR) com valor total via ChatGPT"""
     # Lê cada linha completa do arquivo de chat
     with open(input_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
@@ -88,16 +142,22 @@ def txt_to_csv_anexos_only(input_file, output_file):
     # Remove a coluna mensagem pois não precisamos dela
     df_anexos.drop(columns=['mensagem'], inplace=True)
     
-    # Adiciona coluna para dados do OCR
+    # Adiciona colunas para dados do OCR e valor total
     df_anexos['ocr_data'] = ''
+    df_anexos['valor_total'] = ''
     
-    # Processa OCR para cada anexo que é uma imagem
+    # Processa OCR e extração de valor para cada anexo que é uma imagem
     print("Processando OCR das imagens (apenas anexos)...")
     for idx, row in df_anexos.iterrows():
         if row['anexo'] and (row['anexo'].endswith('.jpg') or row['anexo'].endswith('.jpeg') or row['anexo'].endswith('.png')):
             print(f"Processando OCR: {row['anexo']}")
             ocr_result = process_image_ocr(row['anexo'])
             df_anexos.at[idx, 'ocr_data'] = ocr_result
+            
+            # Extrai valor total usando ChatGPT
+            print(f"Extraindo valor total: {row['anexo']}")
+            valor_total = extract_total_value_with_chatgpt(ocr_result)
+            df_anexos.at[idx, 'valor_total'] = valor_total
     
     # Remove a coluna bruta e salva o CSV
     df_anexos.drop(columns=['raw'], inplace=True)
