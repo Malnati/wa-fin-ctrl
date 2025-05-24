@@ -42,16 +42,31 @@ def convert_to_brazilian_format(valor):
     if not valor or not re.match(r'^\d+([.,]\d+)?$', valor):
         return valor
     
-    # Se tem ponto mas não tem vírgula, é formato americano
+    # Se tem ponto mas não tem vírgula, pode ser formato americano
     if '.' in valor and ',' not in valor:
-        # Verifica se é decimal (ex: 7698.18) ou milhares (ex: 1.000)
         partes = valor.split('.')
-        if len(partes) == 2 and len(partes[1]) <= 2:
-            # É decimal - converte para formato brasileiro
-            return valor.replace('.', ',')
-        elif len(partes) == 2 and len(partes[1]) == 3:
-            # É milhares em formato americano - mantém o ponto
-            return valor
+        if len(partes) == 2:
+            # Se a parte decimal tem 2 dígitos, é valor decimal (ex: 7698.18 -> 7.698,18)
+            if len(partes[1]) == 2:
+                # Converte para formato brasileiro
+                inteira = partes[0]
+                decimal = partes[1]
+                
+                # Adiciona separadores de milhares se necessário
+                if len(inteira) > 3:
+                    # Formata a parte inteira com pontos para milhares
+                    inteira_formatada = ""
+                    for i, digito in enumerate(inteira[::-1]):
+                        if i > 0 and i % 3 == 0:
+                            inteira_formatada = "." + inteira_formatada
+                        inteira_formatada = digito + inteira_formatada
+                    return f"{inteira_formatada},{decimal}"
+                else:
+                    return f"{inteira},{decimal}"
+            
+            # Se a parte depois do ponto tem 3 dígitos, já é formato de milhares
+            elif len(partes[1]) == 3:
+                return valor  # Mantém como está (ex: 1.000)
     
     # Se tem vírgula, já está no formato brasileiro
     if ',' in valor:
@@ -151,6 +166,20 @@ def txt_to_csv(input_file, output_file):
     df.to_csv(output_file, index=False)
     print(f"CSV completo salvo: {output_file}")
 
+def normalize_sender(remetente):
+    """Normaliza o nome do remetente para 'Ricardo' ou 'Rafael'"""
+    if not remetente or pd.isna(remetente):
+        return ""
+    
+    remetente_str = str(remetente).strip()
+    
+    if "Ricardo" in remetente_str:
+        return "Ricardo"
+    elif "Rafael" in remetente_str:
+        return "Rafael"
+    else:
+        return remetente_str
+
 def txt_to_csv_anexos_only(input_file, output_file):
     """Nova funcionalidade - extrai apenas dados de anexos (DATA/HORA, remetente, anexos e OCR) com valor total via ChatGPT"""
     # Lê cada linha completa do arquivo de chat
@@ -172,9 +201,14 @@ def txt_to_csv_anexos_only(input_file, output_file):
     # Remove a coluna mensagem pois não precisamos dela
     df_anexos.drop(columns=['mensagem'], inplace=True)
     
-    # Adiciona colunas para dados do OCR e valor total
+    # Normaliza os nomes dos remetentes
+    df_anexos['remetente'] = df_anexos['remetente'].apply(normalize_sender)
+    
+    # Adiciona colunas para dados do OCR, valor total e colunas separadas por remetente
     df_anexos['ocr_data'] = ''
     df_anexos['valor_total'] = ''
+    df_anexos['Ricardo'] = ''
+    df_anexos['Rafael'] = ''
     
     # Processa OCR e extração de valor para cada anexo que é uma imagem
     print("Processando OCR das imagens (apenas anexos)...")
@@ -188,12 +222,38 @@ def txt_to_csv_anexos_only(input_file, output_file):
             print(f"Extraindo valor total: {row['anexo']}")
             valor_total = extract_total_value_with_chatgpt(ocr_result)
             df_anexos.at[idx, 'valor_total'] = valor_total
+            
+            # Adiciona o valor à coluna do remetente correspondente
+            if valor_total and valor_total.strip():  # Se há valor válido
+                if row['remetente'] == 'Ricardo':
+                    df_anexos.at[idx, 'Ricardo'] = valor_total
+                elif row['remetente'] == 'Rafael':
+                    df_anexos.at[idx, 'Rafael'] = valor_total
     
     # Remove a coluna bruta e salva o CSV
     df_anexos.drop(columns=['raw'], inplace=True)
     df_anexos.to_csv(output_file, index=False)
     print(f"CSV apenas anexos salvo: {output_file}")
     print(f"Total de anexos processados: {len(df_anexos)}")
+    
+    # Calcula e exibe totais por remetente
+    def convert_to_float(value):
+        if pd.isna(value) or value == '':
+            return 0.0
+        try:
+            return float(str(value).replace(',', '.'))
+        except:
+            return 0.0
+    
+    ricardo_values = df_anexos['Ricardo'].apply(convert_to_float)
+    rafael_values = df_anexos['Rafael'].apply(convert_to_float)
+    
+    total_ricardo = ricardo_values.sum()
+    total_rafael = rafael_values.sum()
+    
+    print(f"Total Ricardo: R$ {total_ricardo:.2f}")
+    print(f"Total Rafael: R$ {total_rafael:.2f}")
+    print(f"Total Geral: R$ {(total_ricardo + total_rafael):.2f}")
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
