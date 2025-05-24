@@ -135,6 +135,64 @@ def extract_total_value_with_chatgpt(ocr_text):
     except Exception as e:
         return ""
 
+def generate_payment_description_with_chatgpt(ocr_text):
+    """Usa a API do ChatGPT para gerar uma descrição do pagamento baseado no texto OCR"""
+    try:
+        # Verifica se a chave da API está disponível
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            return ""
+        
+        # Verifica se há texto para processar
+        if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
+            return ""
+        
+        # Inicializa o cliente OpenAI
+        client = OpenAI(api_key=api_key)
+        
+        # Prompt para o ChatGPT
+        prompt = f"""
+        Analise o seguinte texto extraído de um comprovante financeiro e crie uma descrição concisa do pagamento.
+        
+        Texto: {ocr_text}
+        
+        Instruções:
+        - Identifique o tipo de estabelecimento (padaria, farmácia, supermercado, etc.)
+        - Identifique o nome do estabelecimento se possível
+        - Identifique o tipo de transação (compra, recarga, transferência, etc.)
+        - Crie uma descrição de 3-5 palavras máximo
+        - Use formato: "Tipo - Estabelecimento" (ex: "Compra - Padaria Bonanza", "Medicamentos - Drogaria", "Recarga celular")
+        - Se não conseguir identificar, retorne "Pagamento"
+        
+        Descrição:
+        """
+        
+        # Chama a API do ChatGPT
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Você é um especialista em análise de comprovantes financeiros. Crie descrições concisas e úteis para categorizações de gastos."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=30,
+            temperature=0.3
+        )
+        
+        # Extrai a resposta
+        descricao = response.choices[0].message.content.strip()
+        
+        # Remove aspas e caracteres especiais desnecessários
+        descricao = re.sub(r'["\']', '', descricao)
+        
+        # Se a descrição estiver vazia ou muito genérica, retorna "Pagamento"
+        if not descricao or len(descricao.strip()) == 0:
+            return "Pagamento"
+        
+        return descricao.strip()
+        
+    except Exception as e:
+        return "Pagamento"
+
 def txt_to_csv(input_file, output_file):
     """Funcionalidade original - extrai todos os dados das mensagens"""
     # Lê cada linha completa do arquivo de chat
@@ -204,9 +262,10 @@ def txt_to_csv_anexos_only(input_file, output_file):
     # Normaliza os nomes dos remetentes
     df_anexos['remetente'] = df_anexos['remetente'].apply(normalize_sender)
     
-    # Adiciona colunas para dados do OCR, valor total e colunas separadas por remetente
+    # Adiciona colunas para dados do OCR, valor total, descrição e colunas separadas por remetente
     df_anexos['ocr_data'] = ''
     df_anexos['valor_total'] = ''
+    df_anexos['descricao'] = ''
     df_anexos['Ricardo'] = ''
     df_anexos['Rafael'] = ''
     
@@ -222,6 +281,11 @@ def txt_to_csv_anexos_only(input_file, output_file):
             print(f"Extraindo valor total: {row['anexo']}")
             valor_total = extract_total_value_with_chatgpt(ocr_result)
             df_anexos.at[idx, 'valor_total'] = valor_total
+            
+            # Gera descrição do pagamento usando ChatGPT
+            print(f"Gerando descrição: {row['anexo']}")
+            descricao = generate_payment_description_with_chatgpt(ocr_result)
+            df_anexos.at[idx, 'descricao'] = descricao
             
             # Adiciona o valor à coluna do remetente correspondente
             if valor_total and valor_total.strip():  # Se há valor válido
