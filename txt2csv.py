@@ -296,7 +296,7 @@ def txt_to_csv_anexos_only(input_file, output_file):
     
     # Remove a coluna bruta e salva o CSV
     df_anexos.drop(columns=['raw'], inplace=True)
-    df_anexos.to_csv(output_file, index=False)
+    df_anexos.to_csv(output_file, index=False, quoting=1)  # quoting=1 (QUOTE_ALL) garante que strings com vírgulas sejam tratadas corretamente
     print(f"CSV apenas anexos salvo: {output_file}")
     print(f"Total de anexos processados: {len(df_anexos)}")
     
