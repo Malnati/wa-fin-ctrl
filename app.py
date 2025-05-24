@@ -11,6 +11,10 @@ from openai import OpenAI
 def process_image_ocr(image_path):
     """Processa uma imagem e extrai texto usando OCR"""
     try:
+        # Adiciona o prefixo imgs/ se o arquivo não começar com imgs/
+        if not image_path.startswith('imgs/'):
+            image_path = os.path.join('imgs', image_path)
+            
         if not os.path.exists(image_path):
             return "Arquivo não encontrado"
         
@@ -399,20 +403,89 @@ def txt_to_csv_anexos_only(input_file, output_file):
     print(f"Total Rafael: R$ {total_rafael:.2f}")
     print(f"Total Geral: R$ {(total_ricardo + total_rafael):.2f}")
 
+def verificar_totais(csv_file):
+    """Verifica e exibe totais financeiros detalhados de um arquivo CSV"""
+    try:
+        if not os.path.exists(csv_file):
+            print(f"Arquivo {csv_file} não encontrado!")
+            return
+            
+        df = pd.read_csv(csv_file)
+        
+        def convert_to_float(value):
+            if pd.isna(value) or value == '':
+                return 0.0
+            try:
+                return float(str(value).replace(',', '.'))
+            except:
+                return 0.0
+
+        ricardo_total = df['RICARDO'].apply(convert_to_float).sum()
+        rafael_total = df['RAFAEL'].apply(convert_to_float).sum()
+        valor_total = df['VALOR'].apply(convert_to_float).sum()
+
+        print('=== TOTAIS FINANCEIROS ===')
+        print(f'Total RICARDO (transferências): R$ {ricardo_total:.2f}')
+        print(f'Total RAFAEL (transferências): R$ {rafael_total:.2f}')
+        print(f'Total de transferências: R$ {(ricardo_total + rafael_total):.2f}')
+        print(f'Total VALOR (todos os comprovantes): R$ {valor_total:.2f}')
+        print()
+
+        print('=== DISTRIBUIÇÃO POR TIPO ===')
+        transferencias = df[df['CLASSIFICACAO'] == 'Transferência']
+        pagamentos = df[df['CLASSIFICACAO'] == 'Pagamento']
+
+        transferencia_total = transferencias['VALOR'].apply(convert_to_float).sum()
+        pagamento_total = pagamentos['VALOR'].apply(convert_to_float).sum()
+
+        print(f'Total em Transferências: R$ {transferencia_total:.2f}')
+        print(f'Total em Pagamentos: R$ {pagamento_total:.2f}')
+        print(f'Verificação: {transferencia_total + pagamento_total:.2f} = {valor_total:.2f}')
+        
+        # Verificação de consistência
+        if abs((transferencia_total + pagamento_total) - valor_total) < 0.01:
+            print("✅ Verificação: Totais consistentes!")
+        else:
+            print("❌ Aviso: Diferença detectada nos totais!")
+            
+    except Exception as e:
+        print(f"Erro ao verificar totais: {str(e)}")
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Uso: python txt2csv.py <arquivo_entrada.txt> <arquivo_saida.csv>")
+    if len(sys.argv) < 2:
+        print("Uso:")
+        print("  python app.py processar <arquivo_entrada.txt> <arquivo_saida.csv>")
+        print("  python app.py verificar <arquivo_csv>")
         sys.exit(1)
     
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
+    comando = sys.argv[1]
     
-    # Executa a funcionalidade original (completa)
-    print("=== PROCESSANDO DADOS COMPLETOS ===")
-    txt_to_csv(input_file, output_file)
-    
-    # Executa a nova funcionalidade (apenas anexos)
-    print("\n=== PROCESSANDO APENAS ANEXOS ===")
-    calculo_file = "calculo.csv"
-    txt_to_csv_anexos_only(input_file, calculo_file)
+    if comando == "processar":
+        if len(sys.argv) != 4:
+            print("Uso: python app.py processar <arquivo_entrada.txt> <arquivo_saida.csv>")
+            sys.exit(1)
+            
+        input_file = sys.argv[2]
+        output_file = sys.argv[3]
+        
+        # Executa a funcionalidade original (completa)
+        print("=== PROCESSANDO DADOS COMPLETOS ===")
+        txt_to_csv(input_file, output_file)
+        
+        # Executa a nova funcionalidade (apenas anexos)
+        print("\n=== PROCESSANDO APENAS ANEXOS ===")
+        calculo_file = "calculo.csv"
+        txt_to_csv_anexos_only(input_file, calculo_file)
+        
+    elif comando == "verificar":
+        if len(sys.argv) != 3:
+            print("Uso: python app.py verificar <arquivo_csv>")
+            sys.exit(1)
+            
+        csv_file = sys.argv[2]
+        verificar_totais(csv_file)
+        
+    else:
+        print("Comando inválido. Use 'processar' ou 'verificar'")
+        sys.exit(1)
 
