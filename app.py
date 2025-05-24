@@ -308,6 +308,83 @@ def normalize_sender(remetente):
     else:
         return remetente_str
 
+def adicionar_totalizacao_mensal(df):
+    """Adiciona linhas de totalização no final de cada mês"""
+    from datetime import datetime, timedelta
+    import calendar
+    
+    # Função auxiliar para converter valores para float
+    def convert_to_float(value):
+        if pd.isna(value) or value == '':
+            return 0.0
+        try:
+            return float(str(value).replace(',', '.'))
+        except:
+            return 0.0
+    
+    # Converte DATA para datetime para facilitar ordenação e agrupamento
+    df['DATA_DT'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
+    
+    # Ordena por data
+    df = df.sort_values('DATA_DT').reset_index(drop=True)
+    
+    # Lista para armazenar as novas linhas
+    linhas_totalizacao = []
+    
+    # Agrupa por mês/ano
+    df['MES_ANO'] = df['DATA_DT'].dt.to_period('M')
+    meses_unicos = df['MES_ANO'].dropna().unique()
+    
+    # Para cada mês, calcula totais e adiciona linha de totalização
+    for mes_periodo in sorted(meses_unicos):
+        # Filtra dados do mês
+        dados_mes = df[df['MES_ANO'] == mes_periodo]
+        
+        # Calcula totais do mês
+        total_ricardo = dados_mes['RICARDO'].apply(convert_to_float).sum()
+        total_rafael = dados_mes['RAFAEL'].apply(convert_to_float).sum()
+        
+        # Se há valores a totalizar
+        if total_ricardo > 0 or total_rafael > 0:
+            # Calcula último dia do mês
+            ano = mes_periodo.year
+            mes = mes_periodo.month
+            ultimo_dia = calendar.monthrange(ano, mes)[1]
+            
+            # Cria linha de totalização
+            linha_total = {
+                'DATA': f'{ultimo_dia:02d}/{mes:02d}/{ano}',
+                'HORA': '23:59:00',
+                'REMETENTE': 'TOTAL MÊS',
+                'CLASSIFICACAO': 'TOTAL',
+                'RICARDO': f'{total_ricardo:.2f}'.replace('.', ',') if total_ricardo > 0 else '',
+                'RAFAEL': f'{total_rafael:.2f}'.replace('.', ',') if total_rafael > 0 else '',
+                'ANEXO': f'TOTAL_{mes:02d}_{ano}',
+                'DESCRICAO': f'Total do mês {mes:02d}/{ano}',
+                'VALOR': '',
+                'OCR': '',
+                'DATA_DT': datetime(ano, mes, ultimo_dia, 23, 59),
+                'MES_ANO': mes_periodo
+            }
+            
+            linhas_totalizacao.append(linha_total)
+    
+    # Adiciona as linhas de totalização ao DataFrame
+    if linhas_totalizacao:
+        df_totalizacao = pd.DataFrame(linhas_totalizacao)
+        df_combinado = pd.concat([df, df_totalizacao], ignore_index=True)
+        # Reordena por data/hora
+        df_combinado = df_combinado.sort_values(['DATA_DT', 'HORA']).reset_index(drop=True)
+    else:
+        df_combinado = df
+    
+    # Remove colunas auxiliares
+    df_combinado = df_combinado.drop(columns=['DATA_DT', 'MES_ANO'])
+    
+    print(f"Adicionadas {len(linhas_totalizacao)} linhas de totalização mensal")
+    
+    return df_combinado
+
 def txt_to_csv_anexos_only(input_file, output_file):
     """Nova funcionalidade - extrai apenas dados de anexos (DATA/HORA, remetente, anexos e OCR) com valor total via ChatGPT"""
     # Lê cada linha completa do arquivo de chat
@@ -380,6 +457,9 @@ def txt_to_csv_anexos_only(input_file, output_file):
     
     # Remove a coluna bruta e reordena as colunas conforme especificado
     df_anexos.drop(columns=['raw'], inplace=True)
+    
+    # Adiciona linhas de totalização mensal
+    df_anexos = adicionar_totalizacao_mensal(df_anexos)
     
     # Reordena as colunas na ordem desejada: DATA, HORA, REMETENTE, CLASSIFICACAO, RICARDO, RAFAEL, ANEXO, DESCRICAO, VALOR, OCR
     ordem_colunas = ['DATA', 'HORA', 'REMETENTE', 'CLASSIFICACAO', 'RICARDO', 'RAFAEL', 'ANEXO', 'DESCRICAO', 'VALOR', 'OCR']

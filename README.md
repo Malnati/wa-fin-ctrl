@@ -77,6 +77,14 @@ python app.py verificar calculo.csv
 | Rafael | Pagamento | | | Medicamentos - Farmácia | 45,30 |
 | Ricardo | Pagamento | | | Combustível - Posto | 89,50 |
 
+#### Totalização Mensal (Automática)
+| DATA | HORA | REMETENTE | CLASSIFICACAO | RICARDO | RAFAEL | ANEXO | DESCRICAO |
+|------|------|-----------|---------------|---------|--------|--------|-----------|
+| 30/04/2025 | 23:59:00 | TOTAL MÊS | TOTAL | 996,29 | 93,60 | TOTAL_04_2025 | Total do mês 04/2025 |
+| 31/05/2025 | 23:59:00 | TOTAL MÊS | TOTAL | 5.196,91 | 76,57 | TOTAL_05_2025 | Total do mês 05/2025 |
+
+> **📊 Funcionalidade Automática**: O sistema adiciona automaticamente uma linha de totalização no último dia de cada mês às 23:59, somando os valores de transferências (RICARDO e RAFAEL) do mês correspondente.
+
 ### Resumo Financeiro
 ```
 === TOTAIS FINANCEIROS ===
@@ -112,6 +120,7 @@ Verificação: 28,244.01 = 28,244.01 ✅
 - **Extração de Valores**: Identifica valores monetários principais
 - **Descrições Automáticas**: Gera descrições baseadas no estabelecimento e tipo
 - **Classificação**: Distingue entre transferências (PIX/TED/DOC) e pagamentos
+- **Totalização Mensal**: Adiciona automaticamente linhas de total no final de cada mês
 
 ### Validação de Dados
 - Conversão automática entre formatos numéricos (americano ↔ brasileiro)
