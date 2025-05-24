@@ -1,9 +1,6 @@
 import pandas as pd
 import sys
 
-import pandas as pd
-import sys
-
 def txt_to_csv(input_file, output_file):
     # Lê cada linha completa do arquivo de chat
     with open(input_file, 'r', encoding='utf-8') as f:
@@ -15,7 +12,8 @@ def txt_to_csv(input_file, output_file):
     df[['data', 'hora', 'remetente', 'mensagem']] = df['raw'].str.extract(pattern)
     
     # Extrai o nome do arquivo de anexo, se houver
-    df['anexo'] = df['mensagem'].str.extract(r'<anexado:\s*([^>]+)>')
+    df['anexo'] = df['mensagem'].str.extract(r'<anexado:\s*([^>]+)>', expand=False).str.strip()
+    df['anexo'] = df['anexo'].fillna('')
     
     # Remove a coluna bruta e salva o CSV
     df.drop(columns=['raw'], inplace=True)
