@@ -12,11 +12,23 @@ from openai import OpenAI
 def process_image_ocr(image_path):
     """Processa uma imagem e extrai texto usando OCR"""
     try:
-        # Adiciona o prefixo imgs/ se o arquivo não começar com imgs/
-        if not image_path.startswith('imgs/'):
-            image_path = os.path.join('imgs', image_path)
-            
-        if not os.path.exists(image_path):
+        # Se o caminho já é completo (contém diretório), usa como está
+        if os.path.exists(image_path):
+            pass  # Usa o caminho fornecido
+        # Se não existe, tenta em imgs/ (para compatibilidade)
+        elif not image_path.startswith(('imgs/', 'input/')):
+            # Tenta primeiro em input/ (arquivos novos)
+            input_path = os.path.join('input', image_path)
+            if os.path.exists(input_path):
+                image_path = input_path
+            # Se não está em input/, tenta em imgs/ (arquivos já processados)
+            else:
+                imgs_path = os.path.join('imgs', image_path)
+                if os.path.exists(imgs_path):
+                    image_path = imgs_path
+                else:
+                    return "Arquivo não encontrado"
+        elif not os.path.exists(image_path):
             return "Arquivo não encontrado"
         
         # Carrega a imagem
@@ -398,15 +410,43 @@ def mover_arquivos_processados():
     return arquivos_movidos
 
 def incrementar_csv(novo_df, arquivo_csv):
-    """Incrementa um arquivo CSV existente com novos dados"""
+    """Incrementa um arquivo CSV existente com novos dados, evitando duplicatas"""
     if os.path.exists(arquivo_csv):
         # Lê o CSV existente
         df_existente = pd.read_csv(arquivo_csv)
         
-        # Combina com os novos dados
-        df_combinado = pd.concat([df_existente, novo_df], ignore_index=True)
+        # Identifica se é o CSV de anexos (tem colunas específicas) ou mensagens
+        eh_csv_anexos = 'VALOR' in novo_df.columns and 'DESCRICAO' in novo_df.columns
         
-        print(f"CSV {arquivo_csv} incrementado: {len(df_existente)} + {len(novo_df)} = {len(df_combinado)} registros")
+        if eh_csv_anexos:
+            # Para CSV de anexos, filtra registros com dados preenchidos
+            mascara_novos = (
+                (novo_df['OCR'].notna() & (novo_df['OCR'] != '') & (novo_df['OCR'] != 'Já processado anteriormente')) |
+                (novo_df['VALOR'].notna() & (novo_df['VALOR'] != '')) |
+                (novo_df['DESCRICAO'].notna() & (novo_df['DESCRICAO'] != '') & (novo_df['DESCRICAO'] != 'Já processado anteriormente'))
+            )
+            
+            novos_registros = novo_df[mascara_novos].copy()
+        else:
+            # Para CSV de mensagens, filtra registros com OCR preenchido
+            if 'OCR' in novo_df.columns:
+                mascara_novos = (
+                    novo_df['OCR'].notna() & 
+                    (novo_df['OCR'] != '') & 
+                    (novo_df['OCR'] != 'Já processado anteriormente')
+                )
+                novos_registros = novo_df[mascara_novos].copy()
+            else:
+                # Se não tem coluna OCR, adiciona todos os novos registros
+                novos_registros = novo_df.copy()
+        
+        if len(novos_registros) > 0:
+            # Combina com os novos dados
+            df_combinado = pd.concat([df_existente, novos_registros], ignore_index=True)
+            print(f"CSV {arquivo_csv} incrementado: {len(df_existente)} + {len(novos_registros)} = {len(df_combinado)} registros")
+        else:
+            df_combinado = df_existente
+            print(f"CSV {arquivo_csv} mantido inalterado - nenhum registro novo encontrado")
     else:
         df_combinado = novo_df
         print(f"CSV {arquivo_csv} criado com {len(novo_df)} registros")
