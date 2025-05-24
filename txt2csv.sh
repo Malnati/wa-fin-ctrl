@@ -8,7 +8,7 @@ python3 -m venv venv
 # 2. Ativa o ambiente virtual e instala dependências
 source venv/bin/activate
 pip install --upgrade pip
-pip install pandas
+pip install pandas pillow pytesseract opencv-python
 
 # 3. Executa o script
 FILE=${1:-_chat.txt}
