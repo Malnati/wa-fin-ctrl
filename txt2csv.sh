@@ -12,7 +12,7 @@ pip install pandas pillow pytesseract opencv-python
 
 # 3. Executa o script
 FILE=${1:-_chat.txt}
-python txt2csv.py "$FILE" out.csv
+python txt2csv.py "$FILE" mensagens.csv
 
 # 4. Desativa o ambiente virtual
 deactivate
