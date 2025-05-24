@@ -193,6 +193,72 @@ def generate_payment_description_with_chatgpt(ocr_text):
     except Exception as e:
         return "Pagamento"
 
+def classify_transaction_type_with_chatgpt(ocr_text):
+    """Usa a API do ChatGPT para classificar o tipo de transação (Pagamento ou Transferência)"""
+    try:
+        # Verifica se a chave da API está disponível
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            return ""
+        
+        # Verifica se há texto para processar
+        if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
+            return ""
+        
+        # Inicializa o cliente OpenAI
+        client = OpenAI(api_key=api_key)
+        
+        # Prompt para o ChatGPT
+        prompt = f"""
+        Analise o seguinte texto extraído de um comprovante financeiro e classifique o tipo de transação.
+        
+        Texto: {ocr_text}
+        
+        Instruções:
+        - Se for uma transferência PIX, TED, DOC ou transferência entre contas, retorne "Transferência"
+        - Se for um pagamento por débito, crédito, compra direta em estabelecimento comercial, retorne "Pagamento"
+        - Retorne APENAS uma das duas opções: "Transferência" ou "Pagamento"
+        - Não retorne explicações, apenas a classificação
+        
+        Classificação:
+        """
+        
+        # Chama a API do ChatGPT
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Você é um especialista em análise de comprovantes financeiros. Classifique transações como Transferência ou Pagamento."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=10,
+            temperature=0.1
+        )
+        
+        # Extrai a resposta
+        classificacao = response.choices[0].message.content.strip()
+        
+        # Remove aspas e caracteres especiais desnecessários
+        classificacao = re.sub(r'["\']', '', classificacao)
+        
+        # Valida se a resposta é uma das opções esperadas
+        if "transferência" in classificacao.lower():
+            return "Transferência"
+        elif "pagamento" in classificacao.lower():
+            return "Pagamento"
+        else:
+            # Se não conseguir classificar, analisa por palavras-chave no texto
+            if any(palavra in ocr_text.lower() for palavra in ["pix", "transferência", "ted", "doc"]):
+                return "Transferência"
+            else:
+                return "Pagamento"
+        
+    except Exception as e:
+        # Em caso de erro, tenta classificar por palavras-chave
+        if any(palavra in ocr_text.lower() for palavra in ["pix", "transferência", "ted", "doc"]):
+            return "Transferência"
+        else:
+            return "Pagamento"
+
 def txt_to_csv(input_file, output_file):
     """Funcionalidade original - extrai todos os dados das mensagens"""
     # Lê cada linha completa do arquivo de chat
@@ -262,10 +328,11 @@ def txt_to_csv_anexos_only(input_file, output_file):
     # Normaliza os nomes dos remetentes
     df_anexos['remetente'] = df_anexos['remetente'].apply(normalize_sender)
     
-    # Adiciona colunas para dados do OCR, valor total, descrição e colunas separadas por remetente
+    # Adiciona colunas para dados do OCR, valor total, descrição, classificação e colunas separadas por remetente
     df_anexos['ocr_data'] = ''
     df_anexos['valor_total'] = ''
     df_anexos['descricao'] = ''
+    df_anexos['classificacao'] = ''
     df_anexos['Ricardo'] = ''
     df_anexos['Rafael'] = ''
     
@@ -286,6 +353,11 @@ def txt_to_csv_anexos_only(input_file, output_file):
             print(f"Gerando descrição: {row['anexo']}")
             descricao = generate_payment_description_with_chatgpt(ocr_result)
             df_anexos.at[idx, 'descricao'] = descricao
+            
+            # Classifica o tipo de transação usando ChatGPT
+            print(f"Classificando transação: {row['anexo']}")
+            classificacao = classify_transaction_type_with_chatgpt(ocr_result)
+            df_anexos.at[idx, 'classificacao'] = classificacao
             
             # Adiciona o valor à coluna do remetente correspondente
             if valor_total and valor_total.strip():  # Se há valor válido
