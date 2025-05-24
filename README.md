@@ -53,29 +53,29 @@ python app.py verificar calculo.csv
 | **DATA** | Data da transação | `18/04/2025` |
 | **HORA** | Hora da transação | `12:45:53` |
 | **REMETENTE** | Nome do remetente | `Ricardo` ou `Rafael` |
-| **ANEXO** | Nome do arquivo de imagem | `00000006-PHOTO-2025-04-18-12-45-53.jpg` |
-| **OCR** | Texto extraído da imagem | `PIX Banco do Brasil R$ 29,90 Padaria Bonanza` |
-| **VALOR** | Valor total extraído | `29,90` |
-| **DESCRICAO** | Descrição gerada por IA | `Transferência - Panificadora Bonanza` |
 | **CLASSIFICACAO** | Tipo de transação | `Transferência` ou `Pagamento` |
 | **RICARDO** | Valor se remetente for Ricardo | `29,90` (apenas transferências) |
 | **RAFAEL** | Valor se remetente for Rafael | `15,50` (apenas transferências) |
+| **ANEXO** | Nome do arquivo de imagem | `00000006-PHOTO-2025-04-18-12-45-53.jpg` |
+| **DESCRICAO** | Descrição gerada por IA | `Transferência - Panificadora Bonanza` |
+| **VALOR** | Valor total extraído | `29,90` |
+| **OCR** | Texto extraído da imagem | `PIX Banco do Brasil R$ 29,90 Padaria Bonanza` |
 
 ### Exemplos de Resultados
 
 #### Transferências (PIX/TED/DOC)
-| REMETENTE | VALOR | DESCRICAO | CLASSIFICACAO | RICARDO | RAFAEL |
-|-----------|-------|-----------|---------------|---------|---------|
-| Ricardo | 429,90 | Transferência - Panificadora Bonanza | Transferência | 429,90 | |
-| Rafael | 85,00 | Transferência - Uber | Transferência | | 85,00 |
-| Ricardo | 1.533,27 | Transferência - Drogaria Alpharma | Transferência | 1.533,27 | |
+| REMETENTE | CLASSIFICACAO | RICARDO | RAFAEL | DESCRICAO | VALOR |
+|-----------|---------------|---------|--------|-----------|-------|
+| Ricardo | Transferência | 429,90 | | Transferência - Panificadora Bonanza | 429,90 |
+| Rafael | Transferência | | 85,00 | Transferência - Uber | 85,00 |
+| Ricardo | Transferência | 1.533,27 | | Transferência - Drogaria Alpharma | 1.533,27 |
 
 #### Pagamentos (Compras/Débito/Crédito)
-| REMETENTE | VALOR | DESCRICAO | CLASSIFICACAO | RICARDO | RAFAEL |
-|-----------|-------|-----------|---------------|---------|---------|
-| Ricardo | 158,90 | Compra - Supermercado | Pagamento | | |
-| Rafael | 45,30 | Medicamentos - Farmácia | Pagamento | | |
-| Ricardo | 89,50 | Combustível - Posto | Pagamento | | |
+| REMETENTE | CLASSIFICACAO | RICARDO | RAFAEL | DESCRICAO | VALOR |
+|-----------|---------------|---------|--------|-----------|-------|
+| Ricardo | Pagamento | | | Compra - Supermercado | 158,90 |
+| Rafael | Pagamento | | | Medicamentos - Farmácia | 45,30 |
+| Ricardo | Pagamento | | | Combustível - Posto | 89,50 |
 
 ### Resumo Financeiro
 ```

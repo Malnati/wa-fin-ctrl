@@ -378,8 +378,13 @@ def txt_to_csv_anexos_only(input_file, output_file):
                 elif row['REMETENTE'] == 'Rafael':
                     df_anexos.at[idx, 'RAFAEL'] = valor_total
     
-    # Remove a coluna bruta e salva o CSV
+    # Remove a coluna bruta e reordena as colunas conforme especificado
     df_anexos.drop(columns=['raw'], inplace=True)
+    
+    # Reordena as colunas na ordem desejada: DATA, HORA, REMETENTE, CLASSIFICACAO, RICARDO, RAFAEL, ANEXO, DESCRICAO, VALOR, OCR
+    ordem_colunas = ['DATA', 'HORA', 'REMETENTE', 'CLASSIFICACAO', 'RICARDO', 'RAFAEL', 'ANEXO', 'DESCRICAO', 'VALOR', 'OCR']
+    df_anexos = df_anexos[ordem_colunas]
+    
     df_anexos.to_csv(output_file, index=False, quoting=1)  # quoting=1 (QUOTE_ALL) garante que strings com vírgulas sejam tratadas corretamente
     print(f"CSV apenas anexos salvo: {output_file}")
     print(f"Total de anexos processados: {len(df_anexos)}")
