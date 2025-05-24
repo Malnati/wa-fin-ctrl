@@ -5,8 +5,9 @@ Sistema para processamento automatizado de comprovantes financeiros extraídos d
 ## 🗂️ Estrutura do Projeto
 
 ### Arquivos de Entrada
-- **`_chat.txt`**: Arquivo de exportação do WhatsApp contendo mensagens e referências a anexos
-- **`imgs/`**: Diretório contendo todas as imagens dos comprovantes (`.jpg`, `.jpeg`, `.png`, `.pdf`)
+- **`input/_chat.txt`**: Arquivo de exportação do WhatsApp contendo mensagens e referências a anexos
+- **`input/`**: Diretório para novos arquivos a serem processados (imagens + _chat.txt)
+- **`imgs/`**: Diretório contendo todas as imagens já processadas (`.jpg`, `.jpeg`, `.png`, `.pdf`)
 
 ### Arquivos de Saída
 - **`mensagens.csv`**: CSV completo com todas as mensagens processadas
@@ -27,14 +28,16 @@ Sistema para processamento automatizado de comprovantes financeiros extraídos d
 
 ### Comandos Disponíveis
 
-#### 1. Processamento Completo
+#### 1. Processamento Incremental (Recomendado)
 ```bash
 # Usando script shell (recomendado)
-./app.sh processar _chat.txt mensagens.csv
+./app.sh processar
 
 # Usando Python diretamente
-python app.py processar _chat.txt mensagens.csv
+python app.py processar
 ```
+
+> **🔄 Processamento Automático**: O sistema verifica automaticamente o diretório `input/`, remove duplicatas, processa apenas arquivos novos e move tudo para `imgs/` ao final.
 
 #### 2. Verificação de Totais
 ```bash
@@ -108,6 +111,25 @@ Verificação: 28,244.01 = 28,244.01 ✅
   - Classificação automática de transações
 - **Processamento**: Pandas para manipulação de dados
 - **Ambiente**: Poetry para gerenciamento de dependências
+
+## 🔄 Fluxo de Processamento Incremental
+
+### 1. Preparação
+- Coloque o arquivo `_chat.txt` exportado do WhatsApp no diretório `input/`
+- Coloque todas as imagens dos comprovantes no diretório `input/`
+
+### 2. Processamento Automático
+1. **Verificação de Duplicatas**: Remove arquivos de `input/` que já existem em `imgs/`
+2. **Processamento OCR + IA**: Processa apenas arquivos novos com OCR e ChatGPT
+3. **Incrementação de CSVs**: Adiciona novos dados aos arquivos existentes (não sobrescreve)
+4. **Movimentação**: Move imagens processadas de `input/` para `imgs/`
+5. **Limpeza**: Remove `input/_chat.txt` e deixa `input/` vazio
+
+### 3. Resultado Final
+- **`imgs/`**: Todas as imagens processadas (histórico + novas)
+- **`mensagens.csv`**: Histórico completo de mensagens (incrementado)
+- **`calculo.csv`**: Histórico completo de análises financeiras (incrementado)
+- **`input/`**: Diretório vazio, pronto para próximo processamento
 
 ## 🔧 Funcionalidades
 

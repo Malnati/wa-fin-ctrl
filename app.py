@@ -2,6 +2,7 @@ import pandas as pd
 import sys
 import re
 import os
+import shutil
 from PIL import Image
 import pytesseract
 import cv2
@@ -281,18 +282,139 @@ def txt_to_csv(input_file, output_file):
     # Adiciona coluna para dados do OCR
     df['OCR'] = ''
     
-    # Processa OCR para cada anexo que é uma imagem
-    print("Processando OCR das imagens...")
+    # Processa OCR apenas para anexos que existem no diretório input/
+    input_dir = "input"
+    print("Processando OCR das imagens novas...")
     for idx, row in df.iterrows():
         if row['anexo'] and (row['anexo'].endswith('.jpg') or row['anexo'].endswith('.jpeg') or row['anexo'].endswith('.png')):
-            print(f"Processando OCR: {row['anexo']}")
-            ocr_result = process_image_ocr(row['anexo'])
-            df.at[idx, 'OCR'] = ocr_result
+            # Verifica se o arquivo existe em input/ (imagens novas)
+            caminho_input = os.path.join(input_dir, row['anexo'])
+            if os.path.exists(caminho_input):
+                print(f"Processando OCR: {row['anexo']}")
+                ocr_result = process_image_ocr(caminho_input)
+                df.at[idx, 'OCR'] = ocr_result
+            else:
+                # Se não está em input/, verifica se está em imgs/ (já processado)
+                caminho_imgs = os.path.join("imgs", row['anexo'])
+                if os.path.exists(caminho_imgs):
+                    print(f"Imagem já processada anteriormente: {row['anexo']}")
+                    # Não processa OCR novamente para economizar tempo
+                    df.at[idx, 'OCR'] = "Já processado anteriormente"
     
-    # Remove a coluna bruta e salva o CSV
+    # Remove a coluna bruta
     df.drop(columns=['raw'], inplace=True)
-    df.to_csv(output_file, index=False)
-    print(f"CSV completo salvo: {output_file}")
+    
+    # Incrementa o CSV em vez de sobrescrever
+    incrementar_csv(df, output_file)
+    
+    return df
+
+def gerenciar_arquivos_incrementais():
+    """Gerencia arquivos de input, remove duplicatas e prepara para processamento incremental"""
+    input_dir = "input"
+    imgs_dir = "imgs"
+    
+    # Verifica se o diretório input existe
+    if not os.path.exists(input_dir):
+        print(f"Diretório {input_dir}/ não encontrado!")
+        return False, None
+    
+    # Lista arquivos de imagem em input/
+    extensoes_imagem = ('.jpg', '.jpeg', '.png', '.pdf')
+    arquivos_input = [f for f in os.listdir(input_dir) 
+                      if f.lower().endswith(extensoes_imagem)]
+    
+    if not arquivos_input:
+        print("Nenhuma imagem encontrada no diretório input/")
+        # Verifica se há arquivo _chat.txt
+        chat_file = os.path.join(input_dir, "_chat.txt")
+        if os.path.exists(chat_file):
+            print("Arquivo _chat.txt encontrado, mas sem imagens para processar")
+            return True, chat_file
+        return False, None
+    
+    # Lista arquivos já existentes em imgs/
+    arquivos_existentes = []
+    if os.path.exists(imgs_dir):
+        arquivos_existentes = [f for f in os.listdir(imgs_dir) 
+                              if f.lower().endswith(extensoes_imagem)]
+    
+    # Remove duplicatas de input/
+    duplicatas_removidas = 0
+    for arquivo in arquivos_input[:]:  # Cópia da lista para modificar durante iteração
+        if arquivo in arquivos_existentes:
+            caminho_input = os.path.join(input_dir, arquivo)
+            os.remove(caminho_input)
+            arquivos_input.remove(arquivo)
+            duplicatas_removidas += 1
+            print(f"Removida duplicata: {arquivo}")
+    
+    if duplicatas_removidas > 0:
+        print(f"Total de {duplicatas_removidas} duplicatas removidas de input/")
+    
+    # Verifica se ainda há arquivos para processar
+    if not arquivos_input:
+        print("Todos os arquivos de input/ já foram processados anteriormente")
+        # Verifica se há arquivo _chat.txt
+        chat_file = os.path.join(input_dir, "_chat.txt")
+        if os.path.exists(chat_file):
+            return True, chat_file
+        return False, None
+    
+    print(f"Encontrados {len(arquivos_input)} arquivos novos para processar em input/")
+    
+    # Verifica se há arquivo _chat.txt
+    chat_file = os.path.join(input_dir, "_chat.txt")
+    if not os.path.exists(chat_file):
+        print("Arquivo input/_chat.txt não encontrado!")
+        return False, None
+    
+    return True, chat_file
+
+def mover_arquivos_processados():
+    """Move arquivos processados de input/ para imgs/"""
+    input_dir = "input"
+    imgs_dir = "imgs"
+    
+    # Garante que o diretório imgs/ existe
+    os.makedirs(imgs_dir, exist_ok=True)
+    
+    # Lista arquivos de imagem em input/
+    extensoes_imagem = ('.jpg', '.jpeg', '.png', '.pdf')
+    arquivos_input = [f for f in os.listdir(input_dir) 
+                      if f.lower().endswith(extensoes_imagem)]
+    
+    arquivos_movidos = 0
+    for arquivo in arquivos_input:
+        origem = os.path.join(input_dir, arquivo)
+        destino = os.path.join(imgs_dir, arquivo)
+        shutil.move(origem, destino)
+        arquivos_movidos += 1
+        print(f"Movido: {arquivo} -> imgs/")
+    
+    if arquivos_movidos > 0:
+        print(f"Total de {arquivos_movidos} arquivos movidos para imgs/")
+    
+    return arquivos_movidos
+
+def incrementar_csv(novo_df, arquivo_csv):
+    """Incrementa um arquivo CSV existente com novos dados"""
+    if os.path.exists(arquivo_csv):
+        # Lê o CSV existente
+        df_existente = pd.read_csv(arquivo_csv)
+        
+        # Combina com os novos dados
+        df_combinado = pd.concat([df_existente, novo_df], ignore_index=True)
+        
+        print(f"CSV {arquivo_csv} incrementado: {len(df_existente)} + {len(novo_df)} = {len(df_combinado)} registros")
+    else:
+        df_combinado = novo_df
+        print(f"CSV {arquivo_csv} criado com {len(novo_df)} registros")
+    
+    # Salva o arquivo combinado
+    df_combinado.to_csv(arquivo_csv, index=False, quoting=1)
+    
+    return df_combinado
 
 def normalize_sender(remetente):
     """Normaliza o nome do remetente para 'Ricardo' ou 'Rafael'"""
@@ -425,35 +547,49 @@ def txt_to_csv_anexos_only(input_file, output_file):
     df_anexos['RICARDO'] = ''
     df_anexos['RAFAEL'] = ''
     
-    # Processa OCR e extração de valor para cada anexo que é uma imagem
-    print("Processando OCR das imagens (apenas anexos)...")
+    # Processa OCR e extração de valor apenas para anexos que são imagens novas
+    input_dir = "input"
+    print("Processando OCR das imagens novas (apenas anexos)...")
     for idx, row in df_anexos.iterrows():
         if row['ANEXO'] and (row['ANEXO'].endswith('.jpg') or row['ANEXO'].endswith('.jpeg') or row['ANEXO'].endswith('.png')):
-            print(f"Processando OCR: {row['ANEXO']}")
-            ocr_result = process_image_ocr(row['ANEXO'])
-            df_anexos.at[idx, 'OCR'] = ocr_result
-            
-            # Extrai valor total usando ChatGPT
-            print(f"Extraindo valor total: {row['ANEXO']}")
-            valor_total = extract_total_value_with_chatgpt(ocr_result)
-            df_anexos.at[idx, 'VALOR'] = valor_total
-            
-            # Gera descrição do pagamento usando ChatGPT
-            print(f"Gerando descrição: {row['ANEXO']}")
-            descricao = generate_payment_description_with_chatgpt(ocr_result)
-            df_anexos.at[idx, 'DESCRICAO'] = descricao
-            
-            # Classifica o tipo de transação usando ChatGPT
-            print(f"Classificando transação: {row['ANEXO']}")
-            classificacao = classify_transaction_type_with_chatgpt(ocr_result)
-            df_anexos.at[idx, 'CLASSIFICACAO'] = classificacao
-            
-            # Adiciona o valor à coluna do remetente correspondente APENAS para transferências
-            if valor_total and valor_total.strip() and classificacao == 'Transferência':
-                if row['REMETENTE'] == 'Ricardo':
-                    df_anexos.at[idx, 'RICARDO'] = valor_total
-                elif row['REMETENTE'] == 'Rafael':
-                    df_anexos.at[idx, 'RAFAEL'] = valor_total
+            # Verifica se o arquivo existe em input/ (imagens novas)
+            caminho_input = os.path.join(input_dir, row['ANEXO'])
+            if os.path.exists(caminho_input):
+                print(f"Processando OCR: {row['ANEXO']}")
+                ocr_result = process_image_ocr(caminho_input)
+                df_anexos.at[idx, 'OCR'] = ocr_result
+                
+                # Extrai valor total usando ChatGPT
+                print(f"Extraindo valor total: {row['ANEXO']}")
+                valor_total = extract_total_value_with_chatgpt(ocr_result)
+                df_anexos.at[idx, 'VALOR'] = valor_total
+                
+                # Gera descrição do pagamento usando ChatGPT
+                print(f"Gerando descrição: {row['ANEXO']}")
+                descricao = generate_payment_description_with_chatgpt(ocr_result)
+                df_anexos.at[idx, 'DESCRICAO'] = descricao
+                
+                # Classifica o tipo de transação usando ChatGPT
+                print(f"Classificando transação: {row['ANEXO']}")
+                classificacao = classify_transaction_type_with_chatgpt(ocr_result)
+                df_anexos.at[idx, 'CLASSIFICACAO'] = classificacao
+                
+                # Adiciona o valor à coluna do remetente correspondente APENAS para transferências
+                if valor_total and valor_total.strip() and classificacao == 'Transferência':
+                    if row['REMETENTE'] == 'Ricardo':
+                        df_anexos.at[idx, 'RICARDO'] = valor_total
+                    elif row['REMETENTE'] == 'Rafael':
+                        df_anexos.at[idx, 'RAFAEL'] = valor_total
+            else:
+                # Se não está em input/, verifica se está em imgs/ (já processado)
+                caminho_imgs = os.path.join("imgs", row['ANEXO'])
+                if os.path.exists(caminho_imgs):
+                    print(f"Imagem já processada anteriormente: {row['ANEXO']}")
+                    # Não processa novamente para economizar tempo e chamadas da API
+                    df_anexos.at[idx, 'OCR'] = "Já processado anteriormente"
+                    df_anexos.at[idx, 'VALOR'] = ""
+                    df_anexos.at[idx, 'DESCRICAO'] = "Já processado anteriormente"
+                    df_anexos.at[idx, 'CLASSIFICACAO'] = ""
     
     # Remove a coluna bruta e reordena as colunas conforme especificado
     df_anexos.drop(columns=['raw'], inplace=True)
@@ -465,11 +601,10 @@ def txt_to_csv_anexos_only(input_file, output_file):
     ordem_colunas = ['DATA', 'HORA', 'REMETENTE', 'CLASSIFICACAO', 'RICARDO', 'RAFAEL', 'ANEXO', 'DESCRICAO', 'VALOR', 'OCR']
     df_anexos = df_anexos[ordem_colunas]
     
-    df_anexos.to_csv(output_file, index=False, quoting=1)  # quoting=1 (QUOTE_ALL) garante que strings com vírgulas sejam tratadas corretamente
-    print(f"CSV apenas anexos salvo: {output_file}")
-    print(f"Total de anexos processados: {len(df_anexos)}")
+    # Incrementa o CSV em vez de sobrescrever
+    df_final = incrementar_csv(df_anexos, output_file)
     
-    # Calcula e exibe totais por remetente
+    # Calcula e exibe totais por remetente apenas dos novos dados
     def convert_to_float(value):
         if pd.isna(value) or value == '':
             return 0.0
@@ -484,9 +619,11 @@ def txt_to_csv_anexos_only(input_file, output_file):
     total_ricardo = ricardo_values.sum()
     total_rafael = rafael_values.sum()
     
-    print(f"Total Ricardo: R$ {total_ricardo:.2f}")
-    print(f"Total Rafael: R$ {total_rafael:.2f}")
-    print(f"Total Geral: R$ {(total_ricardo + total_rafael):.2f}")
+    print(f"Total Ricardo (novos): R$ {total_ricardo:.2f}")
+    print(f"Total Rafael (novos): R$ {total_rafael:.2f}")
+    print(f"Total Geral (novos): R$ {(total_ricardo + total_rafael):.2f}")
+    
+    return df_final
 
 def verificar_totais(csv_file):
     """Verifica e exibe totais financeiros detalhados de um arquivo CSV"""
@@ -536,31 +673,61 @@ def verificar_totais(csv_file):
     except Exception as e:
         print(f"Erro ao verificar totais: {str(e)}")
 
+def processar_incremental():
+    """Função principal para processamento incremental com gerenciamento de arquivos"""
+    print("=== INICIANDO PROCESSAMENTO INCREMENTAL ===")
+    
+    # Gerencia arquivos incrementais
+    tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
+    
+    if not tem_arquivos:
+        print("Nenhum arquivo novo para processar.")
+        return
+    
+    # Processamento dos dados
+    print(f"\n=== PROCESSANDO DADOS DE {chat_file} ===")
+    
+    # Processa dados completos
+    print("=== PROCESSANDO DADOS COMPLETOS ===")
+    df_completo = txt_to_csv(chat_file, "mensagens.csv")
+    
+    # Processa apenas anexos
+    print("\n=== PROCESSANDO APENAS ANEXOS ===")
+    df_anexos = txt_to_csv_anexos_only(chat_file, "calculo.csv")
+    
+    # Move arquivos processados de input/ para imgs/
+    print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
+    arquivos_movidos = mover_arquivos_processados()
+    
+    # Remove arquivo _chat.txt de input/
+    try:
+        os.remove(chat_file)
+        print(f"Arquivo {chat_file} removido após processamento")
+    except Exception as e:
+        print(f"Erro ao remover {chat_file}: {e}")
+    
+    # Verifica se input/ está vazio
+    input_dir = "input"
+    arquivos_restantes = os.listdir(input_dir)
+    if not arquivos_restantes:
+        print(f"✅ Diretório {input_dir}/ está vazio - processamento concluído")
+    else:
+        print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
+    
+    print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Uso:")
-        print("  python app.py processar <arquivo_entrada.txt> <arquivo_saida.csv>")
+        print("  python app.py processar              # Processamento incremental automático")
         print("  python app.py verificar <arquivo_csv>")
         sys.exit(1)
     
     comando = sys.argv[1]
     
     if comando == "processar":
-        if len(sys.argv) != 4:
-            print("Uso: python app.py processar <arquivo_entrada.txt> <arquivo_saida.csv>")
-            sys.exit(1)
-            
-        input_file = sys.argv[2]
-        output_file = sys.argv[3]
-        
-        # Executa a funcionalidade original (completa)
-        print("=== PROCESSANDO DADOS COMPLETOS ===")
-        txt_to_csv(input_file, output_file)
-        
-        # Executa a nova funcionalidade (apenas anexos)
-        print("\n=== PROCESSANDO APENAS ANEXOS ===")
-        calculo_file = "calculo.csv"
-        txt_to_csv_anexos_only(input_file, calculo_file)
+        # Modo incremental - sem parâmetros adicionais
+        processar_incremental()
         
     elif comando == "verificar":
         if len(sys.argv) != 3:

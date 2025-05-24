@@ -22,22 +22,21 @@ fi
 
 # 3. Executa o script baseado nos parâmetros
 COMANDO=${1:-processar}
-ARQUIVO_ENTRADA=${2:-_chat.txt}
-ARQUIVO_SAIDA=${3:-mensagens.csv}
 
 if [ "$COMANDO" = "processar" ]; then
-    echo "Processando arquivo: $ARQUIVO_ENTRADA"
-    python app.py processar "$ARQUIVO_ENTRADA" "$ARQUIVO_SAIDA"
+    echo "Iniciando processamento incremental..."
+    python app.py processar
 elif [ "$COMANDO" = "verificar" ]; then
-    echo "Verificando totais do arquivo: $ARQUIVO_ENTRADA"
-    python app.py verificar "$ARQUIVO_ENTRADA"
+    ARQUIVO_CSV=${2:-calculo.csv}
+    echo "Verificando totais do arquivo: $ARQUIVO_CSV"
+    python app.py verificar "$ARQUIVO_CSV"
 else
     echo "Uso:"
-    echo "  ./app.sh processar [arquivo_entrada] [arquivo_saida]"
+    echo "  ./app.sh processar              # Processamento incremental automático"
     echo "  ./app.sh verificar [arquivo_csv]"
     echo ""
     echo "Exemplos:"
-    echo "  ./app.sh processar _chat.txt mensagens.csv"
+    echo "  ./app.sh processar"
     echo "  ./app.sh verificar calculo.csv"
 fi
 
