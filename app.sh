@@ -19,7 +19,7 @@ fi
 
 # 3. Executa o script
 FILE=${1:-_chat.txt}
-python txt2csv.py "$FILE" mensagens.csv
+python app.py "$FILE" mensagens.csv
 
 # 4. Desativa o ambiente virtual
 deactivate

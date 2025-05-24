@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Este projeto é mono-source. O único arquivo Python permitido no repositório é app.py, o único arquivo shell permitido é app.sh.

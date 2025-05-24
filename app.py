@@ -275,7 +275,7 @@ def txt_to_csv(input_file, output_file):
     df['anexo'] = df['anexo'].fillna('')
     
     # Adiciona coluna para dados do OCR
-    df['ocr_data'] = ''
+    df['OCR'] = ''
     
     # Processa OCR para cada anexo que é uma imagem
     print("Processando OCR das imagens...")
@@ -283,7 +283,7 @@ def txt_to_csv(input_file, output_file):
         if row['anexo'] and (row['anexo'].endswith('.jpg') or row['anexo'].endswith('.jpeg') or row['anexo'].endswith('.png')):
             print(f"Processando OCR: {row['anexo']}")
             ocr_result = process_image_ocr(row['anexo'])
-            df.at[idx, 'ocr_data'] = ocr_result
+            df.at[idx, 'OCR'] = ocr_result
     
     # Remove a coluna bruta e salva o CSV
     df.drop(columns=['raw'], inplace=True)
@@ -328,43 +328,51 @@ def txt_to_csv_anexos_only(input_file, output_file):
     # Normaliza os nomes dos remetentes
     df_anexos['remetente'] = df_anexos['remetente'].apply(normalize_sender)
     
+    # Renomeia colunas para UPPERCASE
+    df_anexos = df_anexos.rename(columns={
+        'data': 'DATA',
+        'hora': 'HORA', 
+        'remetente': 'REMETENTE',
+        'anexo': 'ANEXO'
+    })
+    
     # Adiciona colunas para dados do OCR, valor total, descrição, classificação e colunas separadas por remetente
-    df_anexos['ocr_data'] = ''
-    df_anexos['valor_total'] = ''
-    df_anexos['descricao'] = ''
-    df_anexos['classificacao'] = ''
-    df_anexos['Ricardo'] = ''
-    df_anexos['Rafael'] = ''
+    df_anexos['OCR'] = ''
+    df_anexos['VALOR'] = ''
+    df_anexos['DESCRICAO'] = ''
+    df_anexos['CLASSIFICACAO'] = ''
+    df_anexos['RICARDO'] = ''
+    df_anexos['RAFAEL'] = ''
     
     # Processa OCR e extração de valor para cada anexo que é uma imagem
     print("Processando OCR das imagens (apenas anexos)...")
     for idx, row in df_anexos.iterrows():
-        if row['anexo'] and (row['anexo'].endswith('.jpg') or row['anexo'].endswith('.jpeg') or row['anexo'].endswith('.png')):
-            print(f"Processando OCR: {row['anexo']}")
-            ocr_result = process_image_ocr(row['anexo'])
-            df_anexos.at[idx, 'ocr_data'] = ocr_result
+        if row['ANEXO'] and (row['ANEXO'].endswith('.jpg') or row['ANEXO'].endswith('.jpeg') or row['ANEXO'].endswith('.png')):
+            print(f"Processando OCR: {row['ANEXO']}")
+            ocr_result = process_image_ocr(row['ANEXO'])
+            df_anexos.at[idx, 'OCR'] = ocr_result
             
             # Extrai valor total usando ChatGPT
-            print(f"Extraindo valor total: {row['anexo']}")
+            print(f"Extraindo valor total: {row['ANEXO']}")
             valor_total = extract_total_value_with_chatgpt(ocr_result)
-            df_anexos.at[idx, 'valor_total'] = valor_total
+            df_anexos.at[idx, 'VALOR'] = valor_total
             
             # Gera descrição do pagamento usando ChatGPT
-            print(f"Gerando descrição: {row['anexo']}")
+            print(f"Gerando descrição: {row['ANEXO']}")
             descricao = generate_payment_description_with_chatgpt(ocr_result)
-            df_anexos.at[idx, 'descricao'] = descricao
+            df_anexos.at[idx, 'DESCRICAO'] = descricao
             
             # Classifica o tipo de transação usando ChatGPT
-            print(f"Classificando transação: {row['anexo']}")
+            print(f"Classificando transação: {row['ANEXO']}")
             classificacao = classify_transaction_type_with_chatgpt(ocr_result)
-            df_anexos.at[idx, 'classificacao'] = classificacao
+            df_anexos.at[idx, 'CLASSIFICACAO'] = classificacao
             
-            # Adiciona o valor à coluna do remetente correspondente
-            if valor_total and valor_total.strip():  # Se há valor válido
-                if row['remetente'] == 'Ricardo':
-                    df_anexos.at[idx, 'Ricardo'] = valor_total
-                elif row['remetente'] == 'Rafael':
-                    df_anexos.at[idx, 'Rafael'] = valor_total
+            # Adiciona o valor à coluna do remetente correspondente APENAS para transferências
+            if valor_total and valor_total.strip() and classificacao == 'Transferência':
+                if row['REMETENTE'] == 'Ricardo':
+                    df_anexos.at[idx, 'RICARDO'] = valor_total
+                elif row['REMETENTE'] == 'Rafael':
+                    df_anexos.at[idx, 'RAFAEL'] = valor_total
     
     # Remove a coluna bruta e salva o CSV
     df_anexos.drop(columns=['raw'], inplace=True)
@@ -381,8 +389,8 @@ def txt_to_csv_anexos_only(input_file, output_file):
         except:
             return 0.0
     
-    ricardo_values = df_anexos['Ricardo'].apply(convert_to_float)
-    rafael_values = df_anexos['Rafael'].apply(convert_to_float)
+    ricardo_values = df_anexos['RICARDO'].apply(convert_to_float)
+    rafael_values = df_anexos['RAFAEL'].apply(convert_to_float)
     
     total_ricardo = ricardo_values.sum()
     total_rafael = rafael_values.sum()
