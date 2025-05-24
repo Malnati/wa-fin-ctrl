@@ -1,5 +1,6 @@
 import pandas as pd
 import sys
+import re
 
 def txt_to_csv(input_file, output_file):
     # Lê cada linha completa do arquivo de chat
@@ -7,8 +8,8 @@ def txt_to_csv(input_file, output_file):
         lines = f.readlines()
     df = pd.DataFrame(lines, columns=['raw'])
 
-    # Extrai data, hora, remetente e mensagem
-    pattern = r'^\[([\d]{2}/[\d]{2}/\d{4}), (\d{2}:\d{2}:\d{2})\] ([^:]+): (.*)$'
+    # Padrão mais flexível para capturar linhas com caracteres invisíveis
+    pattern = r'.*?\[([\d]{2}/[\d]{2}/\d{4}), (\d{2}:\d{2}:\d{2})\] ([^:]+): (.*)$'
     df[['data', 'hora', 'remetente', 'mensagem']] = df['raw'].str.extract(pattern)
     
     # Extrai o nome do arquivo de anexo, se houver
