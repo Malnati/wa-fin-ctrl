@@ -37,17 +37,40 @@ def process_image_ocr(image_path):
     except Exception as e:
         return f"Erro no OCR: {str(e)}"
 
+def convert_to_brazilian_format(valor):
+    """Converte valor do formato americano para brasileiro se necessário"""
+    if not valor or not re.match(r'^\d+([.,]\d+)?$', valor):
+        return valor
+    
+    # Se tem ponto mas não tem vírgula, é formato americano
+    if '.' in valor and ',' not in valor:
+        # Verifica se é decimal (ex: 7698.18) ou milhares (ex: 1.000)
+        partes = valor.split('.')
+        if len(partes) == 2 and len(partes[1]) <= 2:
+            # É decimal - converte para formato brasileiro
+            return valor.replace('.', ',')
+        elif len(partes) == 2 and len(partes[1]) == 3:
+            # É milhares em formato americano - mantém o ponto
+            return valor
+    
+    # Se tem vírgula, já está no formato brasileiro
+    if ',' in valor:
+        return valor
+    
+    # Se só tem números, mantém como está
+    return valor
+
 def extract_total_value_with_chatgpt(ocr_text):
     """Usa a API do ChatGPT para identificar o valor total da compra no texto OCR"""
     try:
         # Verifica se a chave da API está disponível
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
-            return "Chave API não encontrada"
+            return ""
         
         # Verifica se há texto para processar
         if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
-            return "Sem texto para analisar"
+            return ""
         
         # Inicializa o cliente OpenAI
         client = OpenAI(api_key=api_key)
@@ -59,9 +82,9 @@ def extract_total_value_with_chatgpt(ocr_text):
         Texto: {ocr_text}
         
         Instruções:
-        - Retorne APENAS o valor numérico no formato brasileiro (ex: 29,90 ou 1.533,27)
+        - Retorne APENAS o valor numérico (ex: 29.90 ou 1533.27 ou 29,90)
         - Se houver múltiplos valores, retorne o valor da transação principal
-        - Se não conseguir identificar um valor, retorne "N/A"
+        - Se não conseguir identificar um valor, retorne "NENHUM"
         - Não inclua "R$" ou outros símbolos
         - Não retorne explicações, apenas o número
         
@@ -85,10 +108,17 @@ def extract_total_value_with_chatgpt(ocr_text):
         # Limpa a resposta removendo caracteres indesejados
         valor = re.sub(r'[^\d,.]', '', valor)
         
-        return valor if valor else "N/A"
+        # Se não encontrou valor válido, retorna vazio
+        if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
+            return ""
+        
+        # Converte para formato brasileiro se necessário
+        valor_brasileiro = convert_to_brazilian_format(valor)
+        
+        return valor_brasileiro
         
     except Exception as e:
-        return f"Erro API: {str(e)}"
+        return ""
 
 def txt_to_csv(input_file, output_file):
     """Funcionalidade original - extrai todos os dados das mensagens"""
