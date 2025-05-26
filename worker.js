@@ -8,15 +8,12 @@ export default {
       url.pathname = '/index.html';
     }
     
-    // Lista de arquivos HTML disponíveis
-    const htmlFiles = [
-      'index-2025-04-Abril-20250526.html',
-      'index-2025-05-Maio-20250526.html'
-    ];
-    
-    // Verifica se é um arquivo HTML válido
+    // Verifica se é um arquivo HTML válido (padrão index-yyyy-MM- ou index.html)
     const filename = url.pathname.substring(1);
-    if (htmlFiles.includes(filename)) {
+    const isValidHtmlFile = filename === 'index.html' || 
+                           /^index-\d{4}-\d{2}-.+\.html$/.test(filename);
+    
+    if (isValidHtmlFile) {
       try {
         // Tenta buscar o arquivo usando Assets
         if (env.ASSETS) {
@@ -83,7 +80,75 @@ export default {
       });
     }
     
-    // Página de índice com lista de relatórios
+    // Busca dinamicamente os arquivos HTML disponíveis
+    let availableReports = [];
+    
+    // Lista manual dos arquivos conhecidos (será atualizada automaticamente quando novos arquivos forem adicionados)
+    const possibleFiles = [
+      'index.html',
+      'index-2025-05-Maio-20250526.html',
+      'index-2025-04-Abril-20250526.html',
+      'index-2025-05-Maio.html',
+      'index-2025-04-Abril.html',
+      'index-2025-06-Junho-20250526.html',
+      'index-2025-03-Marco-20250526.html',
+      'index-2025-01-Janeiro-20250526.html',
+      'index-2025-02-Fevereiro-20250526.html'
+    ];
+    
+    // Testa quais arquivos existem
+    for (const file of possibleFiles) {
+      try {
+        if (env.ASSETS) {
+          const testResponse = await env.ASSETS.fetch(new Request(`${url.origin}/${file}`));
+          if (testResponse.status === 200) {
+            availableReports.push(file);
+          }
+        }
+      } catch (e) {
+        // Arquivo não existe, continua
+      }
+    }
+    
+    // Ordena os arquivos encontrados
+    availableReports.sort((a, b) => {
+      // index.html primeiro
+      if (a === 'index.html') return -1;
+      if (b === 'index.html') return 1;
+      // Depois por data (mais recente primeiro)
+      return b.localeCompare(a);
+    });
+
+    // Gera a lista HTML dos relatórios
+    const reportsListHtml = availableReports.map(filename => {
+      let displayName = '';
+      let icon = '📋';
+      
+      if (filename === 'index.html') {
+        displayName = 'Relatório Geral';
+        icon = '📊';
+      } else {
+        // Extrai informações do nome do arquivo
+        const match = filename.match(/index-(\d{4})-(\d{2})-(.+)\.html/);
+        if (match) {
+          const [, year, month, description] = match;
+          const monthNames = {
+            '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
+            '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto',
+            '09': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro'
+          };
+          const monthName = monthNames[month] || month;
+          displayName = `${monthName} ${year}${description.includes('20250526') ? ' (26/05)' : ''}`;
+          icon = '📅';
+        } else {
+          displayName = filename.replace('.html', '');
+        }
+      }
+      
+      return `<li><a href="/${filename}">${icon} ${displayName}</a></li>`;
+    }).join('');
+
+    // Página de índice com lista dinâmica de relatórios
     const indexPage = `
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -100,6 +165,7 @@ export default {
         .reports a { display: block; padding: 15px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; transition: background 0.3s; }
         .reports a:hover { background: #2980b9; }
         .info { background: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .empty { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0; }
       </style>
     </head>
     <body>
@@ -109,13 +175,18 @@ export default {
           <strong>Sistema de Prestação de Contas</strong><br>
           Relatórios gerados automaticamente a partir dos comprovantes processados.
         </div>
-        <ul class="reports">
-          <li><a href="/index-2025-04-Abril-20250526.html">📅 Abril 2025 (26/05)</a></li>
-          <li><a href="/index-2025-05-Maio-20250526.html">📅 Maio 2025 (26/05)</a></li>
-        </ul>
+        ${availableReports.length > 0 ? 
+          `<ul class="reports">${reportsListHtml}</ul>` : 
+          `<div class="empty">
+            <strong>📭 Nenhum relatório disponível online</strong><br>
+            Execute <code>python app.py processar</code> localmente para gerar os relatórios.
+          </div>`
+        }
         <div class="info" style="margin-top: 20px;">
-          <strong>ℹ️ Nota:</strong> Os relatórios completos são muito grandes para hospedar online. 
+          <strong>ℹ️ Nota:</strong> Apenas relatórios menores que 25MB são hospedados online. 
           Para acessar todos os relatórios, execute <code>python app.py processar</code> localmente.
+          <br><br>
+          <strong>🔄 Última atualização:</strong> ${new Date().toLocaleString('pt-BR')}
         </div>
       </div>
     </body>
