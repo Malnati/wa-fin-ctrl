@@ -1144,17 +1144,19 @@ def testar_funcoes_chatgpt():
 def gerar_relatorio_html(csv_path):
     """Gera um relatório HTML responsivo baseado no arquivo CSV"""
     try:
-        # Verifica se o index.html já existe
-        if os.path.exists("index.html"):
-            print("✅ Relatório index.html já existe na raiz do projeto")
-            return
-        
         # Verifica se o arquivo CSV existe
         if not os.path.exists(csv_path):
             print(f"❌ O relatório index.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
             return
         
-        print(f"📊 Gerando relatório HTML baseado em {csv_path}...")
+        # Se index.html já existe, renomeia com timestamp antes de gerar novo
+        if os.path.exists("index.html"):
+            timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+            arquivo_backup = f"index-{timestamp}.html"
+            os.rename("index.html", arquivo_backup)
+            print(f"📁 Relatório anterior renomeado para: {arquivo_backup}")
+        
+        print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
         df = pd.read_csv(csv_path)
         
         html = '''<!DOCTYPE html>
