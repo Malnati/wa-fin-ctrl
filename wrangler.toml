@@ -1,0 +1,7 @@
+name = "gastos-tia-claudia"
+compatibility_date = "2024-05-01"
+main = "worker.js"
+
+# Variáveis de ambiente
+[vars]
+ENVIRONMENT = "production" 
