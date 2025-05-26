@@ -14,21 +14,31 @@ export default {
                            /^index-\d{4}-\d{2}-.+\.html$/.test(filename);
     
     if (isValidHtmlFile) {
+      // Busca arquivo via GitHub Raw (assumindo que o projeto está no GitHub)
       try {
-        // Tenta buscar o arquivo usando Assets
-        if (env.ASSETS) {
-          const assetResponse = await env.ASSETS.fetch(request);
-          if (assetResponse.status === 200) {
-            return new Response(assetResponse.body, {
-              headers: {
-                'Content-Type': 'text/html;charset=UTF-8',
-                'Cache-Control': 'public, max-age=3600'
-              }
-            });
+        // Tenta buscar de diferentes fontes possíveis
+        const possibleUrls = [
+          `https://raw.githubusercontent.com/ricardomalnati/gastos-tia-claudia/main/${filename}`,
+          `https://raw.githubusercontent.com/mal/gastos-tia-claudia/main/${filename}`
+        ];
+        
+        for (const githubUrl of possibleUrls) {
+          try {
+            const githubResponse = await fetch(githubUrl);
+            if (githubResponse.ok) {
+              return new Response(await githubResponse.text(), {
+                headers: {
+                  'Content-Type': 'text/html;charset=UTF-8',
+                  'Cache-Control': 'public, max-age=1800'
+                }
+              });
+            }
+          } catch (e) {
+            // Tenta próxima URL
           }
         }
       } catch (error) {
-        console.error('Erro ao buscar arquivo via Assets:', error);
+        console.error('Erro ao buscar arquivo via GitHub:', error);
       }
       
       // Se não conseguir via Assets, retorna mensagem informativa
@@ -84,8 +94,6 @@ export default {
     let availableReports = [];
     
     // Gera possibilidades dinâmicas baseadas em padrões temporais
-    const currentYear = new Date().getFullYear();
-    const years = [currentYear - 1, currentYear, currentYear + 1]; // Ano anterior, atual e próximo
     const months = [
       { num: '01', name: 'Janeiro' },
       { num: '02', name: 'Fevereiro' }, 
@@ -101,61 +109,72 @@ export default {
       { num: '12', name: 'Dezembro' }
     ];
     
+    // Função para testar se arquivo existe via GitHub
+    const testFileExists = async (filename) => {
+      const possibleUrls = [
+        `https://raw.githubusercontent.com/ricardomalnati/gastos-tia-claudia/main/${filename}`,
+        `https://raw.githubusercontent.com/mal/gastos-tia-claudia/main/${filename}`
+      ];
+      
+      for (const githubUrl of possibleUrls) {
+        try {
+          const response = await fetch(githubUrl, { method: 'HEAD' });
+          if (response.ok) {
+            return true;
+          }
+        } catch (e) {
+          // Continua tentando
+        }
+      }
+      return false;
+    };
+    
     // Testa index.html principal
-    try {
-      if (env.ASSETS) {
-        const testResponse = await env.ASSETS.fetch(new Request(`${url.origin}/index.html`));
-        if (testResponse.status === 200) {
-          availableReports.push('index.html');
-        }
-      }
-    } catch (e) {
-      // index.html não existe
+    if (await testFileExists('index.html')) {
+      availableReports.push('index.html');
     }
     
-    // Gera e testa padrões dinamicamente
-    for (const year of years) {
-      for (const month of months) {
-        // Padrões possíveis baseados no que foi observado nos arquivos existentes
-        const patterns = [
-          `index-${year}-${month.num}-${month.name}.html`,
-          `index-${year}-${month.num}-${month.name}-20250526.html`,
-          `index-${year}-${month.num}-${month.name}-${new Date().toISOString().slice(0,10).replace(/-/g,'')}.html`
-        ];
-        
-        for (const pattern of patterns) {
-          try {
-            if (env.ASSETS) {
-              const testResponse = await env.ASSETS.fetch(new Request(`${url.origin}/${pattern}`));
-              if (testResponse.status === 200) {
-                availableReports.push(pattern);
-              }
-            }
-          } catch (e) {
-            // Arquivo não existe, continua
-          }
+    // Gera e testa padrões dinamicamente (limitado para não fazer muitas requisições)
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+    
+    // Testa apenas os últimos 6 meses para evitar muitas requisições
+    for (let i = 0; i < 6; i++) {
+      let testMonth = currentMonth - i;
+      let testYear = currentYear;
+      
+      if (testMonth <= 0) {
+        testMonth += 12;
+        testYear -= 1;
+      }
+      
+      const monthStr = testMonth.toString().padStart(2, '0');
+      const monthName = months.find(m => m.num === monthStr)?.name || monthStr;
+      
+      // Testa padrões mais comuns primeiro
+      const patterns = [
+        `index-${testYear}-${monthStr}-${monthName}-20250526.html`,
+        `index-${testYear}-${monthStr}-${monthName}.html`
+      ];
+      
+      for (const pattern of patterns) {
+        if (await testFileExists(pattern)) {
+          availableReports.push(pattern);
+          break; // Se encontrou um padrão, não testa os outros para este mês
         }
       }
     }
     
-    // Testa também padrões de backup/timestamp
-    const currentDate = new Date();
-    const datePatterns = [
-      currentDate.toISOString().slice(0,10).replace(/-/g,''),
-      currentDate.toISOString().slice(0,10).replace(/-/g,'') + '_' + currentDate.toTimeString().slice(0,8).replace(/:/g,'')
-    ];
+    // Testa padrão de data atual
+    const today = new Date();
+    const datePattern = today.toISOString().slice(0,10).replace(/-/g,'');
+    const timePattern = datePattern + '_' + today.toTimeString().slice(0,8).replace(/:/g,'');
     
-    for (const datePattern of datePatterns) {
-      try {
-        if (env.ASSETS) {
-          const testResponse = await env.ASSETS.fetch(new Request(`${url.origin}/index-${datePattern}.html`));
-          if (testResponse.status === 200) {
-            availableReports.push(`index-${datePattern}.html`);
-          }
-        }
-      } catch (e) {
-        // Arquivo não existe
-      }
+    if (await testFileExists(`index-${datePattern}.html`)) {
+      availableReports.push(`index-${datePattern}.html`);
+    }
+    if (await testFileExists(`index-${timePattern}.html`)) {
+      availableReports.push(`index-${timePattern}.html`);
     }
     
     // Remove duplicatas e ordena

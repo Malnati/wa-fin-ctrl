@@ -30,5 +30,13 @@ docs/
 # Arquivos CSV de dados
 *.csv
 
-# Manter apenas arquivos HTML específicos
-# Todos os outros serão ignorados por padrão 
+# Configuração do Workers
+wrangler.toml
+worker.js
+.wranglerignore
+
+# README
+README.md
+
+# Excluir arquivos HTML muito grandes (>25MB)
+# O Workers vai automaticamente excluir arquivos que excedem o limite 
