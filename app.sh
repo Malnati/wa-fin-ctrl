@@ -1,31 +1,39 @@
 #!/usr/bin/env bash
+
+log() {
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+}
 set -e
 
 # Gastos Tia Claudia - Processador de comprovantes WhatsApp
 # Uso: ./app.sh [processar|verificar] [arquivo_entrada] [arquivo_saida]
 
-# 1. Remove e cria um novo ambiente virtual
-rm -rf venv
-python3 -m venv venv
+# 1. Cria ambiente virtual se não existir
+if [ ! -d venv ]; then
+  log "Criando ambiente virtual..."
+  python3 -m venv venv
+else
+  log "Ambiente virtual encontrado, reutilizando."
+fi
 
-# 2. Ativa o ambiente virtual e instala dependências se necessário
+# 2. Ativa o ambiente virtual
 source venv/bin/activate
 
-# Verifica se as dependências já estão instaladas
+log "Verificando dependências Python..."
 if ! python -c "import pandas, pillow, pytesseract, cv2, openai" 2>/dev/null; then
-    echo "Instalando dependências..."
+    log "Instalando dependências..."
     pip install --upgrade pip
     pip install pandas pillow pytesseract opencv-python openai
 else
-    echo "Dependências já instaladas."
+    log "Dependências já instaladas."
 fi
 
 # 3. Executa o script baseado nos parâmetros
 COMANDO=${1:-processar}
 
 if [ "$COMANDO" = "processar" ]; then
-    echo "Iniciando processamento incremental..."
-    echo "Suporte a arquivos ZIP: Se houver um arquivo .zip em input/, será descomprimido automaticamente"
+    log "Suporte a arquivos ZIP: Se houver um arquivo .zip em input/, será descomprimido automaticamente"
+    log "Iniciando processamento incremental..."
     python app.py processar
 elif [ "$COMANDO" = "verificar" ]; then
     ARQUIVO_CSV=${2:-calculo.csv}
