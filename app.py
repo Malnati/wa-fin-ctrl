@@ -1314,6 +1314,48 @@ def gerar_relatorio_html(csv_path):
       img.thumb:hover {
         transform: scale(2.5);
       }
+      table th:nth-child(1), table td:nth-child(1) {
+        font-size: 10px;
+        white-space: normal;
+        word-break: break-word;
+      }
+      table th:nth-child(2), table td:nth-child(2) {
+        font-size: 0;
+        width: 30px;
+        position: relative;
+      }
+      table th:nth-child(2)::after {
+        content: "⇆";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+      }
+      span.classificacao.transferencia::before {
+        content: "⇆";
+      }
+      span.classificacao.pagamento::before {
+        content: "💸";
+      }
+      span.classificacao {
+        font-size: 0;
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+      }
+      table th:nth-child(3)::after {
+        content: "RI";
+      }
+      table th:nth-child(4)::after {
+        content: "RA";
+      }
+      table th:nth-child(5)::after {
+        content: "📎";
+      }
+      table th:nth-child(6), table td:nth-child(6) {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -1647,6 +1689,48 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
       }
       img.thumb:hover {
         transform: scale(2.5);
+      }
+      table th:nth-child(1), table td:nth-child(1) {
+        font-size: 10px;
+        white-space: normal;
+        word-break: break-word;
+      }
+      table th:nth-child(2), table td:nth-child(2) {
+        font-size: 0;
+        width: 30px;
+        position: relative;
+      }
+      table th:nth-child(2)::after {
+        content: "⇆";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+      }
+      span.classificacao.transferencia::before {
+        content: "⇆";
+      }
+      span.classificacao.pagamento::before {
+        content: "💸";
+      }
+      span.classificacao {
+        font-size: 0;
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+      }
+      table th:nth-child(3)::after {
+        content: "RI";
+      }
+      table th:nth-child(4)::after {
+        content: "RA";
+      }
+      table th:nth-child(5)::after {
+        content: "📎";
+      }
+      table th:nth-child(6), table td:nth-child(6) {
+        display: none;
       }
     }
   </style>
