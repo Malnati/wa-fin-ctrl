@@ -1324,30 +1324,26 @@ def gerar_relatorio_html(csv_path):
         width: 30px;
         position: relative;
       }
-      table th:nth-child(2)::after {
-        content: "⇆";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 14px;
-      }
-      /* Hide button text and show icon only */
+      /* Button in th:nth-child(2) - override to icon only and style */
       table th:nth-child(2) button {
         font-size: 0;
         border: none;
         background: none;
+        padding: 4px;
+        display: inline-block;
+        cursor: pointer;
+      }
+      table th:nth-child(2) {
         position: relative;
-        width: 1em;
-        height: 1em;
+        z-index: 1;
       }
       table th:nth-child(2) button::after {
         content: "⇆";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
         font-size: 14px;
+        position: relative;
+      }
+      table th:nth-child(2)::after {
+        display: none;
       }
       span.classificacao.transferencia::before {
         content: "⇆";
@@ -1734,30 +1730,26 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
         width: 30px;
         position: relative;
       }
-      table th:nth-child(2)::after {
-        content: "⇆";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 14px;
-      }
-      /* Hide button text and show icon only */
+      /* Button in th:nth-child(2) - override to icon only and style */
       table th:nth-child(2) button {
         font-size: 0;
         border: none;
         background: none;
+        padding: 4px;
+        display: inline-block;
+        cursor: pointer;
+      }
+      table th:nth-child(2) {
         position: relative;
-        width: 1em;
-        height: 1em;
+        z-index: 1;
       }
       table th:nth-child(2) button::after {
         content: "⇆";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
         font-size: 14px;
+        position: relative;
+      }
+      table th:nth-child(2)::after {
+        display: none;
       }
       span.classificacao.transferencia::before {
         content: "⇆";
