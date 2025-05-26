@@ -172,7 +172,7 @@
         const hasDate = description.includes('20');
         const isLegacy = filename.startsWith('index-');
         const icon = '📅';
-        return `${icon} ${monthName} ${year}${hasDate ? ` (Backup)` : ''}${isLegacy ? ' (Legado)' : ''}`;
+        return `${icon} ${monthName} ${year}${hasDate ? ` (Backup)` : ''}${isLegacy ? '' : ''}`;
       }
       
       return `📋 ${filename.replace('.html', '')}`;
