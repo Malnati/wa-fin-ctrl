@@ -1332,6 +1332,23 @@ def gerar_relatorio_html(csv_path):
         transform: translate(-50%, -50%);
         font-size: 14px;
       }
+      /* Hide button text and show icon only */
+      table th:nth-child(2) button {
+        font-size: 0;
+        border: none;
+        background: none;
+        position: relative;
+        width: 1em;
+        height: 1em;
+      }
+      table th:nth-child(2) button::after {
+        content: "⇆";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+      }
       span.classificacao.transferencia::before {
         content: "⇆";
       }
@@ -1718,6 +1735,23 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
         position: relative;
       }
       table th:nth-child(2)::after {
+        content: "⇆";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+      }
+      /* Hide button text and show icon only */
+      table th:nth-child(2) button {
+        font-size: 0;
+        border: none;
+        background: none;
+        position: relative;
+        width: 1em;
+        height: 1em;
+      }
+      table th:nth-child(2) button::after {
         content: "⇆";
         position: absolute;
         top: 50%;
