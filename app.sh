@@ -31,20 +31,26 @@ elif [ "$COMANDO" = "verificar" ]; then
     ARQUIVO_CSV=${2:-calculo.csv}
     echo "Verificando totais do arquivo: $ARQUIVO_CSV"
     python app.py verificar "$ARQUIVO_CSV"
+elif [ "$COMANDO" = "teste" ]; then
+    echo "Executando testes End-to-End completos..."
+    python app.py teste
 else
     echo "Uso:"
     echo "  ./app.sh processar              # Processamento incremental automático"
     echo "  ./app.sh verificar [arquivo_csv]"
+    echo "  ./app.sh teste                  # Executa testes E2E completos"
     echo ""
     echo "Funcionalidades:"
     echo "  • Descompressão automática de arquivos ZIP em input/"
     echo "  • Processamento incremental (evita reprocessar arquivos existentes)"
     echo "  • Extração de dados via OCR e ChatGPT"
     echo "  • Totalização mensal automática"
+    echo "  • Testes automatizados E2E"
     echo ""
     echo "Exemplos:"
     echo "  ./app.sh processar              # Processa arquivos em input/ (incluindo ZIPs)"
     echo "  ./app.sh verificar calculo.csv  # Verifica totais financeiros"
+    echo "  ./app.sh teste                  # Executa todos os testes do sistema"
 fi
 
 # 4. Desativa o ambiente virtual

@@ -48,6 +48,17 @@ python app.py processar
 python app.py verificar calculo.csv
 ```
 
+#### 3. Testes End-to-End (E2E)
+```bash
+# Usando script shell
+./app.sh teste
+
+# Usando Python diretamente
+python app.py teste
+```
+
+> **🧪 Testes Automatizados**: Executa testes completos do sistema incluindo processamento de ZIP, OCR, ChatGPT e verificação de totais. Ideal para validar o funcionamento após mudanças.
+
 ## 📋 Estrutura dos Dados de Saída
 
 ### CSV Principal (`calculo.csv`)
@@ -119,11 +130,13 @@ Verificação: 28,244.01 = 28,244.01 ✅
 - Coloque todas as imagens dos comprovantes no diretório `input/`
 
 ### 2. Processamento Automático
-1. **Verificação de Duplicatas**: Remove arquivos de `input/` que já existem em `imgs/`
-2. **Processamento OCR + IA**: Processa apenas arquivos novos com OCR e ChatGPT
-3. **Incrementação de CSVs**: Adiciona novos dados aos arquivos existentes (não sobrescreve)
-4. **Movimentação**: Move imagens processadas de `input/` para `imgs/`
-5. **Limpeza**: Remove `input/_chat.txt` e deixa `input/` vazio
+1. **Descompressão ZIP**: Detecta e descomprime arquivos ZIP automaticamente
+2. **Organização de Arquivos**: Move arquivos de subdiretórios para `input/` diretamente, remove pastas desnecessárias
+3. **Verificação de Duplicatas**: Remove arquivos de `input/` que já existem em `imgs/`
+4. **Processamento OCR + IA**: Processa apenas arquivos novos com OCR e ChatGPT
+5. **Incrementação de CSVs**: Adiciona novos dados aos arquivos existentes (não sobrescreve)
+6. **Movimentação**: Move imagens processadas de `input/` para `imgs/`
+7. **Limpeza**: Remove `input/_chat.txt` e deixa `input/` vazio
 
 ### 3. Resultado Final
 - **`imgs/`**: Todas as imagens processadas (histórico + novas)
@@ -133,10 +146,16 @@ Verificação: 28,244.01 = 28,244.01 ✅
 
 ## 🔧 Funcionalidades
 
-### Processamento de Imagens
+### Processamento de Arquivos
+- **Suporte a ZIP**: Descompressão automática de arquivos exportados do WhatsApp
+- **Organização Inteligente**: Move arquivos de subdiretórios para estrutura plana
+- **Limpeza Automática**: Remove diretórios desnecessários (ex: `__MACOSX`)
 - Leitura automática de arquivos JPG, JPEG, PNG e PDF
+
+### Processamento de Imagens
 - Pré-processamento com OpenCV (escala de cinza, threshold)
 - OCR otimizado para comprovantes financeiros
+- Processamento incremental (evita reprocessar imagens existentes)
 
 ### Análise Inteligente
 - **Extração de Valores**: Identifica valores monetários principais
@@ -148,6 +167,11 @@ Verificação: 28,244.01 = 28,244.01 ✅
 - Conversão automática entre formatos numéricos (americano ↔ brasileiro)
 - Verificação de consistência financeira
 - Relatórios detalhados de totais por categoria
+
+### Testes Automatizados
+- **Testes E2E**: Validação completa do fluxo de processamento
+- **Backup/Restore**: Proteção de dados durante testes
+- **Múltiplos Cenários**: OCR, ChatGPT, totais e processamento incremental
 
 ## 🎯 Casos de Uso
 
