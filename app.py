@@ -1157,7 +1157,7 @@ def gerar_relatorio_html(csv_path):
         # Se report.html já existe, renomeia com timestamp antes de gerar novo
         if os.path.exists("report.html"):
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-            arquivo_backup = f"report-{timestamp}.html"
+            arquivo_backup = f"report-{timestamp}.bak"
             os.rename("report.html", arquivo_backup)
             print(f"📁 Relatório anterior renomeado para: {arquivo_backup}")
         
@@ -1558,7 +1558,7 @@ def gerar_relatorios_mensais_html(csv_path):
             # Faz backup se arquivo já existe
             if os.path.exists(nome_arquivo):
                 timestamp = pd.Timestamp.now().strftime('%Y%m%d')
-                arquivo_backup = f"report-{ano}-{mes:02d}-{nome_mes}-{timestamp}.html"
+                arquivo_backup = f"report-{ano}-{mes:02d}-{nome_mes}-{timestamp}.bak"
                 os.rename(nome_arquivo, arquivo_backup)
                 print(f"📁 Relatório mensal anterior renomeado para: {arquivo_backup}")
 
