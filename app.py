@@ -1369,7 +1369,7 @@ def gerar_relatorio_html(csv_path):
       <thead>
         <tr>
           <th>Data-Hora</th>
-          <th>Classificação</th>
+          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;">Classificação</button></th>
           <th>Ricardo (R$)</th>
           <th>Rafael (R$)</th>
           <th>Anexo</th>
@@ -1465,6 +1465,23 @@ def gerar_relatorio_html(csv_path):
       const modal = document.getElementById('modal');
       modal.classList.remove('show');
     }
+    // Toggle payments visibility
+    let showPayments = false;
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('toggle-payments');
+      toggleBtn.addEventListener('click', () => {
+        showPayments = !showPayments;
+        document.querySelectorAll('tbody tr').forEach(row => {
+          const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
+          row.style.display = isPayment ? (showPayments ? '' : 'none') : '';
+        });
+      });
+      // Hide payments by default
+      document.querySelectorAll('tbody tr').forEach(row => {
+        const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
+        if (isPayment) row.style.display = 'none';
+      });
+    });
   </script>
 </body>
 </html>'''
@@ -1745,7 +1762,7 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
       <thead>
         <tr>
           <th>Data-Hora</th>
-          <th>Classificação</th>
+          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;">Classificação</button></th>
           <th>Ricardo (R$)</th>
           <th>Rafael (R$)</th>
           <th>Anexo</th>
@@ -1841,6 +1858,23 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
       const modal = document.getElementById('modal');
       modal.classList.remove('show');
     }
+    // Toggle payments visibility
+    let showPayments = false;
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('toggle-payments');
+      toggleBtn.addEventListener('click', () => {
+        showPayments = !showPayments;
+        document.querySelectorAll('tbody tr').forEach(row => {
+          const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
+          row.style.display = isPayment ? (showPayments ? '' : 'none') : '';
+        });
+      });
+      // Hide payments by default
+      document.querySelectorAll('tbody tr').forEach(row => {
+        const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
+        if (isPayment) row.style.display = 'none';
+      });
+    });
   </script>
 </body>
 </html>'''
