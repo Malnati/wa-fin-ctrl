@@ -1242,6 +1242,28 @@ def gerar_relatorio_html(csv_path):
       border: 2px solid #3498db;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      padding-top: 0;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.95);
+    }
+    .modal-content {
+      margin: auto;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .modal.show {
+      display: block;
+    }
     .valor {
       font-weight: bold;
       color: #27ae60;
@@ -1352,7 +1374,7 @@ def gerar_relatorio_html(csv_path):
                             ext = img_path.suffix.replace(".", "").lower()
                             if ext == 'jpg':
                                 ext = 'jpeg'
-                            img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}">'
+                            img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
                     except Exception as e:
                         print(f"Erro ao processar imagem {anexo}: {e}")
                         img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
@@ -1380,6 +1402,23 @@ def gerar_relatorio_html(csv_path):
         html += '''      </tbody>
     </table>
   </div>
+
+  <div id="modal" class="modal" onclick="hideModal()">
+    <img class="modal-content" id="modal-img">
+  </div>
+
+  <script>
+    function showModal(imgSrc) {
+      const modal = document.getElementById('modal');
+      const modalImg = document.getElementById('modal-img');
+      modalImg.src = imgSrc;
+      modal.classList.add('show');
+    }
+    function hideModal() {
+      const modal = document.getElementById('modal');
+      modal.classList.remove('show');
+    }
+  </script>
 </body>
 </html>'''
 
