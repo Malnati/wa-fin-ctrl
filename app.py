@@ -735,6 +735,9 @@ def processar_incremental():
     
     if not tem_arquivos:
         print("Nenhum arquivo novo para processar.")
+        # Mesmo sem arquivos novos, tenta gerar relatório HTML se calculo.csv existir
+        print("\n=== GERANDO RELATÓRIO HTML ===")
+        gerar_relatorio_html("calculo.csv")
         return
     
     # Processamento dos dados
@@ -747,10 +750,6 @@ def processar_incremental():
     # Processa apenas anexos
     print("\n=== PROCESSANDO APENAS ANEXOS ===")
     df_anexos = txt_to_csv_anexos_only(chat_file, "calculo.csv")
-    
-    # Gera relatório HTML baseado no calculo.csv
-    print("\n=== GERANDO RELATÓRIO HTML ===")
-    gerar_relatorio_html("calculo.csv")
     
     # Move arquivos processados de input/ para imgs/
     print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
@@ -772,6 +771,10 @@ def processar_incremental():
         print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
     
     print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
+    
+    # Sempre gera relatório HTML (independente de ter novos arquivos)
+    print("\n=== GERANDO RELATÓRIO HTML ===")
+    gerar_relatorio_html("calculo.csv")
 
 def descomprimir_zip_se_existir():
     """Verifica se existe apenas um arquivo ZIP em input/ e o descomprime"""
@@ -1141,6 +1144,17 @@ def testar_funcoes_chatgpt():
 def gerar_relatorio_html(csv_path):
     """Gera um relatório HTML responsivo baseado no arquivo CSV"""
     try:
+        # Verifica se o index.html já existe
+        if os.path.exists("index.html"):
+            print("✅ Relatório index.html já existe na raiz do projeto")
+            return
+        
+        # Verifica se o arquivo CSV existe
+        if not os.path.exists(csv_path):
+            print(f"❌ O relatório index.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
+            return
+        
+        print(f"📊 Gerando relatório HTML baseado em {csv_path}...")
         df = pd.read_csv(csv_path)
         
         html = '''<!DOCTYPE html>
