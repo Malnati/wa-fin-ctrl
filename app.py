@@ -1150,14 +1150,14 @@ def gerar_relatorio_html(csv_path):
     try:
         # Verifica se o arquivo CSV existe
         if not os.path.exists(csv_path):
-            print(f"❌ O relatório index.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
+            print(f"❌ O relatório report.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
             return
         
-        # Se index.html já existe, renomeia com timestamp antes de gerar novo
-        if os.path.exists("index.html"):
+        # Se report.html já existe, renomeia com timestamp antes de gerar novo
+        if os.path.exists("report.html"):
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-            arquivo_backup = f"index-{timestamp}.html"
-            os.rename("index.html", arquivo_backup)
+            arquivo_backup = f"report-{timestamp}.html"
+            os.rename("report.html", arquivo_backup)
             print(f"📁 Relatório anterior renomeado para: {arquivo_backup}")
         
         print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
@@ -1426,10 +1426,10 @@ def gerar_relatorio_html(csv_path):
 </body>
 </html>'''
 
-        with open("index.html", "w", encoding="utf-8") as f:
+        with open("report.html", "w", encoding="utf-8") as f:
             f.write(html)
         
-        print("✅ Relatório HTML gerado: index.html")
+        print("✅ Relatório HTML gerado: report.html")
         
     except Exception as e:
         print(f"❌ Erro ao gerar relatório HTML: {str(e)}")
@@ -1473,12 +1473,12 @@ def gerar_relatorios_mensais_html(csv_path):
             nome_mes = nomes_meses[mes]
             
             # Nome do arquivo mensal
-            nome_arquivo = f"index-{ano}-{mes:02d}-{nome_mes}.html"
+            nome_arquivo = f"report-{ano}-{mes:02d}-{nome_mes}.html"
             
             # Faz backup se arquivo já existe
             if os.path.exists(nome_arquivo):
                 timestamp = pd.Timestamp.now().strftime('%Y%m%d')
-                arquivo_backup = f"index-{ano}-{mes:02d}-{nome_mes}-{timestamp}.html"
+                arquivo_backup = f"report-{ano}-{mes:02d}-{nome_mes}-{timestamp}.html"
                 os.rename(nome_arquivo, arquivo_backup)
                 print(f"📁 Relatório mensal anterior renomeado para: {arquivo_backup}")
             
