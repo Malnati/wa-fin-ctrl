@@ -20,10 +20,10 @@ fi
 source venv/bin/activate
 
 log "Verificando dependências Python..."
-if ! python -c "import pandas, pillow, pytesseract, cv2, openai" 2>/dev/null; then
+if ! python -c "import pandas, pillow, pytesseract, cv2, openai, openpyxl" 2>/dev/null; then
     log "Instalando dependências..."
     pip install --upgrade pip
-    pip install pandas pillow pytesseract opencv-python openai
+    pip install pandas pillow pytesseract opencv-python openai openpyxl
 else
     log "Dependências já instaladas."
 fi

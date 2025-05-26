@@ -1,4 +1,5 @@
 import pandas as pd
+from openpyxl import load_workbook
 import sys
 import re
 import os
@@ -1381,6 +1382,9 @@ def gerar_relatorio_html(csv_path):
     <div class="info">
       Gerado automaticamente em ''' + pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S') + '''
     </div>
+    <div style="text-align: right; margin-bottom: 10px;">
+      <a href="prestacao_contas_justica.xlsx" download><button>Imprimir Formato Justiça</button></a>
+    </div>
     <table>
       <thead>
         <tr>
@@ -1794,6 +1798,31 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
     <div class="info">
       Gerado automaticamente em ''' + pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S') + '''
     </div>
+    <div style="text-align: right; margin-bottom: 10px;">
+      <a href="prestacao_contas_justica.xlsx" download><button>Imprimir Formato Justiça</button></a>
+    </div>
+def gerar_formato_justica(calculo_csv, template_path, output_path):
+    """Gera arquivo de prestação de contas no formato da Justiça usando template Excel."""
+    # Lê dados calculados
+    df = pd.read_csv(calculo_csv)
+    # Abre template Excel
+    wb = load_workbook(template_path)
+    ws = wb.active
+    # Insere registros a partir da linha 8
+    start_row = 8
+    for i, row in enumerate(df.itertuples(index=False), start=start_row):
+        ws.cell(row=i, column=1, value=row.DATA)
+        ws.cell(row=i, column=2, value=row.CLASSIFICACAO)
+        ws.cell(row=i, column=3, value=row.DESCRICAO)
+        # Converte VALOR para número
+        try:
+            val = float(str(row.VALOR).replace(',', '.'))
+        except:
+            val = None
+        ws.cell(row=i, column=4, value=val)
+    # Salva nova planilha
+    wb.save(output_path)
+    print(f"Arquivo de prestação para Justiça gerado: {output_path}")
     <table>
       <thead>
         <tr>
@@ -1948,7 +1977,10 @@ if __name__ == "__main__":
         # Executa testes E2E
         sucesso = executar_testes_e2e()
         sys.exit(0 if sucesso else 1)
-        
+    elif comando == "prestacao":
+        # Gera planilha no formato da Justiça
+        gerar_formato_justica("calculo.csv", "prestacao_contas.xls", "prestacao_contas_justica.xlsx")
+        sys.exit(0)
     else:
         print("Comando inválido. Use 'processar', 'verificar' ou 'teste'")
         sys.exit(1)
