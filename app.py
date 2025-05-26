@@ -1171,6 +1171,14 @@ def gerar_relatorio_html(csv_path):
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Relatório de Prestação de Contas</title>
   <style>
+    /* Always show eye icon for classification header */
+    table th:nth-child(2) button {
+      font-size: 0;
+    }
+    table th:nth-child(2) button::after {
+      content: "👁️";
+      font-size: 16px;
+    }
     body { 
       font-family: Arial, sans-serif; 
       margin: 20px; 
@@ -1341,7 +1349,7 @@ def gerar_relatorio_html(csv_path):
         cursor: pointer;
       }
       table th:nth-child(2) button::after {
-        content: "⇆";
+        content: "👁️";
         font-size: 14px;
         position: relative;
       }
@@ -1385,7 +1393,7 @@ def gerar_relatorio_html(csv_path):
       <thead>
         <tr>
           <th>Data-Hora</th>
-          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;">Classificação</button></th>
+          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;"></button></th>
           <th>Ricardo (R$)</th>
           <th>Rafael (R$)</th>
           <th>Anexo</th>
@@ -1584,6 +1592,14 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + '''</title>
   <style>
+    /* Always show eye icon for classification header */
+    table th:nth-child(2) button {
+      font-size: 0;
+    }
+    table th:nth-child(2) button::after {
+      content: "👁️";
+      font-size: 16px;
+    }
     body { 
       font-family: Arial, sans-serif; 
       margin: 20px; 
@@ -1754,7 +1770,7 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
         cursor: pointer;
       }
       table th:nth-child(2) button::after {
-        content: "⇆";
+        content: "👁️";
         font-size: 14px;
         position: relative;
       }
@@ -1798,7 +1814,7 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
       <thead>
         <tr>
           <th>Data-Hora</th>
-          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;">Classificação</button></th>
+          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;"></button></th>
           <th>Ricardo (R$)</th>
           <th>Rafael (R$)</th>
           <th>Anexo</th>
