@@ -1471,17 +1471,20 @@ def gerar_relatorios_mensais_html(csv_path):
             ano = periodo.year
             mes = periodo.month
             nome_mes = nomes_meses[mes]
-            
+
+            # Garante que apenas dados do mês corrente estejam no relatório
+            dados_mes = dados_mes[dados_mes['DATA_DT'].dt.month == mes]
+
             # Nome do arquivo mensal
             nome_arquivo = f"report-{ano}-{mes:02d}-{nome_mes}.html"
-            
+
             # Faz backup se arquivo já existe
             if os.path.exists(nome_arquivo):
                 timestamp = pd.Timestamp.now().strftime('%Y%m%d')
                 arquivo_backup = f"report-{ano}-{mes:02d}-{nome_mes}-{timestamp}.html"
                 os.rename(nome_arquivo, arquivo_backup)
                 print(f"📁 Relatório mensal anterior renomeado para: {arquivo_backup}")
-            
+
             # Gera HTML para o mês
             gerar_html_mensal(dados_mes, nome_arquivo, nome_mes, ano)
             relatorios_gerados += 1

@@ -10,18 +10,18 @@
       margin: 40px; 
       background: #f5f5f5; 
     }
-    .container { 
+    .container {
       max-width: 800px; 
-      margin: 0 auto; 
+      margin: 0 auto;
       background: white; 
-      padding: 30px; 
-      border-radius: 10px; 
+      padding: 30px;
+      border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
     }
     h1 { 
       color: #2c3e50; 
       text-align: center; 
-      margin-bottom: 30px; 
+      margin-bottom: 30px;
     }
     .reports { 
       list-style: none; 
@@ -34,7 +34,7 @@
       display: block; 
       padding: 15px; 
       background: #3498db; 
-      color: white; 
+      color: white;
       text-decoration: none; 
       border-radius: 5px; 
       transition: background 0.3s; 
@@ -53,7 +53,7 @@
       border: 1px solid #f5c6cb; 
       color: #721c24; 
       padding: 15px; 
-      border-radius: 5px; 
+      border-radius: 5px;
       margin: 20px 0; 
     }
     .loading { 
@@ -80,8 +80,8 @@
     <div id="empty-state" class="empty" style="display: none;">
       <strong>📭 Nenhum relatório disponível</strong><br>
       Execute <code>python app.py processar</code> para gerar os relatórios.
-    </div>
-    
+  </div>
+
     <div class="info" style="margin-top: 20px;">
       <strong>ℹ️ Nota:</strong> Este sistema detecta automaticamente os relatórios disponíveis. 
       Para gerar novos relatórios, execute <code>python app.py processar</code> localmente.
@@ -240,4 +240,4 @@
     document.addEventListener('DOMContentLoaded', loadReports);
   </script>
 </body>
-</html> 
+</html>
