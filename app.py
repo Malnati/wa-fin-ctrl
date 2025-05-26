@@ -775,6 +775,10 @@ def processar_incremental():
     # Sempre gera relatório HTML (independente de ter novos arquivos)
     print("\n=== GERANDO RELATÓRIO HTML ===")
     gerar_relatorio_html("calculo.csv")
+    
+    # Gera relatórios mensais
+    print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
+    gerar_relatorios_mensais_html("calculo.csv")
 
 def descomprimir_zip_se_existir():
     """Verifica se existe apenas um arquivo ZIP em input/ e o descomprime"""
@@ -1376,10 +1380,10 @@ def gerar_relatorio_html(csv_path):
                                 ext = 'jpeg'
                             img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
                     except Exception as e:
-                        print(f"Erro ao processar imagem {anexo}: {e}")
-                        img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
-                else:
-                    img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
+                            print(f"Erro ao processar imagem {anexo}: {e}")
+                            img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
+            else:
+                img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
             
             # Descrição
             descricao = str(row.get('DESCRICAO', ''))
@@ -1429,6 +1433,332 @@ def gerar_relatorio_html(csv_path):
         
     except Exception as e:
         print(f"❌ Erro ao gerar relatório HTML: {str(e)}")
+
+def gerar_relatorios_mensais_html(csv_path):
+    """Gera relatórios HTML mensais baseados no arquivo CSV"""
+    try:
+        # Verifica se o arquivo CSV existe
+        if not os.path.exists(csv_path):
+            print(f"❌ Arquivo {csv_path} não encontrado para gerar relatórios mensais")
+            return
+        
+        print(f"📅 Gerando relatórios mensais baseados em {csv_path}...")
+        df = pd.read_csv(csv_path)
+        
+        # Converte DATA para datetime para facilitar agrupamento
+        df['DATA_DT'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
+        
+        # Remove linhas sem data válida
+        df = df.dropna(subset=['DATA_DT'])
+        
+        if len(df) == 0:
+            print("⚠️  Nenhum dado com data válida encontrado")
+            return
+        
+        # Agrupa por ano e mês
+        df['ANO_MES'] = df['DATA_DT'].dt.to_period('M')
+        grupos_mensais = df.groupby('ANO_MES')
+        
+        nomes_meses = {
+            1: 'Janeiro', 2: 'Fevereiro', 3: 'Marco', 4: 'Abril',
+            5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+            9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+        }
+        
+        relatorios_gerados = 0
+        
+        for periodo, dados_mes in grupos_mensais:
+            ano = periodo.year
+            mes = periodo.month
+            nome_mes = nomes_meses[mes]
+            
+            # Nome do arquivo mensal
+            nome_arquivo = f"index-{ano}-{mes:02d}-{nome_mes}.html"
+            
+            # Faz backup se arquivo já existe
+            if os.path.exists(nome_arquivo):
+                timestamp = pd.Timestamp.now().strftime('%Y%m%d')
+                arquivo_backup = f"index-{ano}-{mes:02d}-{nome_mes}-{timestamp}.html"
+                os.rename(nome_arquivo, arquivo_backup)
+                print(f"📁 Relatório mensal anterior renomeado para: {arquivo_backup}")
+            
+            # Gera HTML para o mês
+            gerar_html_mensal(dados_mes, nome_arquivo, nome_mes, ano)
+            relatorios_gerados += 1
+            print(f"✅ Relatório mensal gerado: {nome_arquivo}")
+        
+        print(f"📅 Total de relatórios mensais gerados: {relatorios_gerados}")
+        
+    except Exception as e:
+        print(f"❌ Erro ao gerar relatórios mensais: {str(e)}")
+
+def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
+    """Gera o HTML para um mês específico"""
+    html = '''<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + '''</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 20px; 
+      background-color: #f9f9f9;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    h1 { 
+      text-align: center; 
+      color: #2c3e50;
+      margin-bottom: 30px;
+      font-size: 28px;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 15px;
+    }
+    .info {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+    table { 
+      border-collapse: collapse; 
+      width: 100%; 
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    th, td { 
+      border: 1px solid #ddd; 
+      padding: 12px 8px; 
+      text-align: center;
+      vertical-align: middle;
+    }
+    th { 
+      background-color: #3498db; 
+      color: white;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    tr:hover {
+      background-color: #e3f2fd;
+    }
+    .total-row {
+      background-color: #fff3cd !important;
+      font-weight: bold;
+      border-top: 3px solid #ffc107;
+    }
+    .total-row:hover {
+      background-color: #fff3cd !important;
+    }
+    img.thumb { 
+      max-height: 50px; 
+      max-width: 80px;
+      cursor: pointer; 
+      transition: transform 0.3s ease;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    img.thumb:hover { 
+      transform: scale(3); 
+      z-index: 9999; 
+      position: relative;
+      border: 2px solid #3498db;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      padding-top: 0;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.95);
+    }
+    .modal-content {
+      margin: auto;
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .modal.show {
+      display: block;
+    }
+    .valor {
+      font-weight: bold;
+      color: #27ae60;
+    }
+    .data-hora {
+      font-family: monospace;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .classificacao {
+      padding: 4px 8px;
+      border-radius: 15px;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .transferencia {
+      background-color: #e8f5e8;
+      color: #2e7d32;
+    }
+    .pagamento {
+      background-color: #fff3e0;
+      color: #f57c00;
+    }
+    @media (max-width: 768px) {
+      .container {
+        margin: 10px;
+        padding: 15px;
+      }
+      table {
+        font-size: 12px;
+      }
+      th, td {
+        padding: 8px 4px;
+      }
+      h1 {
+        font-size: 22px;
+      }
+      img.thumb {
+        max-height: 40px;
+        max-width: 60px;
+      }
+      img.thumb:hover {
+        transform: scale(2.5);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + '''</h1>
+    <div class="info">
+      Gerado automaticamente em ''' + pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S') + '''
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Data-Hora</th>
+          <th>Classificação</th>
+          <th>Ricardo (R$)</th>
+          <th>Rafael (R$)</th>
+          <th>Anexo</th>
+          <th>Descrição</th>
+        </tr>
+      </thead>
+      <tbody>
+'''
+
+    for _, row in df_mes.iterrows():
+        # Constrói data-hora
+        data = str(row.get('DATA', ''))
+        hora = str(row.get('HORA', ''))
+        data_hora = f"{data} {hora}" if data != 'nan' and hora != 'nan' else ''
+        
+        # Classificação com estilo
+        classificacao = str(row.get('CLASSIFICACAO', ''))
+        if classificacao.lower() == 'transferência':
+            class_css = 'transferencia'
+        elif classificacao.lower() == 'pagamento':
+            class_css = 'pagamento'
+        else:
+            class_css = ''
+        
+        classificacao_html = f'<span class="classificacao {class_css}">{classificacao}</span>' if classificacao != 'nan' else ''
+        
+        # Valores monetários
+        ricardo = str(row.get('RICARDO', ''))
+        rafael = str(row.get('RAFAEL', ''))
+        ricardo_html = f'<span class="valor">{ricardo}</span>' if ricardo != 'nan' and ricardo != '' else ''
+        rafael_html = f'<span class="valor">{rafael}</span>' if rafael != 'nan' and rafael != '' else ''
+        
+        # Imagem do anexo
+        anexo = str(row.get('ANEXO', ''))
+        img_html = ""
+        if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
+            # Tenta encontrar a imagem em imgs/ primeiro, depois em input/
+            img_path = None
+            for diretorio in ['imgs', 'input']:
+                caminho_completo = Path(diretorio) / anexo
+                if caminho_completo.is_file():
+                    img_path = caminho_completo
+                    break
+            
+            if img_path:
+                try:
+                    with open(img_path, "rb") as f:
+                        encoded = base64.b64encode(f.read()).decode()
+                        ext = img_path.suffix.replace(".", "").lower()
+                        if ext == 'jpg':
+                            ext = 'jpeg'
+                        img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                except Exception as e:
+                    print(f"Erro ao processar imagem {anexo}: {e}")
+                    img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
+                else:
+                    img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
+        
+        # Descrição
+        descricao = str(row.get('DESCRICAO', ''))
+        descricao_html = descricao if descricao != 'nan' else ''
+        
+        # Determina se é linha de total
+        remetente = str(row.get('REMETENTE', ''))
+        row_class = 'total-row' if 'TOTAL' in remetente.upper() else ''
+        
+        html += f'''        <tr class="{row_class}">
+          <td class="data-hora">{data_hora}</td>
+          <td>{classificacao_html}</td>
+          <td>{ricardo_html}</td>
+          <td>{rafael_html}</td>
+          <td>{img_html}</td>
+          <td style="text-align: left; font-size: 12px;">{descricao_html}</td>
+        </tr>
+'''
+
+    html += '''      </tbody>
+    </table>
+  </div>
+
+  <div id="modal" class="modal" onclick="hideModal()">
+    <img class="modal-content" id="modal-img">
+  </div>
+
+  <script>
+    function showModal(imgSrc) {
+      const modal = document.getElementById('modal');
+      const modalImg = document.getElementById('modal-img');
+      modalImg.src = imgSrc;
+      modal.classList.add('show');
+    }
+    function hideModal() {
+      const modal = document.getElementById('modal');
+      modal.classList.remove('show');
+    }
+  </script>
+</body>
+</html>'''
+
+    with open(nome_arquivo, "w", encoding="utf-8") as f:
+        f.write(html)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

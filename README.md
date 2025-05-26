@@ -37,7 +37,7 @@ Sistema para processamento automatizado de comprovantes financeiros extraídos d
 python app.py processar
 ```
 
-> **🔄 Processamento Automático**: O sistema verifica automaticamente o diretório `input/`, remove duplicatas, processa apenas arquivos novos e move tudo para `imgs/` ao final.
+> **🔄 Processamento Automático**: O sistema verifica automaticamente o diretório `input/`, remove duplicatas, processa apenas arquivos novos, move tudo para `imgs/` ao final e gera relatórios HTML (principal + mensais) automaticamente.
 
 #### 2. Verificação de Totais
 ```bash
@@ -57,7 +57,7 @@ python app.py verificar calculo.csv
 python app.py teste
 ```
 
-> **🧪 Testes Automatizados**: Executa testes completos do sistema incluindo processamento de ZIP, OCR, ChatGPT e verificação de totais. Ideal para validar o funcionamento após mudanças.
+> **🧪 Testes Automatizados**: Executa testes completos do sistema incluindo processamento de ZIP, OCR, ChatGPT, verificação de totais e geração de múltiplos arquivos HTML por mês. Ideal para validar o funcionamento após mudanças.
 
 ## 📋 Estrutura dos Dados de Saída
 
@@ -113,6 +113,34 @@ Total em Pagamentos: R$ 19,010.71
 Verificação: 28,244.01 = 28,244.01 ✅
 ```
 
+## 📆 Relatórios Mensais
+
+O sistema gera automaticamente relatórios HTML mensais a cada execução, organizando os dados do `calculo.csv` por mês e ano:
+
+### Arquivos Gerados
+- **`index.html`**: Relatório principal com todos os dados
+- **`index-AAAA-MM-Mes.html`**: Relatórios mensais individuais (ex: `index-2025-05-Maio.html`)
+
+### Características dos Relatórios Mensais
+- **Layout Idêntico**: Mesma estrutura, estilo e funcionalidades do relatório principal
+- **Filtro por Período**: Cada arquivo contém apenas os dados do mês correspondente
+- **Backup Automático**: Relatórios anteriores são renomeados com data antes de sobrescrever
+- **Imagens Embutidas**: Comprovantes em base64 para funcionamento offline
+- **Responsivo**: Interface adaptada para desktop e mobile
+
+### Exemplo de Estrutura de Arquivos
+```
+gastos-tia-claudia/
+├── index.html                    # Relatório completo
+├── index-2025-04-Abril.html      # Abril 2025
+├── index-2025-05-Maio.html       # Maio 2025
+├── index-2025-05-Maio-20250526.html  # Backup anterior
+└── calculo.csv                   # Dados fonte
+```
+
+### Geração Automática
+Os relatórios mensais são gerados automaticamente durante o processamento incremental, garantindo que estejam sempre atualizados com os dados mais recentes do `calculo.csv`.
+
 ## 🤖 Tecnologias Utilizadas
 
 - **OCR**: Pytesseract + OpenCV para extração de texto das imagens
@@ -136,12 +164,15 @@ Verificação: 28,244.01 = 28,244.01 ✅
 4. **Processamento OCR + IA**: Processa apenas arquivos novos com OCR e ChatGPT
 5. **Incrementação de CSVs**: Adiciona novos dados aos arquivos existentes (não sobrescreve)
 6. **Movimentação**: Move imagens processadas de `input/` para `imgs/`
-7. **Limpeza**: Remove `input/_chat.txt` e deixa `input/` vazio
+7. **Geração de Relatórios**: Cria `index.html` principal e relatórios mensais individuais
+8. **Limpeza**: Remove `input/_chat.txt` e deixa `input/` vazio
 
 ### 3. Resultado Final
 - **`imgs/`**: Todas as imagens processadas (histórico + novas)
 - **`mensagens.csv`**: Histórico completo de mensagens (incrementado)
 - **`calculo.csv`**: Histórico completo de análises financeiras (incrementado)
+- **`index.html`**: Relatório HTML principal atualizado
+- **`index-AAAA-MM-Mes.html`**: Relatórios HTML mensais atualizados
 - **`input/`**: Diretório vazio, pronto para próximo processamento
 
 ## 🔧 Funcionalidades
