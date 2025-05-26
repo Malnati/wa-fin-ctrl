@@ -1713,8 +1713,8 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
                 except Exception as e:
                     print(f"Erro ao processar imagem {anexo}: {e}")
                     img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
-                else:
-                    img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
+            else:
+                img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
         
         # Descrição
         descricao = str(row.get('DESCRICAO', ''))
