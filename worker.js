@@ -83,34 +83,83 @@ export default {
     // Busca dinamicamente os arquivos HTML disponíveis
     let availableReports = [];
     
-    // Lista manual dos arquivos conhecidos (será atualizada automaticamente quando novos arquivos forem adicionados)
-    const possibleFiles = [
-      'index.html',
-      'index-2025-05-Maio-20250526.html',
-      'index-2025-04-Abril-20250526.html',
-      'index-2025-05-Maio.html',
-      'index-2025-04-Abril.html',
-      'index-2025-06-Junho-20250526.html',
-      'index-2025-03-Marco-20250526.html',
-      'index-2025-01-Janeiro-20250526.html',
-      'index-2025-02-Fevereiro-20250526.html'
+    // Gera possibilidades dinâmicas baseadas em padrões temporais
+    const currentYear = new Date().getFullYear();
+    const years = [currentYear - 1, currentYear, currentYear + 1]; // Ano anterior, atual e próximo
+    const months = [
+      { num: '01', name: 'Janeiro' },
+      { num: '02', name: 'Fevereiro' }, 
+      { num: '03', name: 'Marco' },
+      { num: '04', name: 'Abril' },
+      { num: '05', name: 'Maio' },
+      { num: '06', name: 'Junho' },
+      { num: '07', name: 'Julho' },
+      { num: '08', name: 'Agosto' },
+      { num: '09', name: 'Setembro' },
+      { num: '10', name: 'Outubro' },
+      { num: '11', name: 'Novembro' },
+      { num: '12', name: 'Dezembro' }
     ];
     
-    // Testa quais arquivos existem
-    for (const file of possibleFiles) {
-      try {
-        if (env.ASSETS) {
-          const testResponse = await env.ASSETS.fetch(new Request(`${url.origin}/${file}`));
-          if (testResponse.status === 200) {
-            availableReports.push(file);
+    // Testa index.html principal
+    try {
+      if (env.ASSETS) {
+        const testResponse = await env.ASSETS.fetch(new Request(`${url.origin}/index.html`));
+        if (testResponse.status === 200) {
+          availableReports.push('index.html');
+        }
+      }
+    } catch (e) {
+      // index.html não existe
+    }
+    
+    // Gera e testa padrões dinamicamente
+    for (const year of years) {
+      for (const month of months) {
+        // Padrões possíveis baseados no que foi observado nos arquivos existentes
+        const patterns = [
+          `index-${year}-${month.num}-${month.name}.html`,
+          `index-${year}-${month.num}-${month.name}-20250526.html`,
+          `index-${year}-${month.num}-${month.name}-${new Date().toISOString().slice(0,10).replace(/-/g,'')}.html`
+        ];
+        
+        for (const pattern of patterns) {
+          try {
+            if (env.ASSETS) {
+              const testResponse = await env.ASSETS.fetch(new Request(`${url.origin}/${pattern}`));
+              if (testResponse.status === 200) {
+                availableReports.push(pattern);
+              }
+            }
+          } catch (e) {
+            // Arquivo não existe, continua
           }
         }
-      } catch (e) {
-        // Arquivo não existe, continua
       }
     }
     
-    // Ordena os arquivos encontrados
+    // Testa também padrões de backup/timestamp
+    const currentDate = new Date();
+    const datePatterns = [
+      currentDate.toISOString().slice(0,10).replace(/-/g,''),
+      currentDate.toISOString().slice(0,10).replace(/-/g,'') + '_' + currentDate.toTimeString().slice(0,8).replace(/:/g,'')
+    ];
+    
+    for (const datePattern of datePatterns) {
+      try {
+        if (env.ASSETS) {
+          const testResponse = await env.ASSETS.fetch(new Request(`${url.origin}/index-${datePattern}.html`));
+          if (testResponse.status === 200) {
+            availableReports.push(`index-${datePattern}.html`);
+          }
+        }
+      } catch (e) {
+        // Arquivo não existe
+      }
+    }
+    
+    // Remove duplicatas e ordena
+    availableReports = [...new Set(availableReports)];
     availableReports.sort((a, b) => {
       // index.html primeiro
       if (a === 'index.html') return -1;
