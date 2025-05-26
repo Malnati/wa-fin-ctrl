@@ -25,6 +25,7 @@ COMANDO=${1:-processar}
 
 if [ "$COMANDO" = "processar" ]; then
     echo "Iniciando processamento incremental..."
+    echo "Suporte a arquivos ZIP: Se houver um arquivo .zip em input/, será descomprimido automaticamente"
     python app.py processar
 elif [ "$COMANDO" = "verificar" ]; then
     ARQUIVO_CSV=${2:-calculo.csv}
@@ -35,9 +36,15 @@ else
     echo "  ./app.sh processar              # Processamento incremental automático"
     echo "  ./app.sh verificar [arquivo_csv]"
     echo ""
+    echo "Funcionalidades:"
+    echo "  • Descompressão automática de arquivos ZIP em input/"
+    echo "  • Processamento incremental (evita reprocessar arquivos existentes)"
+    echo "  • Extração de dados via OCR e ChatGPT"
+    echo "  • Totalização mensal automática"
+    echo ""
     echo "Exemplos:"
-    echo "  ./app.sh processar"
-    echo "  ./app.sh verificar calculo.csv"
+    echo "  ./app.sh processar              # Processa arquivos em input/ (incluindo ZIPs)"
+    echo "  ./app.sh verificar calculo.csv  # Verifica totais financeiros"
 fi
 
 # 4. Desativa o ambiente virtual

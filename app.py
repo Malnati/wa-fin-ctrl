@@ -3,6 +3,7 @@ import sys
 import re
 import os
 import shutil
+import zipfile
 from PIL import Image
 import pytesseract
 import cv2
@@ -717,6 +718,12 @@ def processar_incremental():
     """Função principal para processamento incremental com gerenciamento de arquivos"""
     print("=== INICIANDO PROCESSAMENTO INCREMENTAL ===")
     
+    # Primeiro, verifica e descomprime arquivo ZIP se existir
+    print("\n=== VERIFICANDO ARQUIVOS ZIP ===")
+    if not descomprimir_zip_se_existir():
+        print("❌ Erro na descompressão de arquivo ZIP. Processamento interrompido.")
+        return
+    
     # Gerencia arquivos incrementais
     tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
     
@@ -755,6 +762,64 @@ def processar_incremental():
         print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
     
     print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
+
+def descomprimir_zip_se_existir():
+    """Verifica se existe apenas um arquivo ZIP em input/ e o descomprime"""
+    input_dir = "input"
+    
+    # Verifica se o diretório input existe
+    if not os.path.exists(input_dir):
+        print(f"Diretório {input_dir}/ não encontrado!")
+        return False
+    
+    # Lista todos os arquivos no diretório input/
+    todos_arquivos = os.listdir(input_dir)
+    
+    # Filtra apenas arquivos ZIP
+    arquivos_zip = [f for f in todos_arquivos if f.lower().endswith('.zip')]
+    
+    # Verifica se existe apenas um arquivo ZIP
+    if len(arquivos_zip) == 0:
+        print("Nenhum arquivo ZIP encontrado em input/")
+        return True  # Não é erro, apenas não há ZIP para processar
+    
+    if len(arquivos_zip) > 1:
+        print(f"Encontrados {len(arquivos_zip)} arquivos ZIP em input/. Deve haver apenas um.")
+        print(f"Arquivos ZIP encontrados: {arquivos_zip}")
+        return False
+    
+    # Se chegou aqui, existe exatamente um arquivo ZIP
+    arquivo_zip = arquivos_zip[0]
+    caminho_zip = os.path.join(input_dir, arquivo_zip)
+    
+    print(f"Encontrado arquivo ZIP: {arquivo_zip}")
+    print("Descomprimindo arquivo ZIP...")
+    
+    try:
+        # Descomprime o arquivo ZIP
+        with zipfile.ZipFile(caminho_zip, 'r') as zip_ref:
+            # Lista o conteúdo do ZIP antes de extrair
+            lista_arquivos = zip_ref.namelist()
+            print(f"Arquivos no ZIP: {len(lista_arquivos)} itens")
+            
+            # Extrai todos os arquivos para o diretório input/
+            zip_ref.extractall(input_dir)
+            
+            print(f"✅ Arquivo ZIP descomprimido com sucesso!")
+            print(f"Extraídos {len(lista_arquivos)} itens para {input_dir}/")
+        
+        # Remove o arquivo ZIP após descompressão bem-sucedida
+        os.remove(caminho_zip)
+        print(f"Arquivo ZIP {arquivo_zip} removido após descompressão")
+        
+        return True
+        
+    except zipfile.BadZipFile:
+        print(f"❌ Erro: {arquivo_zip} não é um arquivo ZIP válido")
+        return False
+    except Exception as e:
+        print(f"❌ Erro ao descomprimir {arquivo_zip}: {str(e)}")
+        return False
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
