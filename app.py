@@ -1397,7 +1397,7 @@ def gerar_relatorio_html(csv_path):
             data = str(row.get('DATA', ''))
             hora = str(row.get('HORA', ''))
             data_hora = f"{data} {hora}" if data != 'nan' and hora != 'nan' else ''
-            
+
             # Classificação com estilo
             classificacao = str(row.get('CLASSIFICACAO', ''))
             if classificacao.lower() == 'transferência':
@@ -1406,49 +1406,53 @@ def gerar_relatorio_html(csv_path):
                 class_css = 'pagamento'
             else:
                 class_css = ''
-            
+
             classificacao_html = f'<span class="classificacao {class_css}">{classificacao}</span>' if classificacao != 'nan' else ''
-            
+
             # Valores monetários
             ricardo = str(row.get('RICARDO', ''))
             rafael = str(row.get('RAFAEL', ''))
             ricardo_html = f'<span class="valor">{ricardo}</span>' if ricardo != 'nan' and ricardo != '' else ''
             rafael_html = f'<span class="valor">{rafael}</span>' if rafael != 'nan' and rafael != '' else ''
-            
-            # Imagem do anexo
-            anexo = str(row.get('ANEXO', ''))
-            img_html = ""
-            if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
-                # Tenta encontrar a imagem em imgs/ primeiro, depois em input/
-                img_path = None
-                for diretorio in ['imgs', 'input']:
-                    caminho_completo = Path(diretorio) / anexo
-                    if caminho_completo.is_file():
-                        img_path = caminho_completo
-                        break
-                
-                if img_path:
-                    try:
-                        with open(img_path, "rb") as f:
-                            encoded = base64.b64encode(f.read()).decode()
-                            ext = img_path.suffix.replace(".", "").lower()
-                            if ext == 'jpg':
-                                ext = 'jpeg'
-                            img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                    except Exception as e:
-                            print(f"Erro ao processar imagem {anexo}: {e}")
-                            img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
-            else:
-                img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
-            
-            # Descrição
-            descricao = str(row.get('DESCRICAO', ''))
-            descricao_html = descricao if descricao != 'nan' else ''
-            
+
             # Determina se é linha de total
             remetente = str(row.get('REMETENTE', ''))
             row_class = 'total-row' if 'TOTAL' in remetente.upper() else ''
-            
+
+            # Para linhas de totalização, não exibe imagem
+            if row_class == 'total-row':
+                img_html = ''
+            else:
+                # Imagem do anexo
+                anexo = str(row.get('ANEXO', ''))
+                img_html = ""
+                if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
+                    # Tenta encontrar a imagem em imgs/ primeiro, depois em input/
+                    img_path = None
+                    for diretorio in ['imgs', 'input']:
+                        caminho_completo = Path(diretorio) / anexo
+                        if caminho_completo.is_file():
+                            img_path = caminho_completo
+                            break
+
+                    if img_path:
+                        try:
+                            with open(img_path, "rb") as f:
+                                encoded = base64.b64encode(f.read()).decode()
+                                ext = img_path.suffix.replace(".", "").lower()
+                                if ext == 'jpg':
+                                    ext = 'jpeg'
+                                img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                        except Exception as e:
+                                print(f"Erro ao processar imagem {anexo}: {e}")
+                                img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
+                    else:
+                        img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
+
+            # Descrição
+            descricao = str(row.get('DESCRICAO', ''))
+            descricao_html = descricao if descricao != 'nan' else ''
+
             html += f'''        <tr class="{row_class}">
           <td class="data-hora">{data_hora}</td>
           <td>{classificacao_html}</td>
@@ -1803,7 +1807,7 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
         data = str(row.get('DATA', ''))
         hora = str(row.get('HORA', ''))
         data_hora = f"{data} {hora}" if data != 'nan' and hora != 'nan' else ''
-        
+
         # Classificação com estilo
         classificacao = str(row.get('CLASSIFICACAO', ''))
         if classificacao.lower() == 'transferência':
@@ -1812,49 +1816,53 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
             class_css = 'pagamento'
         else:
             class_css = ''
-        
+
         classificacao_html = f'<span class="classificacao {class_css}">{classificacao}</span>' if classificacao != 'nan' else ''
-        
+
         # Valores monetários
         ricardo = str(row.get('RICARDO', ''))
         rafael = str(row.get('RAFAEL', ''))
         ricardo_html = f'<span class="valor">{ricardo}</span>' if ricardo != 'nan' and ricardo != '' else ''
         rafael_html = f'<span class="valor">{rafael}</span>' if rafael != 'nan' and rafael != '' else ''
-        
-        # Imagem do anexo
-        anexo = str(row.get('ANEXO', ''))
-        img_html = ""
-        if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
-            # Tenta encontrar a imagem em imgs/ primeiro, depois em input/
-            img_path = None
-            for diretorio in ['imgs', 'input']:
-                caminho_completo = Path(diretorio) / anexo
-                if caminho_completo.is_file():
-                    img_path = caminho_completo
-                    break
-            
-            if img_path:
-                try:
-                    with open(img_path, "rb") as f:
-                        encoded = base64.b64encode(f.read()).decode()
-                        ext = img_path.suffix.replace(".", "").lower()
-                        if ext == 'jpg':
-                            ext = 'jpeg'
-                        img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                except Exception as e:
-                    print(f"Erro ao processar imagem {anexo}: {e}")
-                    img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
-            else:
-                img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
-        
-        # Descrição
-        descricao = str(row.get('DESCRICAO', ''))
-        descricao_html = descricao if descricao != 'nan' else ''
-        
+
         # Determina se é linha de total
         remetente = str(row.get('REMETENTE', ''))
         row_class = 'total-row' if 'TOTAL' in remetente.upper() else ''
-        
+
+        # Para linhas de totalização, não exibe imagem
+        if row_class == 'total-row':
+            img_html = ''
+        else:
+            # Imagem do anexo
+            anexo = str(row.get('ANEXO', ''))
+            img_html = ""
+            if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
+                # Tenta encontrar a imagem em imgs/ primeiro, depois em input/
+                img_path = None
+                for diretorio in ['imgs', 'input']:
+                    caminho_completo = Path(diretorio) / anexo
+                    if caminho_completo.is_file():
+                        img_path = caminho_completo
+                        break
+
+                if img_path:
+                    try:
+                        with open(img_path, "rb") as f:
+                            encoded = base64.b64encode(f.read()).decode()
+                            ext = img_path.suffix.replace(".", "").lower()
+                            if ext == 'jpg':
+                                ext = 'jpeg'
+                            img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                    except Exception as e:
+                        print(f"Erro ao processar imagem {anexo}: {e}")
+                        img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
+                else:
+                    img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
+
+        # Descrição
+        descricao = str(row.get('DESCRICAO', ''))
+        descricao_html = descricao if descricao != 'nan' else ''
+
         html += f'''        <tr class="{row_class}">
           <td class="data-hora">{data_hora}</td>
           <td>{classificacao_html}</td>
