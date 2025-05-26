@@ -1,0 +1,34 @@
+# Ambiente virtual Python
+venv/
+__pycache__/
+
+# Arquivos de desenvolvimento
+.git/
+.cursor/
+.DS_Store
+*.pyc
+*.pyo
+
+# Arquivos de configuração do Python
+pyproject.toml
+poetry.lock
+app.py
+app.sh
+
+# Diretórios de trabalho
+tmp/
+massa/
+input/
+imgs/
+docs/
+
+# Logs e backups
+*.log
+*.bak
+*.backup
+
+# Arquivos CSV de dados
+*.csv
+
+# Manter apenas arquivos HTML específicos
+# Todos os outros serão ignorados por padrão 

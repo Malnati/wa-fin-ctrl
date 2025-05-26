@@ -2,6 +2,11 @@ name = "gastos-tia-claudia"
 compatibility_date = "2024-05-01"
 main = "worker.js"
 
+# Configuração para servir arquivos estáticos
+[assets]
+directory = "static"
+binding = "ASSETS"
+
 # Variáveis de ambiente
 [vars]
 ENVIRONMENT = "production" 
