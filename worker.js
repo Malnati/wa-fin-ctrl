@@ -14,35 +14,59 @@ export default {
                            /^index-\d{4}-\d{2}-.+\.html$/.test(filename);
     
     if (isValidHtmlFile) {
-      // Busca arquivo via GitHub Raw (assumindo que o projeto está no GitHub)
+      // Busca arquivo via GitHub Raw com tratamento robusto de erros
       try {
+        console.log(`Tentando buscar arquivo: ${filename}`);
+        
         // Tenta buscar de diferentes fontes possíveis
         const possibleUrls = [
           `https://raw.githubusercontent.com/ricardomalnati/gastos-tia-claudia/main/${filename}`,
           `https://raw.githubusercontent.com/mal/gastos-tia-claudia/main/${filename}`
         ];
         
-        for (const githubUrl of possibleUrls) {
+        for (let i = 0; i < possibleUrls.length; i++) {
+          const githubUrl = possibleUrls[i];
           try {
-            const githubResponse = await fetch(githubUrl);
+            console.log(`Tentando URL ${i + 1}: ${githubUrl}`);
+            
+            // Timeout de 10 segundos para busca de arquivo
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const githubResponse = await fetch(githubUrl, {
+              signal: controller.signal,
+              headers: {
+                'User-Agent': 'gastos-tia-claudia-worker'
+              }
+            });
+            
+            clearTimeout(timeoutId);
+            
             if (githubResponse.ok) {
-              return new Response(await githubResponse.text(), {
+              console.log(`Arquivo encontrado em: ${githubUrl}`);
+              const content = await githubResponse.text();
+              
+              return new Response(content, {
                 headers: {
                   'Content-Type': 'text/html;charset=UTF-8',
-                  'Cache-Control': 'public, max-age=1800'
+                  'Cache-Control': 'public, max-age=1800',
+                  'X-Source': 'github-raw'
                 }
               });
+            } else {
+              console.log(`Arquivo não encontrado em: ${githubUrl} (status: ${githubResponse.status})`);
             }
           } catch (e) {
+            console.error(`Erro ao buscar ${githubUrl}:`, e.message);
             // Tenta próxima URL
           }
         }
       } catch (error) {
-        console.error('Erro ao buscar arquivo via GitHub:', error);
+        console.error('Erro geral ao buscar arquivo via GitHub:', error);
       }
       
-      // Se não conseguir via Assets, retorna mensagem informativa
-      const infoPage = `
+      // Se não conseguir buscar o arquivo, retorna mensagem de erro clara
+      const errorPage = `
       <!DOCTYPE html>
       <html lang="pt-BR">
       <head>
@@ -52,38 +76,41 @@ export default {
         <style>
           body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
           .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-          .alert { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0; }
           .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 5px; margin: 20px 0; }
-          .btn { display: inline-block; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; margin: 10px 5px; }
+          .btn { display: inline-block; padding: 12px 24px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; margin: 10px 5px; transition: background 0.3s; }
           .btn:hover { background: #2980b9; }
+          .btn-secondary { background: #6c757d; }
+          .btn-secondary:hover { background: #5a6268; }
         </style>
       </head>
       <body>
         <div class="container">
           <h1>📋 ${filename}</h1>
-          <div class="alert">
-            <strong>⚠️ Carregando relatório...</strong><br>
-            O arquivo está sendo processado. Se não carregar automaticamente, use as opções abaixo.
+          <div class="error">
+            <strong>❌ Relatório não disponível online</strong><br>
+            O arquivo <code>${filename}</code> não foi encontrado no repositório online ou é muito grande para ser servido via Cloudflare Workers.
           </div>
           <div class="info">
             <strong>💡 Como acessar este relatório:</strong><br>
-            1. Execute o script Python localmente: <code>python app.py processar</code><br>
+            1. <strong>Método recomendado:</strong> Execute <code>python app.py processar</code> localmente<br>
             2. Abra o arquivo <code>${filename}</code> diretamente no seu navegador<br>
-            3. O arquivo está localizado na raiz do projeto
+            3. Verifique se o arquivo existe na raiz do projeto<br>
+            4. Se o arquivo não existir, execute o processamento para gerá-lo
           </div>
-          <a href="/" class="btn">⬅️ Voltar ao Menu</a>
-          <a href="#" onclick="window.location.reload()" class="btn">🔄 Recarregar</a>
+          <div style="text-align: center; margin-top: 30px;">
+            <a href="/" class="btn">⬅️ Voltar ao Menu Principal</a>
+            <a href="/${filename}" class="btn btn-secondary">🔄 Tentar Novamente</a>
+          </div>
+          <div style="text-align: center; color: #6c757d; font-size: 12px; margin-top: 20px;">
+            <strong>Dica:</strong> Os relatórios mais recentes podem não estar disponíveis online imediatamente.<br>
+            Use o comando local para acesso instantâneo a todos os dados.
+          </div>
         </div>
-        <script>
-          // Tenta recarregar após 2 segundos
-          setTimeout(() => {
-            window.location.reload();
-          }, 2000);
-        </script>
       </body>
       </html>`;
       
-      return new Response(infoPage, {
+      return new Response(errorPage, {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8'
         }
@@ -109,7 +136,7 @@ export default {
       { num: '12', name: 'Dezembro' }
     ];
     
-    // Função para testar se arquivo existe via GitHub
+    // Função para testar se arquivo existe via GitHub (com timeout)
     const testFileExists = async (filename) => {
       const possibleUrls = [
         `https://raw.githubusercontent.com/ricardomalnati/gastos-tia-claudia/main/${filename}`,
@@ -118,12 +145,22 @@ export default {
       
       for (const githubUrl of possibleUrls) {
         try {
-          const response = await fetch(githubUrl, { method: 'HEAD' });
+          // Adiciona timeout de 3 segundos para evitar travamento
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
+          
+          const response = await fetch(githubUrl, { 
+            method: 'HEAD',
+            signal: controller.signal 
+          });
+          
+          clearTimeout(timeoutId);
+          
           if (response.ok) {
             return true;
           }
         } catch (e) {
-          // Continua tentando
+          // Continua tentando (inclui erros de timeout)
         }
       }
       return false;
@@ -186,6 +223,17 @@ export default {
       // Depois por data (mais recente primeiro)
       return b.localeCompare(a);
     });
+    
+    // Se não encontrou nenhum relatório via detecção dinâmica, adiciona uma lista mínima como fallback
+    if (availableReports.length === 0) {
+      console.warn('Nenhum relatório encontrado via detecção dinâmica. Usando fallback.');
+      // Adiciona relatórios conhecidos que existem fisicamente no projeto
+      availableReports = [
+        'index.html',
+        'index-2025-04-Abril-20250526.html',
+        'index-2025-05-Maio-20250526.html'
+      ];
+    }
 
     // Gera a lista HTML dos relatórios
     const reportsListHtml = availableReports.map(filename => {
