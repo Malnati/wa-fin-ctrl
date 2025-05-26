@@ -8,24 +8,41 @@ set -e
 # Gastos Tia Claudia - Processador de comprovantes WhatsApp
 # Uso: ./app.sh [processar|verificar] [arquivo_entrada] [arquivo_saida]
 
-# Instala dependências com Poetry
-log "Instalando dependências via Poetry..."
-poetry install --no-interaction
+# 1. Cria ambiente virtual se não existir
+if [ ! -d venv ]; then
+  log "Criando ambiente virtual..."
+  python3 -m venv venv
+else
+  log "Ambiente virtual encontrado, reutilizando."
+fi
 
-# 3. Define comando e executa com Poetry
+# 2. Ativa o ambiente virtual
+source venv/bin/activate
+
+log "Verificando dependências Python..."
+if ! python -c "import pandas, pillow, pytesseract, cv2, openai, openpyxl" 2>/dev/null; then
+    log "Instalando dependências..."
+    pip install --upgrade pip
+    pip install pandas pillow pytesseract opencv-python openai openpyxl
+else
+    log "Dependências já instaladas."
+fi
+
+# 3. Executa o script com venv
+
 COMANDO=${1:-processar}
 
 if [ "$COMANDO" = "processar" ]; then
     log "Suporte a arquivos ZIP: Se houver um arquivo .zip em input/, será descomprimido automaticamente"
     log "Iniciando processamento incremental..."
-    poetry run python app.py processar
+    python app.py processar
 elif [ "$COMANDO" = "verificar" ]; then
     ARQUIVO_CSV=${2:-calculo.csv}
     echo "Verificando totais do arquivo: $ARQUIVO_CSV"
-    poetry run python app.py verificar "$ARQUIVO_CSV"
+    python app.py verificar "$ARQUIVO_CSV"
 elif [ "$COMANDO" = "teste" ]; then
     echo "Executando testes End-to-End completos..."
-    poetry run python app.py teste
+    python app.py teste
 else
     echo "Uso:"
     echo "  ./app.sh processar              # Processamento incremental automático"
@@ -44,3 +61,6 @@ else
     echo "  ./app.sh verificar calculo.csv  # Verifica totais financeiros"
     echo "  ./app.sh teste                  # Executa todos os testes do sistema"
 fi
+
+# 4. Desativa o ambiente virtual
+deactivate
