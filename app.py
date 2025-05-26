@@ -1330,12 +1330,15 @@ def gerar_relatorio_html(csv_path):
         border: none;
         background: none;
         padding: 4px;
-        display: inline-block;
+        display: block;
+        width: 100%;
+        height: 100%;
         cursor: pointer;
       }
       table th:nth-child(2) {
         position: relative;
         z-index: 1;
+        cursor: pointer;
       }
       table th:nth-child(2) button::after {
         content: "⇆";
@@ -1740,12 +1743,15 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
         border: none;
         background: none;
         padding: 4px;
-        display: inline-block;
+        display: block;
+        width: 100%;
+        height: 100%;
         cursor: pointer;
       }
       table th:nth-child(2) {
         position: relative;
         z-index: 1;
+        cursor: pointer;
       }
       table th:nth-child(2) button::after {
         content: "⇆";
