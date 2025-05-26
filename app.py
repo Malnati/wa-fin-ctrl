@@ -738,6 +738,7 @@ def processar_incremental():
         # Mesmo sem arquivos novos, tenta gerar relatório HTML se calculo.csv existir
         print("\n=== GERANDO RELATÓRIO HTML ===")
         gerar_relatorio_html("calculo.csv")
+        gerar_relatorios_mensais_html("calculo.csv")
         return
     
     # Processamento dos dados
