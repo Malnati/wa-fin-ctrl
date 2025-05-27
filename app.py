@@ -1794,6 +1794,14 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
         print(f"DEBUG: Primeiras 3 linhas de DESCRICAO: {df_mes['DESCRICAO'].head(3).tolist()}")
         print(f"DEBUG: Primeiras 3 linhas de CLASSIFICACAO: {df_mes['CLASSIFICACAO'].head(3).tolist()}")
     
+    # Mapeamento de meses para números
+    meses_num = {
+        'Janeiro': '01', 'Fevereiro': '02', 'Marco': '03', 'Abril': '04',
+        'Maio': '05', 'Junho': '06', 'Julho': '07', 'Agosto': '08',
+        'Setembro': '09', 'Outubro': '10', 'Novembro': '11', 'Dezembro': '12'
+    }
+    mes_num = meses_num.get(nome_mes, '01')
+    
     html = '''<!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -2013,6 +2021,12 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
     </div>
     <div style="text-align: right; margin-bottom: 10px;">
       <a href="prestacao_contas_justica.xlsx" download><button>Imprimir Formato Justiça</button></a>
+    </div>
+    <!-- Botão de edição mensal -->
+    <div style="text-align: right; margin-bottom: 10px;">
+      <a href="report-edit-''' + f"{ano}-{mes_num}-{nome_mes}" + '''.html" target="_blank">
+        <button>Editar Relatório</button>
+      </a>
     </div>
     <table>
       <thead>
