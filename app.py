@@ -1617,6 +1617,8 @@ def gerar_html_impressao(df_mes, nome_arquivo, nome_mes, ano):
         th {{ background-color: #f0f0f0; }}
         .signature {{ margin-top: 40px; }}
         .signature div {{ display: inline-block; width: 45%; text-align: center; }}
+        #download-edits {{ margin: 20px 0; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }}
+        #download-edits:hover {{ background-color: #0056b3; }}
       </style>
     </head>
     <body>
@@ -1644,10 +1646,11 @@ def gerar_html_impressao(df_mes, nome_arquivo, nome_mes, ano):
         except:
             return 0.0
     saldo = 0.0
-    for _, row in df_mes.iterrows():
+    for index, row in df_mes.iterrows():
         data = row.get('DATA', '')
         descricao = row.get('DESCRICAO', '')
         valor = to_float(row.get('VALOR', '0'))
+        identificador_unico = f"{index}_{data}_{valor}"
         if row.get('CLASSIFICACAO', '').lower() == 'transferência':
             receitas = f"{valor:.2f}"
             despesas = ''
@@ -1656,13 +1659,66 @@ def gerar_html_impressao(df_mes, nome_arquivo, nome_mes, ano):
             receitas = ''
             despesas = f"{valor:.2f}"
             saldo -= valor
-        html += f"      <tr><td>{data}</td><td>{descricao}</td><td>{receitas}</td><td>{despesas}</td><td>{saldo:.2f}</td></tr>\n"
+        html += f'      <tr data-id="{identificador_unico}"><td>{data}</td><td data-field="descricao">{descricao}</td><td data-field="receitas">{receitas}</td><td data-field="despesas">{despesas}</td><td data-field="saldo">{saldo:.2f}</td></tr>\n'
     html += """    </tbody>
       </table>
+      <button id="download-edits">Download JSON</button>
       <div class="signature">
         <div>Local, ___/___/_____<br>Assinatura do Curador</div>
         <div>Data, ___/___/_____<br>Assinatura do Curatelado</div>
       </div>
+      <script>
+// 1. Carrega edições salvas
+const edits = JSON.parse(localStorage.getItem('gastosEdits') || '{}');
+
+// 2. Aplica edições existentes
+document.querySelectorAll('tr[data-id]').forEach(tr => {
+  const id = tr.dataset.id;
+  if (edits[id]) {
+    if (edits[id].descricao) tr.querySelector('[data-field="descricao"]').textContent = edits[id].descricao;
+    if (edits[id].receitas) tr.querySelector('[data-field="receitas"]').textContent = edits[id].receitas;
+    if (edits[id].despesas) tr.querySelector('[data-field="despesas"]').textContent = edits[id].despesas;
+    if (edits[id].saldo) tr.querySelector('[data-field="saldo"]').textContent = edits[id].saldo;
+  }
+});
+
+// 3. Edição inline ao clicar na célula
+document.querySelector('tbody').addEventListener('click', event => {
+  const td = event.target.closest('td[data-field]');
+  if (!td) return;
+  const field = td.dataset.field;
+  const tr = td.closest('tr');
+  const id = tr.dataset.id;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = td.textContent;
+  td.textContent = '';
+  td.appendChild(input);
+  input.focus();
+  input.addEventListener('blur', () => saveEdit(id, field, input.value, td));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') input.blur();
+  });
+});
+
+function saveEdit(id, field, value, cell) {
+  cell.textContent = value;
+  edits[id] = edits[id] || {};
+  edits[id][field] = value;
+  localStorage.setItem('gastosEdits', JSON.stringify(edits));
+}
+
+// 4. Download do JSON das edições
+document.getElementById('download-edits').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(edits)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'edits.json';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+      </script>
     </body>
     </html>"""
     with open(nome_arquivo, "w", encoding="utf-8") as f:
