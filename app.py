@@ -1581,8 +1581,73 @@ def gerar_relatorios_mensais_html(csv_path):
 
 def gerar_html_impressao(df_mes, nome_arquivo, nome_mes, ano):
     """Gera o HTML para um impressão"""
-    html = '''
-'''
+    # Gera HTML de impressão conforme layout da Justiça (A4, cabeçalho, tabela e assinatura)
+    html = f"""<!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        @page {{ size: A4 portrait; margin: 2cm; }}
+        body {{ font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 0; }}
+        h1 {{ text-align: center; margin-bottom: 20px; font-size: 18px; }}
+        .header-info {{ margin-bottom: 20px; }}
+        .header-info span {{ display: inline-block; width: 45%; }}
+        table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }}
+        th, td {{ border: 1px solid #000; padding: 4px; text-align: left; }}
+        th {{ background-color: #f0f0f0; }}
+        .signature {{ margin-top: 40px; }}
+        .signature div {{ display: inline-block; width: 45%; text-align: center; }}
+      </style>
+    </head>
+    <body>
+      <h1>Prestação de Contas - {nome_mes} {ano}</h1>
+      <div class="header-info">
+        <span>Curador: ____________________________</span>
+        <span>Curatelado: __________________________</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Receitas (R$)</th>
+            <th>Despesas (R$)</th>
+            <th>Saldo (R$)</th>
+          </tr>
+        </thead>
+        <tbody>
+    """
+    # inicializa saldo
+    def to_float(v):
+        try:
+            return float(str(v).replace('.', '').replace(',', '.'))
+        except:
+            return 0.0
+    saldo = 0.0
+    for _, row in df_mes.iterrows():
+        data = row.get('DATA', '')
+        descricao = row.get('DESCRICAO', '')
+        valor = to_float(row.get('VALOR', '0'))
+        if row.get('CLASSIFICACAO', '').lower() == 'transferência':
+            receitas = f"{valor:.2f}"
+            despesas = ''
+            saldo += valor
+        else:
+            receitas = ''
+            despesas = f"{valor:.2f}"
+            saldo -= valor
+        html += f"      <tr><td>{data}</td><td>{descricao}</td><td>{receitas}</td><td>{despesas}</td><td>{saldo:.2f}</td></tr>\n"
+    html += """    </tbody>
+      </table>
+      <div class="signature">
+        <div>Local, ___/___/_____<br>Assinatura do Curador</div>
+        <div>Data, ___/___/_____<br>Assinatura do Curatelado</div>
+      </div>
+    </body>
+    </html>"""
+    with open(nome_arquivo, "w", encoding="utf-8") as f:
+        f.write(html)
+    return
 
 def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
     """Gera o HTML para um mês específico"""
