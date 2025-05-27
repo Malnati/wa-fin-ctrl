@@ -594,10 +594,26 @@ def txt_to_csv_anexos_only(input_file, output_file):
     df_anexos['RICARDO'] = ''
     df_anexos['RAFAEL'] = ''
     
+    # 1) carrega CSV existente para recuperação de dados
+    if os.path.exists(output_file):
+        df_existente = pd.read_csv(output_file)
+        processed = set(df_existente['ANEXO'].astype(str))
+    else:
+        df_existente = pd.DataFrame()
+        processed = set()
+    
     # Processa OCR e extração de valor apenas para anexos que são imagens novas
     input_dir = "input"
     print("Processando OCR das imagens novas (apenas anexos)...")
     for idx, row in df_anexos.iterrows():
+        # 2) se já processado antes, recupera valores e pula chamadas de API
+        anexo = str(row['ANEXO'])
+        if anexo in processed:
+            prev = df_existente[df_existente['ANEXO'] == anexo].iloc[0]
+            for col in ['OCR','VALOR','DESCRICAO','CLASSIFICACAO','RICARDO','RAFAEL']:
+                df_anexos.at[idx, col] = prev[col]
+            continue
+            
         if row['ANEXO'] and (row['ANEXO'].endswith('.jpg') or row['ANEXO'].endswith('.jpeg') or row['ANEXO'].endswith('.png')):
             # Verifica se o arquivo existe em input/ (imagens novas)
             caminho_input = os.path.join(input_dir, row['ANEXO'])
@@ -627,16 +643,13 @@ def txt_to_csv_anexos_only(input_file, output_file):
                         df_anexos.at[idx, 'RICARDO'] = valor_total
                     elif row['REMETENTE'] == 'Rafael':
                         df_anexos.at[idx, 'RAFAEL'] = valor_total
+            elif os.path.exists(os.path.join("imgs", row['ANEXO'])):
+                # Se está em imgs/, não processa novamente (será tratado pela recuperação de dados)
+                continue
             else:
-                # Se não está em input/, verifica se está em imgs/ (já processado)
-                caminho_imgs = os.path.join("imgs", row['ANEXO'])
-                if os.path.exists(caminho_imgs):
-                    print(f"Imagem já processada anteriormente: {row['ANEXO']}")
-                    # Não processa novamente para economizar tempo e chamadas da API
-                    df_anexos.at[idx, 'OCR'] = "Já processado anteriormente"
-                    df_anexos.at[idx, 'VALOR'] = ""
-                    df_anexos.at[idx, 'DESCRICAO'] = "Já processado anteriormente"
-                    df_anexos.at[idx, 'CLASSIFICACAO'] = ""
+                # 3) arquivo não encontrado: sinaliza e pula chamadas
+                df_anexos.at[idx, 'OCR'] = "Arquivo não encontrado"
+                continue
     
     # Remove a coluna bruta e reordena as colunas conforme especificado
     df_anexos.drop(columns=['raw'], inplace=True)
