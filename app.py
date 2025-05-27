@@ -733,16 +733,24 @@ def verificar_totais(csv_file):
         print(f"Erro ao verificar totais: {str(e)}")
 
 def carregar_edits_json():
-    """Verifica diretório 'input' por edits.json e retorna dict ou {}"""
+    """Verifica diretório 'input' por todos os arquivos .json e retorna um dict unificado"""
     import_dir = 'input'
-    path = os.path.join(import_dir, 'edits.json')
-    if os.path.exists(path):
-        try:
-            with open(path, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception:
-            print(f"Aviso: não foi possível ler {path}")
-    return {}
+    edits = {}
+    # Verifica se o diretório existe
+    if not os.path.exists(import_dir):
+        return edits
+    # Itera todos os arquivos .json no diretório input/
+    for fname in os.listdir(import_dir):
+        if fname.lower().endswith('.json'):
+            path = os.path.join(import_dir, fname)
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    # Mescla conteúdo, chaves duplicadas serão sobrescritas pela última
+                    edits.update(data)
+            except Exception:
+                print(f"Aviso: não foi possível ler {path}")
+    return edits
 
 def processar_incremental():
     """Função principal para processamento incremental com gerenciamento de arquivos"""
@@ -751,7 +759,7 @@ def processar_incremental():
     # 1) carrega edições do JSON, se existir
     edits_json = carregar_edits_json()
     if edits_json:
-        print(f"Edições encontradas em input/edits.json: aplicando após confirmação.")
+        print(f"Edições encontradas em arquivos JSON de input/: aplicando após confirmação.")
     
     # Primeiro, verifica e descomprime arquivo ZIP se existir
     print("\n=== VERIFICANDO ARQUIVOS ZIP ===")

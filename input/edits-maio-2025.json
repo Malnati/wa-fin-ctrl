@@ -1,0 +1,397 @@
+{
+  "row_1": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": ""
+  },
+  "row_2": {
+    "ricardo": "17,41",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_3": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Panificadora Shinuol"
+  },
+  "row_4": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Recarga celular - Operadora VIVO"
+  },
+  "row_5": {
+    "ricardo": "250,00",
+    "rafael": "",
+    "descricao": "Transferência - Uber"
+  },
+  "row_6": {
+    "ricardo": "104,43",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_7": {
+    "ricardo": "104,43",
+    "rafael": "",
+    "descricao": "Transferência - Drogaria Alpharma"
+  },
+  "row_8": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Consumo - Restaurante"
+  },
+  "row_9": {
+    "ricardo": "52,13",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora"
+  },
+  "row_10": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_11": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Lanches - Padaria"
+  },
+  "row_12": {
+    "ricardo": "12,66",
+    "rafael": "",
+    "descricao": "Transferência - Padaria"
+  },
+  "row_13": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Sanduíche Natural"
+  },
+  "row_14": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Grupo Casas Bahia"
+  },
+  "row_15": {
+    "ricardo": "33,18",
+    "rafael": "",
+    "descricao": "Transferência - Padaria Bonanza"
+  },
+  "row_16": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Pagamento"
+  },
+  "row_17": {
+    "ricardo": "29,00",
+    "rafael": "",
+    "descricao": "Transferência - Padaria Bonanza"
+  },
+  "row_18": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Panificadora Darodse"
+  },
+  "row_19": {
+    "ricardo": "26,25",
+    "rafael": "",
+    "descricao": "Transferência - Canaa Dist Alimen Bebidas"
+  },
+  "row_20": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_21": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": ""
+  },
+  "row_22": {
+    "ricardo": "",
+    "rafael": "43,97",
+    "descricao": "Transferência - Panificadora"
+  },
+  "row_23": {
+    "ricardo": "",
+    "rafael": "32,60",
+    "descricao": "Transferência - Panificadora"
+  },
+  "row_24": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_25": {
+    "ricardo": "9,00",
+    "rafael": "",
+    "descricao": "Transferência - Padaria"
+  },
+  "row_26": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Café da manhã"
+  },
+  "row_27": {
+    "ricardo": "134,95",
+    "rafael": "",
+    "descricao": "Transferência - Paes e Vinhos"
+  },
+  "row_28": {
+    "ricardo": "27,00",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_29": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Restaurante Phat Tes"
+  },
+  "row_30": {
+    "ricardo": "69,71",
+    "rafael": "",
+    "descricao": "Transferência - Padaria Bonanza"
+  },
+  "row_31": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_32": {
+    "ricardo": "56,20",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_33": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Restaurante Coisulle"
+  },
+  "row_34": {
+    "ricardo": "39,60",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_35": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Pagamento"
+  },
+  "row_36": {
+    "ricardo": "61,84",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_37": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_38": {
+    "ricardo": "13,31",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_39": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_40": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": ""
+  },
+  "row_41": {
+    "ricardo": "42,90",
+    "rafael": "",
+    "descricao": "Transferência - Padaria Bonanza"
+  },
+  "row_42": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Café e Salgados"
+  },
+  "row_43": {
+    "ricardo": "209,80",
+    "rafael": "",
+    "descricao": "Transferência - Farmácia Farmanossa"
+  },
+  "row_44": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Farmácia"
+  },
+  "row_45": {
+    "ricardo": "100,00",
+    "rafael": "",
+    "descricao": "Transferência - Uber"
+  },
+  "row_46": {
+    "ricardo": "35,30",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_47": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Restaurante Salad Lie"
+  },
+  "row_48": {
+    "ricardo": "940,00",
+    "rafael": "",
+    "descricao": "Transferência - Farmácia Farmanossa"
+  },
+  "row_49": {
+    "ricardo": "269,48",
+    "rafael": "",
+    "descricao": "Transferência - Moda Mundial Brasil"
+  },
+  "row_50": {
+    "ricardo": "52,97",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_51": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado QI ToraL"
+  },
+  "row_52": {
+    "ricardo": "37,80",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_53": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Panificadora Camargo e Cardu"
+  },
+  "row_54": {
+    "ricardo": "37,60",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_55": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_56": {
+    "ricardo": "40,29",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_57": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_58": {
+    "ricardo": "60,00",
+    "rafael": "",
+    "descricao": "Transferência - Banco Inter"
+  },
+  "row_59": {
+    "ricardo": "11,00",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_60": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_61": {
+    "ricardo": "8,50",
+    "rafael": "",
+    "descricao": "Transferência - Caixa Econômica"
+  },
+  "row_62": {
+    "ricardo": "27,00",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_63": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Pagamento"
+  },
+  "row_64": {
+    "ricardo": "969,21",
+    "rafael": "",
+    "descricao": "Transferência - Farmácia online"
+  },
+  "row_65": {
+    "ricardo": "969,22",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_66": {
+    "ricardo": "17,00",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_67": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": ""
+  },
+  "row_68": {
+    "ricardo": "97,75",
+    "rafael": "",
+    "descricao": "Transferência - Supermercado Varjão"
+  },
+  "row_69": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Supermercado"
+  },
+  "row_70": {
+    "ricardo": "230,00",
+    "rafael": "",
+    "descricao": "Transferência - Pagamento via Pix"
+  },
+  "row_71": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Pagamento"
+  },
+  "row_72": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Transferência - Uber"
+  },
+  "row_73": {
+    "ricardo": "71,25",
+    "rafael": "",
+    "descricao": "Transferência - Paes e Vinhos"
+  },
+  "row_74": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Artesanato Parente"
+  },
+  "row_75": {
+    "ricardo": "35,00",
+    "rafael": "",
+    "descricao": "Transferência - Panificadora Bonanza"
+  },
+  "row_76": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Loja Online"
+  },
+  "row_77": {
+    "ricardo": "109,30",
+    "rafael": "",
+    "descricao": "Transferência - Supermercado Varjão"
+  },
+  "row_78": {
+    "ricardo": "",
+    "rafael": "",
+    "descricao": "Compra - Rede de Fast Food"
+  },
+  "row_79": {
+    "ricardo": "5412,46",
+    "rafael": "76,57",
+    "descricao": "Total do mês 05/2025"
+  }
+}
