@@ -1609,6 +1609,11 @@ def gerar_relatorios_mensais_html(csv_path):
             gerar_html_mensal(dados_mes, nome_arquivo, nome_mes, ano)
             relatorios_gerados += 1
             print(f"✅ Relatório mensal gerado: {nome_arquivo}")
+            
+            # Gera relatório editável sem impacto na versão padrão
+            nome_arquivo_edit = f"report-edit-{ano}-{mes:02d}-{nome_mes}.html"
+            gerar_html_mensal_editavel(dados_mes, nome_arquivo_edit, nome_mes, ano)
+            print(f"✅ Relatório mensal editável gerado: {nome_arquivo_edit}")
         
         print(f"📅 Total de relatórios mensais gerados: {relatorios_gerados}")
         
