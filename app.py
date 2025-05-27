@@ -491,20 +491,23 @@ def adicionar_totalizacao_mensal(df):
     # Converte DATA para datetime para facilitar ordenação e agrupamento
     df['DATA_DT'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
     
+    # Remove linhas de totalização existentes antes de recalcular
+    df_sem_totais = df[df['REMETENTE'] != 'TOTAL MÊS'].copy()
+    
     # Ordena por data
-    df = df.sort_values('DATA_DT').reset_index(drop=True)
+    df_sem_totais = df_sem_totais.sort_values('DATA_DT').reset_index(drop=True)
     
     # Lista para armazenar as novas linhas
     linhas_totalizacao = []
     
     # Agrupa por mês/ano
-    df['MES_ANO'] = df['DATA_DT'].dt.to_period('M')
-    meses_unicos = df['MES_ANO'].dropna().unique()
+    df_sem_totais['MES_ANO'] = df_sem_totais['DATA_DT'].dt.to_period('M')
+    meses_unicos = df_sem_totais['MES_ANO'].dropna().unique()
     
     # Para cada mês, calcula totais e adiciona linha de totalização
     for mes_periodo in sorted(meses_unicos):
-        # Filtra dados do mês
-        dados_mes = df[df['MES_ANO'] == mes_periodo]
+        # Filtra dados do mês (excluindo totalizações)
+        dados_mes = df_sem_totais[df_sem_totais['MES_ANO'] == mes_periodo]
         
         # Calcula totais do mês
         total_ricardo = dados_mes['RICARDO'].apply(convert_to_float).sum()
@@ -535,14 +538,14 @@ def adicionar_totalizacao_mensal(df):
             
             linhas_totalizacao.append(linha_total)
     
-    # Adiciona as linhas de totalização ao DataFrame
+    # Adiciona as linhas de totalização ao DataFrame sem totais
     if linhas_totalizacao:
         df_totalizacao = pd.DataFrame(linhas_totalizacao)
-        df_combinado = pd.concat([df, df_totalizacao], ignore_index=True)
+        df_combinado = pd.concat([df_sem_totais, df_totalizacao], ignore_index=True)
         # Reordena por data/hora
         df_combinado = df_combinado.sort_values(['DATA_DT', 'HORA']).reset_index(drop=True)
     else:
-        df_combinado = df
+        df_combinado = df_sem_totais
     
     # Remove colunas auxiliares
     df_combinado = df_combinado.drop(columns=['DATA_DT', 'MES_ANO'])
@@ -2016,11 +2019,35 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
     with open(nome_arquivo, "w", encoding="utf-8") as f:
         f.write(html)
 
+def corrigir_totalizadores_duplicados(csv_file):
+    """Corrige totalizadores duplicados no arquivo CSV existente"""
+    try:
+        if not os.path.exists(csv_file):
+            print(f"Arquivo {csv_file} não encontrado!")
+            return False
+            
+        print(f"Corrigindo totalizadores duplicados em {csv_file}...")
+        df = pd.read_csv(csv_file)
+        
+        # Aplica a correção usando a função existente
+        df_corrigido = adicionar_totalizacao_mensal(df)
+        
+        # Salva o arquivo corrigido
+        df_corrigido.to_csv(csv_file, index=False, quoting=1)
+        
+        print(f"✅ Arquivo {csv_file} corrigido com sucesso!")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Erro ao corrigir totalizadores: {str(e)}")
+        return False
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Uso:")
         print("  python app.py processar              # Processamento incremental automático")
         print("  python app.py verificar <arquivo_csv>")
+        print("  python app.py corrigir <arquivo_csv> # Corrige totalizadores duplicados")
         print("  python app.py teste                  # Executa testes E2E completos")
         sys.exit(1)
     
@@ -2037,6 +2064,15 @@ if __name__ == "__main__":
             
         csv_file = sys.argv[2]
         verificar_totais(csv_file)
+        
+    elif comando == "corrigir":
+        if len(sys.argv) != 3:
+            print("Uso: python app.py corrigir <arquivo_csv>")
+            sys.exit(1)
+            
+        csv_file = sys.argv[2]
+        sucesso = corrigir_totalizadores_duplicados(csv_file)
+        sys.exit(0 if sucesso else 1)
         
     elif comando == "teste":
         # Executa testes E2E
