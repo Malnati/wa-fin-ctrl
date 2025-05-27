@@ -1459,9 +1459,6 @@ def gerar_relatorio_html(csv_path):
     <div class="info">
       Gerado automaticamente em ''' + pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S') + '''
     </div>
-    <div style="text-align: right; margin-bottom: 10px;">
-      <a href="prestacao_contas_justica.xlsx" download><button>Imprimir Formato Justiça</button></a>
-    </div>
     <table>
       <thead>
         <tr>
@@ -2019,9 +2016,6 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
     <div class="info">
       Gerado automaticamente em ''' + pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S') + '''
     </div>
-    <div style="text-align: right; margin-bottom: 10px;">
-      <a href="prestacao_contas_justica.xlsx" download><button>Imprimir Formato Justiça</button></a>
-    </div>
     <!-- Botão de edição mensal -->
     <div style="text-align: right; margin-bottom: 10px;">
       <a href="report-edit-''' + f"{ano}-{mes_num}-{nome_mes}" + '''.html" target="_blank">
@@ -2396,9 +2390,6 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
     <h1>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + ''' (Editável)</h1>
     <div class="info">
       Gerado automaticamente em ''' + pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S') + '''
-    </div>
-    <div style="text-align: right; margin-bottom: 10px;">
-      <a href="prestacao_contas_justica.xlsx" download><button>Imprimir Formato Justiça</button></a>
     </div>
     <!-- Marca a tabela para edição -->
     <table id="tabela-mensal-editavel">
