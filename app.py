@@ -2253,19 +2253,7 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
       font-family: inherit;
       background-color: #fff;
     }
-    #btn-download-edits {
-      background-color: #27ae60;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-      margin: 20px 0;
-    }
-    #btn-download-edits:hover {
-      background-color: #219a52;
-    }
+
     @media (max-width: 768px) {
       .container {
         margin: 10px;
@@ -2449,8 +2437,10 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
     html += '''      </tbody>
     </table>
     
-    <!-- Botão para download do JSON de edições -->
-    <button id="btn-download-edits">Download JSON</button>
+    <!-- Botão para download das edições como JSON -->
+    <div style="text-align: right; margin: 10px 0;">
+      <button id="btn-download-edits" style="padding: 8px 16px; cursor: pointer;">Download JSON</button>
+    </div>
   </div>
 
   <div id="modal" class="modal" onclick="hideModal()">
@@ -2511,17 +2501,17 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
       });
     });
 
-    // 3. Download do JSON
-    document.getElementById('btn-download-edits')
-      .addEventListener('click', () => {
-        const blob = new Blob([JSON.stringify(edits)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'edits.json';
-        a.click();
-        URL.revokeObjectURL(url);
-      });
+    // Download do JSON das edições armazenadas
+    document.getElementById('btn-download-edits').addEventListener('click', () => {
+      const edits = JSON.parse(localStorage.getItem('edits') || '{}');
+      const blob = new Blob([JSON.stringify(edits, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `edits-''' + nome_mes.lower() + '''-''' + str(ano) + '''.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   </script>
 </body>
 </html>'''
