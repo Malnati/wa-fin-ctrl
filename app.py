@@ -423,14 +423,8 @@ def incrementar_csv(novo_df, arquivo_csv):
         eh_csv_anexos = 'VALOR' in novo_df.columns and 'DESCRICAO' in novo_df.columns
         
         if eh_csv_anexos:
-            # Para CSV de anexos, filtra registros com dados preenchidos
-            mascara_novos = (
-                (novo_df['OCR'].notna() & (novo_df['OCR'] != '') & (novo_df['OCR'] != 'Já processado anteriormente')) |
-                (novo_df['VALOR'].notna() & (novo_df['VALOR'] != '')) |
-                (novo_df['DESCRICAO'].notna() & (novo_df['DESCRICAO'] != '') & (novo_df['DESCRICAO'] != 'Já processado anteriormente'))
-            )
-            
-            novos_registros = novo_df[mascara_novos].copy()
+            # inclui toda linha de df_anexos para relatório
+            novos_registros = novo_df.copy()
         else:
             # Para CSV de mensagens, filtra registros com OCR preenchido
             if 'OCR' in novo_df.columns:
@@ -650,6 +644,10 @@ def txt_to_csv_anexos_only(input_file, output_file):
                 # 3) arquivo não encontrado: sinaliza e pula chamadas
                 df_anexos.at[idx, 'OCR'] = "Arquivo não encontrado"
                 continue
+    
+    # debug: inspeciona se os campos foram preenchidos
+    print("DEBUG df_anexos Preview:")
+    print(df_anexos[['ANEXO','DESCRICAO','VALOR','CLASSIFICACAO']].head(10))
     
     # Remove a coluna bruta e reordena as colunas conforme especificado
     df_anexos.drop(columns=['raw'], inplace=True)
@@ -1197,6 +1195,11 @@ def gerar_relatorio_html(csv_path):
         
         print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
         df = pd.read_csv(csv_path)
+        print(f"DEBUG: DataFrame carregado com {len(df)} linhas")
+        print(f"DEBUG: Colunas disponíveis: {list(df.columns)}")
+        if len(df) > 0:
+            print(f"DEBUG: Primeiras 3 linhas de DESCRICAO: {df['DESCRICAO'].head(3).tolist()}")
+            print(f"DEBUG: Primeiras 3 linhas de CLASSIFICACAO: {df['CLASSIFICACAO'].head(3).tolist()}")
         
         html = '''<!DOCTYPE html>
 <html lang="pt-br">
@@ -1589,8 +1592,8 @@ def gerar_relatorios_mensais_html(csv_path):
             mes = periodo.month
             nome_mes = nomes_meses[mes]
 
-            # Garante que apenas dados do mês corrente estejam no relatório
-            dados_mes = dados_mes[dados_mes['DATA_DT'].dt.month == mes]
+            # usa todos os registros do mês, independentemente de OCR ou valores vazios
+            dados_mes = dados_mes[dados_mes['DATA_DT'].dt.month == mes].copy()
 
             # Nome do arquivo mensal
             nome_arquivo = f"report-{ano}-{mes:02d}-{nome_mes}.html"
@@ -1740,6 +1743,11 @@ document.getElementById('download-edits').addEventListener('click', () => {
 
 def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
     """Gera o HTML para um mês específico"""
+    print(f"DEBUG gerar_html_mensal: Processando {len(df_mes)} linhas para {nome_mes} {ano}")
+    if len(df_mes) > 0:
+        print(f"DEBUG: Primeiras 3 linhas de DESCRICAO: {df_mes['DESCRICAO'].head(3).tolist()}")
+        print(f"DEBUG: Primeiras 3 linhas de CLASSIFICACAO: {df_mes['CLASSIFICACAO'].head(3).tolist()}")
+    
     html = '''<!DOCTYPE html>
 <html lang="pt-br">
 <head>
