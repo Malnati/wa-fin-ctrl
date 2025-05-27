@@ -1418,11 +1418,11 @@ def gerar_relatorio_html(csv_path):
         z-index: 1;
         cursor: pointer;
       }
-      table th:nth-child(2) button::after {
+      /* table th:nth-child(2) button::after {
         content: "👁️";
         font-size: 14px;
         position: relative;
-      }
+      } */
       table th:nth-child(2)::after {
         display: none;
       }
@@ -1454,6 +1454,10 @@ def gerar_relatorio_html(csv_path):
   </style>
 </head>
 <body>
+  <!-- Mensagem de carregamento -->
+  <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;">
+    <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde por favor...</div>
+  </div>
   <div class="container">
     <h1>Relatório de Prestação de Contas</h1>
     <div class="info">
@@ -1463,7 +1467,7 @@ def gerar_relatorio_html(csv_path):
       <thead>
         <tr>
           <th>Data-Hora</th>
-          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;font-size:16px;">👁️</button></th>
+          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;font-size:16px;" aria-label="Alternar pagamentos"></button></th>
           <th>Ricardo (R$)</th>
           <th>Rafael (R$)</th>
           <th>Anexo</th>
@@ -1975,11 +1979,11 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
         z-index: 1;
         cursor: pointer;
       }
-      table th:nth-child(2) button::after {
+      /* table th:nth-child(2) button::after {
         content: "👁️";
         font-size: 14px;
         position: relative;
-      }
+      } */
       table th:nth-child(2)::after {
         display: none;
       }
@@ -2011,6 +2015,10 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
   </style>
 </head>
 <body>
+  <!-- Mensagem de carregamento -->
+  <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;">
+    <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde por favor...</div>
+  </div>
   <div class="container">
     <h1>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + '''</h1>
     <div class="info">
@@ -2026,7 +2034,7 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
       <thead>
         <tr>
           <th>Data-Hora</th>
-          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;font-size:16px;">👁️</button></th>
+          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;font-size:16px;" aria-label="Alternar pagamentos"></button></th>
           <th>Ricardo (R$)</th>
           <th>Rafael (R$)</th>
           <th>Anexo</th>
@@ -2350,11 +2358,11 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
         z-index: 1;
         cursor: pointer;
       }
-      table th:nth-child(2) button::after {
+      /* table th:nth-child(2) button::after {
         content: "👁️";
         font-size: 14px;
         position: relative;
-      }
+      } */
       table th:nth-child(2)::after {
         display: none;
       }
@@ -2386,6 +2394,10 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
   </style>
 </head>
 <body>
+  <!-- Mensagem de carregamento -->
+  <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;">
+    <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde por favor...</div>
+  </div>
   <div class="container">
     <h1>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + ''' (Editável)</h1>
     <div class="info">
@@ -2396,7 +2408,7 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
       <thead>
         <tr>
           <th>Data-Hora</th>
-          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;font-size:16px;">👁️</button></th>
+          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;font-size:16px;" aria-label="Alternar pagamentos"></button></th>
           <th>Ricardo (R$)</th>
           <th>Rafael (R$)</th>
           <th>Anexo</th>
@@ -2535,14 +2547,9 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
         cell.textContent = '';
         cell.appendChild(input);
         input.focus();
-        input.addEventListener('blur', () => {
-          const novoValor = input.value;
-          cell.textContent = novoValor;
-          const tr = cell.closest('tr');
-          const id = tr.dataset.id;
-          edits[id] = edits[id] || {};
-          edits[id][cell.dataset.field] = novoValor;
-          localStorage.setItem('edits', JSON.stringify(edits));
+        input.addEventListener('blur', () => saveEdit(id, field, input.value, td));
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') input.blur();
         });
       });
     });
