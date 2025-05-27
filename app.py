@@ -782,6 +782,23 @@ def processar_incremental():
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
     gerar_relatorios_mensais_html("calculo.csv")
 
+    # Gera HTML de impressão para cada relatório mensal
+    df_all = pd.read_csv("calculo.csv")
+    df_all['DATA_DT'] = pd.to_datetime(df_all['DATA'], format='%d/%m/%Y', errors='coerce')
+    df_all['ANO_MES'] = df_all['DATA_DT'].dt.to_period('M')
+    nomes_meses = {
+        1: 'Janeiro', 2: 'Fevereiro', 3: 'Marco', 4: 'Abril',
+        5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+        9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+    }
+    for periodo, dados_mes in df_all.groupby('ANO_MES'):
+        ano = periodo.year
+        mes = periodo.month
+        nome_mes = nomes_meses.get(mes, str(mes))
+        nome_arquivo_impressao = f"impressao-{ano}-{mes:02d}-{nome_mes}.html"
+        gerar_html_impressao(dados_mes, nome_arquivo_impressao, nome_mes, ano)
+        print(f"✅ HTML de impressão gerado: {nome_arquivo_impressao}")
+
 def descomprimir_zip_se_existir():
     """Verifica se existe apenas um arquivo ZIP em input/ e o descomprime"""
     input_dir = "input"
