@@ -1683,7 +1683,7 @@ def gerar_html_impressao(df_mes, nome_arquivo, nome_mes, ano):
         html += f'      <tr data-id="{identificador_unico}"><td>{data}</td><td data-field="descricao">{descricao}</td><td data-field="receitas">{receitas}</td><td data-field="despesas">{despesas}</td><td data-field="saldo">{saldo:.2f}</td></tr>\n'
     html += """    </tbody>
       </table>
-      <button id="download-edits">Download JSON</button>
+      <button id="download-edits">Download JSON V1</button>
       <div class="signature">
         <div>Local, ___/___/_____<br>Assinatura do Curador</div>
         <div>Data, ___/___/_____<br>Assinatura do Curatelado</div>
@@ -2439,7 +2439,7 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
     
     <!-- Botão para download das edições como JSON -->
     <div style="text-align: right; margin: 10px 0;">
-      <button id="btn-download-edits" style="padding: 8px 16px; cursor: pointer;">Download JSON</button>
+      <button id="btn-download-edits" style="padding: 8px 16px; cursor: pointer;">Download JSON V1</button>
     </div>
   </div>
 
@@ -2501,7 +2501,7 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
       });
     });
 
-    // Download JSON completo com todos os campos (exceto imagem)
+    // Download JSON V1 completo com todos os campos (exceto imagem)
     document.getElementById('btn-download-edits').addEventListener('click', () => {
       const table = document.getElementById('tabela-mensal-editavel');
       const data = {};
