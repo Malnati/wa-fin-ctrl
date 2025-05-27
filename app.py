@@ -1584,6 +1584,12 @@ def gerar_relatorio_html(csv_path):
         if (isPayment) row.style.display = 'none';
       });
     });
+    
+    // Esconde overlay quando o DOM estiver completamente carregado
+    document.addEventListener('DOMContentLoaded', () => {
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) overlay.style.display = 'none';
+    });
   </script>
 </body>
 </html>'''
@@ -2150,6 +2156,12 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
         const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
         if (isPayment) row.style.display = 'none';
       });
+    });
+    
+    // Esconde overlay quando o DOM estiver completamente carregado
+    document.addEventListener('DOMContentLoaded', () => {
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) overlay.style.display = 'none';
     });
   </script>
 </body>
