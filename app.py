@@ -796,7 +796,7 @@ def processar_incremental():
         mes = periodo.month
         nome_mes = nomes_meses.get(mes, str(mes))
         nome_arquivo_impressao = f"impressao-{ano}-{mes:02d}-{nome_mes}.html"
-        gerar_html_impressao(dados_mes, nome_arquivo_impressao, nome_mes, ano)
+        # gerar_html_impressao(dados_mes, nome_arquivo_impressao, nome_mes, ano)
         print(f"✅ HTML de impressão gerado: {nome_arquivo_impressao}")
 
 def descomprimir_zip_se_existir():
