@@ -12,6 +12,7 @@ import numpy as np
 from openai import OpenAI
 import base64
 from pathlib import Path
+import json
 
 def process_image_ocr(image_path):
     """Processa uma imagem e extrai texto usando OCR"""
@@ -731,9 +732,26 @@ def verificar_totais(csv_file):
     except Exception as e:
         print(f"Erro ao verificar totais: {str(e)}")
 
+def carregar_edits_json():
+    """Verifica diretório 'input' por edits.json e retorna dict ou {}"""
+    import_dir = 'input'
+    path = os.path.join(import_dir, 'edits.json')
+    if os.path.exists(path):
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            print(f"Aviso: não foi possível ler {path}")
+    return {}
+
 def processar_incremental():
     """Função principal para processamento incremental com gerenciamento de arquivos"""
     print("=== INICIANDO PROCESSAMENTO INCREMENTAL ===")
+    
+    # 1) carrega edições do JSON, se existir
+    edits_json = carregar_edits_json()
+    if edits_json:
+        print(f"Edições encontradas em input/edits.json: aplicando após confirmação.")
     
     # Primeiro, verifica e descomprime arquivo ZIP se existir
     print("\n=== VERIFICANDO ARQUIVOS ZIP ===")
@@ -787,6 +805,21 @@ def processar_incremental():
         print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
     
     print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
+    
+    # 2) perguntar ao usuário se deve aplicar edições ao CSV
+    if edits_json:
+        resposta = input("Deseja aplicar as edições do JSON em calculo.csv antes de gerar relatórios? (s/n): ").strip().lower()
+        if resposta == 's':
+            # 3) aplica edições
+            df_calc = pd.read_csv('calculo.csv', dtype=str)
+            for row_id, campos in edits_json.items():
+                # localiza linha pelo índice convertido de 'row_X'
+                idx = int(row_id.split('_')[1])  # row_5 -> 5
+                for campo, valor in campos.items():
+                    if campo.upper() in df_calc.columns:
+                        df_calc.at[idx, campo.upper()] = valor
+            df_calc.to_csv('calculo.csv', index=False, quoting=1)
+            print("Edições aplicadas em calculo.csv.")
     
     # Sempre gera relatório HTML (independente de ter novos arquivos)
     print("\n=== GERANDO RELATÓRIO HTML ===")
