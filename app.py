@@ -2501,10 +2501,18 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
       });
     });
 
-    // Download do JSON das edições armazenadas
+    // Download JSON completo com todos os campos (exceto imagem)
     document.getElementById('btn-download-edits').addEventListener('click', () => {
-      const edits = JSON.parse(localStorage.getItem('edits') || '{}');
-      const blob = new Blob([JSON.stringify(edits, null, 2)], { type: 'application/json' });
+      const table = document.getElementById('tabela-mensal-editavel');
+      const data = {};
+      table.querySelectorAll('tr[data-id]').forEach(tr => {
+        const id = tr.dataset.id;
+        data[id] = {};
+        tr.querySelectorAll('td[data-field]').forEach(td => {
+          data[id][td.dataset.field] = td.textContent.trim();
+        });
+      });
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
