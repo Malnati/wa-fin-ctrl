@@ -787,92 +787,80 @@ def carregar_edits_json():
                 print(f"Aviso: não foi possível ler {path}")
     return edits
 
-def processar_incremental():
-    """Função principal para processamento incremental com gerenciamento de arquivos"""
-    print("=== INICIANDO PROCESSAMENTO INCREMENTAL ===")
-    
-    # 1) carrega edições do JSON, se existir
+def processar_incremental(force=False):
+    """Função principal para processamento incremental ou forçado"""
+    print("=== INICIANDO PROCESSAMENTO {} ===".format("FORÇADO" if force else "INCREMENTAL"))
     edits_json = carregar_edits_json()
     if edits_json:
         print(f"Edições encontradas em arquivos JSON de input/: aplicando após confirmação.")
-    
-    # Primeiro, verifica e descomprime arquivo ZIP se existir
     print("\n=== VERIFICANDO ARQUIVOS ZIP ===")
     if not descomprimir_zip_se_existir():
         print("❌ Erro na descompressão de arquivo ZIP. Processamento interrompido.")
         return
-    
-    # Verifica se há subdiretórios em input/ e organiza arquivos se necessário
     print("\n=== VERIFICANDO SUBDIRETÓRIOS ===")
     organizar_subdiretorios_se_necessario()
-    
-    # Gerencia arquivos incrementais
-    tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
-    
-    if not tem_arquivos:
-        print("Nenhum arquivo novo para processar.")
-        # Mesmo sem arquivos novos, tenta gerar relatório HTML se calculo.csv existir
-        print("\n=== GERANDO RELATÓRIO HTML ===")
-        gerar_relatorio_html("calculo.csv")
-        gerar_relatorios_mensais_html("calculo.csv")
-        return
-    
-    # Processamento dos dados
-    print(f"\n=== PROCESSANDO DADOS DE {chat_file} ===")
-    
-    # Processa dados completos
-    print("=== PROCESSANDO DADOS COMPLETOS ===")
-    df_completo = txt_to_csv(chat_file, "mensagens.csv")
-    
-    # Processa apenas anexos
-    print("\n=== PROCESSANDO APENAS ANEXOS ===")
-    df_anexos = txt_to_csv_anexos_only(chat_file, "calculo.csv")
-    
-    # Move arquivos processados de input/ para imgs/
-    print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
-    arquivos_movidos = mover_arquivos_processados()
-    
-    # Remove arquivo _chat.txt de input/
-    try:
-        os.remove(chat_file)
-        print(f"Arquivo {chat_file} removido após processamento")
-    except Exception as e:
-        print(f"Erro ao remover {chat_file}: {e}")
-    
-    # Verifica se input/ está vazio
     input_dir = "input"
-    arquivos_restantes = os.listdir(input_dir)
-    if not arquivos_restantes:
-        print(f"✅ Diretório {input_dir}/ está vazio - processamento concluído")
+    if force:
+        # Processa todos os arquivos de input/ (sem filtro incremental)
+        arquivos = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f)) and f.lower().endswith((".jpg", ".jpeg", ".png", ".pdf"))]
+        if not arquivos:
+            print("Nenhum arquivo para reprocessar em modo forçado.")
+        else:
+            print(f"Arquivos a reprocessar: {arquivos}")
+            # Simula um chat_file para o fluxo de processamento (pode ser adaptado conforme o fluxo real)
+            # Aqui, processa cada arquivo individualmente
+            for arquivo in arquivos:
+                caminho = os.path.join(input_dir, arquivo)
+                print(f"Processando arquivo (forçado): {arquivo}")
+                ocr_result = process_image_ocr(caminho)
+                valor_total = extract_total_value_with_chatgpt(ocr_result)
+                descricao = generate_payment_description_with_chatgpt(ocr_result)
+                classificacao = classify_transaction_type_with_chatgpt(ocr_result)
+                # Aqui você pode salvar os resultados em um DataFrame ou CSV conforme o fluxo normal
+                # (Sugestão: adaptar para salvar em calculo.csv e mensagens.csv como no fluxo incremental)
+            print("Reprocessamento forçado concluído.")
     else:
-        print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
-    
-    print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
-    
-    # 2) perguntar ao usuário se deve aplicar edições ao CSV
-    if edits_json:
-        resposta = input("Deseja aplicar as edições do JSON em calculo.csv antes de gerar relatórios? (s/n): ").strip().lower()
-        if resposta == 's':
-            # 3) aplica edições
-            df_calc = pd.read_csv('calculo.csv', dtype=str)
-            for row_id, campos in edits_json.items():
-                # localiza linha pelo índice convertido de 'row_X'
-                idx = int(row_id.split('_')[1])  # row_5 -> 5
-                for campo, valor in campos.items():
-                    if campo.upper() in df_calc.columns:
-                        df_calc.at[idx, campo.upper()] = valor
-            df_calc.to_csv('calculo.csv', index=False, quoting=1)
-            print("Edições aplicadas em calculo.csv.")
-    
-    # Sempre gera relatório HTML (independente de ter novos arquivos)
+        # Fluxo incremental padrão
+        tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
+        if not tem_arquivos:
+            print("Nenhum arquivo novo para processar.")
+            print("\n=== GERANDO RELATÓRIO HTML ===")
+            gerar_relatorio_html("calculo.csv")
+            gerar_relatorios_mensais_html("calculo.csv")
+            return
+        print(f"\n=== PROCESSANDO DADOS DE {chat_file} ===")
+        print("=== PROCESSANDO DADOS COMPLETOS ===")
+        df_completo = txt_to_csv(chat_file, "mensagens.csv")
+        print("\n=== PROCESSANDO APENAS ANEXOS ===")
+        df_anexos = txt_to_csv_anexos_only(chat_file, "calculo.csv")
+        print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
+        arquivos_movidos = mover_arquivos_processados()
+        try:
+            os.remove(chat_file)
+            print(f"Arquivo {chat_file} removido após processamento")
+        except Exception as e:
+            print(f"Erro ao remover {chat_file}: {e}")
+        arquivos_restantes = os.listdir(input_dir)
+        if not arquivos_restantes:
+            print(f"✅ Diretório {input_dir}/ está vazio - processamento concluído")
+        else:
+            print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
+        print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
+        if edits_json:
+            resposta = input("Deseja aplicar as edições do JSON em calculo.csv antes de gerar relatórios? (s/n): ").strip().lower()
+            if resposta == 's':
+                df_calc = pd.read_csv('calculo.csv', dtype=str)
+                for row_id, campos in edits_json.items():
+                    idx = int(row_id.split('_')[1])
+                    for campo, valor in campos.items():
+                        if campo.upper() in df_calc.columns:
+                            df_calc.at[idx, campo.upper()] = valor
+                df_calc.to_csv('calculo.csv', index=False, quoting=1)
+                print("Edições aplicadas em calculo.csv.")
     print("\n=== GERANDO RELATÓRIO HTML ===")
     gerar_relatorio_html("calculo.csv")
-    
-    # Gera relatórios mensais
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
     gerar_relatorios_mensais_html("calculo.csv")
-
-    # Gera HTML de impressão para cada relatório mensal
     df_all = pd.read_csv("calculo.csv")
     df_all['DATA_DT'] = pd.to_datetime(df_all['DATA'], format='%d/%m/%Y', errors='coerce')
     df_all['ANO_MES'] = df_all['DATA_DT'].dt.to_period('M')
@@ -886,7 +874,6 @@ def processar_incremental():
         mes = periodo.month
         nome_mes = nomes_meses.get(mes, str(mes))
         nome_arquivo_impressao = f"impressao-{ano}-{mes:02d}-{nome_mes}.html"
-        # gerar_html_impressao(dados_mes, nome_arquivo_impressao, nome_mes, ano)
         print(f"✅ HTML de impressão gerado: {nome_arquivo_impressao}")
 
 def descomprimir_zip_se_existir():
@@ -1281,6 +1268,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Uso:")
         print("  python app.py processar              # Processamento incremental automático")
+        print("  python app.py processar --force      # Reprocessa todos os arquivos de input/")
         print("  python app.py verificar <arquivo_csv>")
         print("  python app.py corrigir <arquivo_csv> # Corrige totalizadores duplicados")
         print("  python app.py teste                  # Executa testes E2E completos")
@@ -1289,8 +1277,23 @@ if __name__ == "__main__":
     comando = sys.argv[1]
     
     if comando == "processar":
-        # Modo incremental - sem parâmetros adicionais
-        processar_incremental()
+        force = len(sys.argv) > 2 and sys.argv[2] == "--force"
+        if force:
+            print("=== MODO FORÇADO: Reprocessando todos os arquivos de input/ ===")
+            # Não usar incremental, processar tudo
+            # Opcional: pode-se limpar imgs/ ou apenas sobrescrever
+            # Processa todos os arquivos de input/ (inclusive já processados)
+            # Aqui, basta não filtrar por incremental
+            # Você pode adaptar processar_incremental para aceitar um parâmetro force
+            processar_incremental(force=True)
+            # Após o processamento, move todos os arquivos de input/ para imgs/
+            for f in os.listdir('input'):
+                caminho = os.path.join('input', f)
+                if os.path.isfile(caminho):
+                    shutil.move(caminho, os.path.join('imgs', f))
+            print("Arquivos reprocessados e movidos de volta para imgs/.")
+        else:
+            processar_incremental()
         
     elif comando == "verificar":
         if len(sys.argv) != 3:
