@@ -97,23 +97,25 @@ def gerar_relatorio_html(csv_path):
             else:
                 anexo = str(row.get('ANEXO', ''))
                 img_html = ""
-                if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
-                    img_path = None
-                    for diretorio in ['imgs', 'input']:
-                        caminho_completo = Path(diretorio) / anexo
-                        if caminho_completo.is_file():
-                            img_path = caminho_completo
-                            break
-                    if img_path:
-                        # Referenciar imagem por caminho relativo em vez de base64
-                        if img_path.parent.name == 'imgs':
-                            img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                        elif img_path.parent.name == 'input':
-                            img_html = f'<img src="input/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                if anexo != 'nan' and anexo != '':
+                    if anexo.lower().endswith('.pdf'):
+                        img_name = Path(anexo).stem + '_page1.jpg'
+                        img_path = Path('imgs') / img_name
+                        if img_path.is_file():
+                            img_html = f'<img src="imgs/{img_name}" class="thumb" alt="Thumbnail do PDF {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
                         else:
-                            img_html = f'<img src="{img_path}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                    else:
-                        img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
+                            img_html = '<span style="color:#e67e22;font-size:12px;">PDF sem thumbnail</span>'
+                    elif anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
+                        img_path = None
+                        for diretorio in ['imgs', 'input']:
+                            caminho_completo = Path(diretorio) / anexo
+                            if caminho_completo.is_file():
+                                img_path = caminho_completo
+                                break
+                        if img_path:
+                            img_html = f'<img src="{img_path}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
+                        else:
+                            img_html = f'<span style="color:#e67e22;font-size:12px;">Sem anexo</span>'
             descricao = str(row.get('DESCRICAO', ''))
             descricao_html = descricao if descricao != 'nan' else ''
             html += f'''        <tr class="{row_class}">
@@ -125,7 +127,8 @@ def gerar_relatorio_html(csv_path):
           <td style="text-align: left; font-size: 12px;">{descricao_html}</td>'''
             if tem_motivo:
                 motivo = str(row.get('MOTIVO_ERRO', ''))
-                html += f'<td style="color:#e67e22;font-size:12px;">{motivo}</td>'
+                motivo_html = motivo if motivo and motivo != 'nan' else ''
+                html += f'<td style="color:#e67e22;font-size:12px;">{motivo_html}</td>'
             html += '</tr>\n'
         html += '''      </tbody>
     </table>
@@ -306,23 +309,25 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
             else:
                 anexo = str(row.get('ANEXO', ''))
                 img_html = ""
-                if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
-                    img_path = None
-                    for diretorio in ['imgs', 'input']:
-                        caminho_completo = Path(diretorio) / anexo
-                        if caminho_completo.is_file():
-                            img_path = caminho_completo
-                            break
-                    if img_path:
-                        # Referenciar imagem por caminho relativo em vez de base64
-                        if img_path.parent.name == 'imgs':
-                            img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                        elif img_path.parent.name == 'input':
-                            img_html = f'<img src="input/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                if anexo != 'nan' and anexo != '':
+                    if anexo.lower().endswith('.pdf'):
+                        img_name = Path(anexo).stem + '_page1.jpg'
+                        img_path = Path('imgs') / img_name
+                        if img_path.is_file():
+                            img_html = f'<img src="imgs/{img_name}" class="thumb" alt="Thumbnail do PDF {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
                         else:
-                            img_html = f'<img src="{img_path}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                    else:
-                        img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
+                            img_html = '<span style="color:#e67e22;font-size:12px;">PDF sem thumbnail</span>'
+                    elif anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
+                        img_path = None
+                        for diretorio in ['imgs', 'input']:
+                            caminho_completo = Path(diretorio) / anexo
+                            if caminho_completo.is_file():
+                                img_path = caminho_completo
+                                break
+                        if img_path:
+                            img_html = f'<img src="{img_path}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
+                        else:
+                            img_html = f'<span style="color:#e67e22;font-size:12px;">Sem anexo</span>'
             descricao = str(row.get('DESCRICAO', ''))
             descricao_html = descricao if descricao != 'nan' else ''
             html += f'''        <tr class="{row_class}">
@@ -334,7 +339,8 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
           <td style="text-align: left; font-size: 12px;">{descricao_html}</td>'''
             if tem_motivo:
                 motivo = str(row.get('MOTIVO_ERRO', ''))
-                html += f'<td style="color:#e67e22;font-size:12px;">{motivo}</td>'
+                motivo_html = motivo if motivo and motivo != 'nan' else ''
+                html += f'<td style="color:#e67e22;font-size:12px;">{motivo_html}</td>'
             html += '</tr>\n'
         html += '''      </tbody>
     </table>
@@ -474,26 +480,25 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
             else:
                 anexo = str(row.get('ANEXO', ''))
                 img_html = ""
-                if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
-                    img_path = None
-                    for diretorio in ['imgs', 'input']:
-                        caminho_completo = Path(diretorio) / anexo
-                        if caminho_completo.is_file():
-                            img_path = caminho_completo
-                            break
-                    if img_path:
-                        try:
-                            with open(img_path, "rb") as f:
-                                encoded = base64.b64encode(f.read()).decode()
-                                ext = img_path.suffix.replace(".", "").lower()
-                                if ext == 'jpg':
-                                    ext = 'jpeg'
-                                img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                        except Exception as e:
-                                print(f"Erro ao processar imagem {anexo}: {e}")
-                                img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
-                    else:
-                        img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
+                if anexo != 'nan' and anexo != '':
+                    if anexo.lower().endswith('.pdf'):
+                        img_name = Path(anexo).stem + '_page1.jpg'
+                        img_path = Path('imgs') / img_name
+                        if img_path.is_file():
+                            img_html = f'<img src="imgs/{img_name}" class="thumb" alt="Thumbnail do PDF {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
+                        else:
+                            img_html = '<span style="color:#e67e22;font-size:12px;">PDF sem thumbnail</span>'
+                    elif anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
+                        img_path = None
+                        for diretorio in ['imgs', 'input']:
+                            caminho_completo = Path(diretorio) / anexo
+                            if caminho_completo.is_file():
+                                img_path = caminho_completo
+                                break
+                        if img_path:
+                            img_html = f'<img src="{img_path}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
+                        else:
+                            img_html = f'<span style="color:#e67e22;font-size:12px;">Sem anexo</span>'
             descricao = str(row.get('DESCRICAO', ''))
             descricao_html = descricao if descricao != 'nan' else ''
             html += f'''        <tr class="{row_class}">
@@ -505,7 +510,8 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
           <td style="text-align: left; font-size: 12px;">{descricao_html}</td>'''
             if tem_motivo:
                 motivo = str(row.get('MOTIVO_ERRO', ''))
-                html += f'<td style="color:#e67e22;font-size:12px;">{motivo}</td>'
+                motivo_html = motivo if motivo and motivo != 'nan' else ''
+                html += f'<td style="color:#e67e22;font-size:12px;">{motivo_html}</td>'
             html += '</tr>\n'
         html += '''      </tbody>
     </table>
