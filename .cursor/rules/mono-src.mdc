@@ -1,6 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-Este projeto é mono-source. O único arquivo Python permitido no repositório é app.py, neste arquivo deve-se implementar todo o codigo Python, incluindo testes. A única massa de dados para testes permitida neste projeto está disponível no diretório massa/. 
