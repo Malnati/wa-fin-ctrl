@@ -50,11 +50,7 @@ def gerar_relatorio_html(csv_path):
   <!-- Mensagem de carregamento -->
   <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;">
     <div style="text-align:center;font-family:sans-serif;">
-      <div style="font-size:18px;color:#333;margin-bottom:20px;">Carregando relatório...</div>
-      <div style="width:300px;height:20px;background:#e0e0e0;border-radius:10px;overflow:hidden;margin-bottom:10px;">
-        <div id="progress-bar" style="height:100%;background:linear-gradient(90deg,#3498db,#2ecc71);width:0%;transition:width 0.3s ease;border-radius:10px;"></div>
-      </div>
-      <div id="progress-text" style="font-size:14px;color:#666;">0%</div>
+    <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde por favor...</div>
     </div>
   </div>
   <div class="container">
@@ -165,22 +161,8 @@ def gerar_relatorio_html(csv_path):
     });
     document.addEventListener('DOMContentLoaded', () => {
       const overlay = document.getElementById('loading-overlay');
-      const progressBar = document.getElementById('progress-bar');
-      const progressText = document.getElementById('progress-text');
-      if (overlay && progressBar && progressText) {
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += Math.random() * 15 + 5;
-          if (progress >= 100) {
-            progress = 100;
-            clearInterval(interval);
-            setTimeout(() => {
-              overlay.style.display = 'none';
-            }, 500);
-          }
-          progressBar.style.width = progress + '%';
-          progressText.textContent = Math.round(progress) + '%';
-        }, 100);
+      if (overlay) {
+        overlay.style.display = 'none';
       }
     });
   </script>
@@ -388,22 +370,8 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
     });
     document.addEventListener('DOMContentLoaded', () => {
       const overlay = document.getElementById('loading-overlay');
-      const progressBar = document.getElementById('progress-bar');
-      const progressText = document.getElementById('progress-text');
-      if (overlay && progressBar && progressText) {
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += Math.random() * 15 + 5;
-          if (progress >= 100) {
-            progress = 100;
-            clearInterval(interval);
-            setTimeout(() => {
-              overlay.style.display = 'none';
-            }, 500);
-          }
-          progressBar.style.width = progress + '%';
-          progressText.textContent = Math.round(progress) + '%';
-        }, 100);
+      if (overlay) {
+        overlay.style.display = 'none';
       }
     });
   </script>
@@ -573,22 +541,8 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
     });
     document.addEventListener('DOMContentLoaded', () => {
       const overlay = document.getElementById('loading-overlay');
-      const progressBar = document.getElementById('progress-bar');
-      const progressText = document.getElementById('progress-text');
-      if (overlay && progressBar && progressText) {
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += Math.random() * 15 + 5;
-          if (progress >= 100) {
-            progress = 100;
-            clearInterval(interval);
-            setTimeout(() => {
-              overlay.style.display = 'none';
-            }, 500);
-          }
-          progressBar.style.width = progress + '%';
-          progressText.textContent = Math.round(progress) + '%';
-        }, 100);
+      if (overlay) {
+        overlay.style.display = 'none';
       }
     });
   </script>

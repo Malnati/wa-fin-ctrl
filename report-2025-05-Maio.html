@@ -35,7 +35,7 @@
   </div>
   <div class="container">
     <h1>Relatório de Prestação de Contas - Maio 2025</h1>
-    <div class="info">Gerado automaticamente em 16/07/2025 às 01:33:04</div>
+    <div class="info">Gerado automaticamente em 16/07/2025 às 01:42:40</div>
     <div style="text-align: right; margin-bottom: 10px;">
       <a href="report-edit-2025-05-Maio.html" target="_blank">
         <button>Editar Relatório</button>
@@ -1928,22 +1928,8 @@
     });
     document.addEventListener('DOMContentLoaded', () => {
       const overlay = document.getElementById('loading-overlay');
-      const progressBar = document.getElementById('progress-bar');
-      const progressText = document.getElementById('progress-text');
-      if (overlay && progressBar && progressText) {
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += Math.random() * 15 + 5;
-          if (progress >= 100) {
-            progress = 100;
-            clearInterval(interval);
-            setTimeout(() => {
-              overlay.style.display = 'none';
-            }, 500);
-          }
-          progressBar.style.width = progress + '%';
-          progressText.textContent = Math.round(progress) + '%';
-        }, 100);
+      if (overlay) {
+        overlay.style.display = 'none';
       }
     });
   </script>
