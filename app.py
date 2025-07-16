@@ -21,26 +21,44 @@ try:
 except ImportError:
     pdfplumber = None
     convert_from_path = None
+try:
+    import PyPDF2
+except ImportError:
+    PyPDF2 = None
 
 def process_image_ocr(image_path):
-    """Processa uma imagem ou PDF e extrai texto usando OCR. Para PDF, converte a primeira página em imagem antes do OCR."""
+    """Processa uma imagem ou PDF e extrai texto. Para PDF, tenta extrair texto via PyPDF2; se falhar, faz OCR."""
     try:
-        # Se for PDF, converte para imagem antes do OCR
         if image_path.lower().endswith('.pdf'):
-            try:
-                imagens = convert_from_path(image_path, first_page=1, last_page=1)
-                if imagens:
-                    # Salva a imagem convertida em imgs/ com nome derivado do PDF
-                    from pathlib import Path
-                    img_name = Path(image_path).stem + '_page1.jpg'
-                    img_path = os.path.join('imgs', img_name)
-                    imagens[0].save(img_path, 'JPEG')
-                    # Agora processa o OCR na imagem convertida
-                    return process_image_ocr(img_path)
-                else:
-                    return "Erro: PDF convertido, mas nenhuma imagem gerada"
-            except Exception as e:
-                return f"Erro ao converter PDF para imagem: {str(e)}"
+            # 1. Tenta extrair texto diretamente do PDF
+            if PyPDF2 is not None:
+                try:
+                    reader = PyPDF2.PdfReader(image_path)
+                    texto = ""
+                    for page in reader.pages:
+                        t = page.extract_text()
+                        if t:
+                            texto += t + "\n"
+                    if texto.strip():
+                        return texto.strip()
+                except Exception as e:
+                    pass  # Se falhar, tenta OCR
+            # 2. Se não extraiu nada, tenta OCR via imagem
+            if convert_from_path is not None:
+                try:
+                    imagens = convert_from_path(image_path, first_page=1, last_page=1)
+                    if imagens:
+                        from pathlib import Path
+                        img_name = Path(image_path).stem + '_page1.jpg'
+                        img_path = os.path.join('imgs', img_name)
+                        imagens[0].save(img_path, 'JPEG')
+                        return process_image_ocr(img_path)
+                    else:
+                        return "Erro: PDF convertido, mas nenhuma imagem gerada"
+                except Exception as e:
+                    return f"Erro ao converter PDF para imagem: {str(e)}"
+            else:
+                return "Erro: Nenhum método disponível para processar PDF"
         # Caso contrário, processa como imagem
         img = cv2.imread(image_path)
         if img is None:

@@ -1,0 +1,5 @@
+---
+description: Todos os arquivos criados automaticamente sem o consentimento explicito, devem ser salvos em tmp/.
+globs:
+alwaysApply: true
+---
