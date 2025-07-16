@@ -109,16 +109,13 @@ def gerar_relatorio_html(csv_path):
                             img_path = caminho_completo
                             break
                     if img_path:
-                        try:
-                            with open(img_path, "rb") as f:
-                                encoded = base64.b64encode(f.read()).decode()
-                                ext = img_path.suffix.replace(".", "").lower()
-                                if ext == 'jpg':
-                                    ext = 'jpeg'
-                                img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
-                        except Exception as e:
-                                print(f"Erro ao processar imagem {anexo}: {e}")
-                                img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
+                        # Referenciar imagem por caminho relativo em vez de base64
+                        if img_path.parent.name == 'imgs':
+                            img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                        elif img_path.parent.name == 'input':
+                            img_html = f'<img src="input/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                        else:
+                            img_html = f'<img src="{img_path}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
                     else:
                         img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
             descricao = str(row.get('DESCRICAO', ''))
@@ -335,16 +332,13 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
                             img_path = caminho_completo
                             break
                     if img_path:
-                        try:
-                            with open(img_path, "rb") as f:
-                                encoded = base64.b64encode(f.read()).decode()
-                                ext = img_path.suffix.replace(".", "").lower()
-                                if ext == 'jpg':
-                                    ext = 'jpeg'
-                                img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
-                        except Exception as e:
-                            print(f"Erro ao processar imagem {anexo}: {e}")
-                            img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
+                        # Referenciar imagem por caminho relativo em vez de base64
+                        if img_path.parent.name == 'imgs':
+                            img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                        elif img_path.parent.name == 'input':
+                            img_html = f'<img src="input/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                        else:
+                            img_html = f'<img src="{img_path}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
                     else:
                         img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
             descricao = str(row.get('DESCRICAO', ''))
@@ -526,7 +520,7 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
                                 ext = img_path.suffix.replace(".", "").lower()
                                 if ext == 'jpg':
                                     ext = 'jpeg'
-                                img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
+                                img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
                         except Exception as e:
                                 print(f"Erro ao processar imagem {anexo}: {e}")
                                 img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'

@@ -804,9 +804,16 @@ def diagnostico_erro_ocr(image_path, ocr_result):
         return "Falha no OCR"
     return "Sem diagnóstico detalhado"
 
-def processar_incremental(force=False):
-    """Função principal para processamento incremental ou forçado"""
+def processar_incremental(force=False, entry=None):
+    """Função principal para processamento incremental ou forçado, agora com filtro opcional de entry (DATA HORA)"""
     print("=== INICIANDO PROCESSAMENTO {} ===".format("FORÇADO" if force else "INCREMENTAL"))
+    if entry:
+        print(f"Filtro de entrada ativado: {entry}")
+        try:
+            data_entry, hora_entry = entry.strip().split()
+        except Exception:
+            print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
+            return
     edits_json = carregar_edits_json()
     if edits_json:
         print(f"Edições encontradas em arquivos JSON de input/: aplicando após confirmação.")
@@ -818,7 +825,6 @@ def processar_incremental(force=False):
     organizar_subdiretorios_se_necessario()
     input_dir = "input"
     if force:
-        # Processa todos os arquivos de input/ (sem filtro incremental)
         arquivos = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f)) and f.lower().endswith((".jpg", ".jpeg", ".png", ".pdf"))]
         if not arquivos:
             print("Nenhum arquivo para reprocessar em modo forçado.")
@@ -844,10 +850,20 @@ def processar_incremental(force=False):
                 })
             # Salva resultado em CSV detalhado
             df_diag = pd.DataFrame(registros)
+            if entry:
+                # Filtra apenas a linha correspondente
+                if 'ARQUIVO' in df_diag.columns and 'DATA' in df_diag.columns and 'HORA' in df_diag.columns:
+                    mask = (df_diag['DATA'] == data_entry) & (df_diag['HORA'] == hora_entry)
+                    df_diag = df_diag[mask]
+                    if df_diag.empty:
+                        print(f"Nenhuma linha encontrada para --entry {entry}.")
+                        return
+                else:
+                    print("Colunas DATA/HORA não encontradas para filtro --entry.")
+                    return
             df_diag.to_csv('diagnostico_processamento.csv', index=False)
             print("Reprocessamento forçado concluído. Diagnóstico salvo em diagnostico_processamento.csv.")
     else:
-        # Fluxo incremental padrão
         tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
         if not tem_arquivos:
             print("Nenhum arquivo novo para processar.")
@@ -860,6 +876,18 @@ def processar_incremental(force=False):
         df_completo = txt_to_csv(chat_file, "mensagens.csv")
         print("\n=== PROCESSANDO APENAS ANEXOS ===")
         df_anexos = txt_to_csv_anexos_only(chat_file, "calculo.csv")
+        if entry:
+            # Filtra apenas a linha correspondente
+            if 'DATA' in df_anexos.columns and 'HORA' in df_anexos.columns:
+                mask = (df_anexos['DATA'] == data_entry) & (df_anexos['HORA'] == hora_entry)
+                df_anexos = df_anexos[mask]
+                if df_anexos.empty:
+                    print(f"Nenhuma linha encontrada para --entry {entry}.")
+                    return
+                df_anexos.to_csv('calculo.csv', index=False)
+            else:
+                print("Colunas DATA/HORA não encontradas para filtro --entry.")
+                return
         # Diagnóstico incremental: para cada linha sem valor, descrição e classificação, registrar motivo
         if 'ANEXO' in df_anexos.columns:
             motivos = []
@@ -1308,11 +1336,89 @@ def corrigir_totalizadores_duplicados(csv_file):
         print(f"❌ Erro ao corrigir totalizadores: {str(e)}")
         return False
 
+def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
+    """Gera o HTML para um mês específico, referenciando imagens por caminho relativo em vez de base64"""
+    print(f"DEBUG gerar_html_mensal: Processando {len(df_mes)} linhas para {nome_mes} {ano}")
+    if len(df_mes) > 0:
+        print(f"DEBUG: Primeiras 3 linhas de DESCRICAO: {df_mes['DESCRICAO'].head(3).tolist()}")
+        print(f"DEBUG: Primeiras 3 linhas de CLASSIFICACAO: {df_mes['CLASSIFICACAO'].head(3).tolist()}")
+    meses_num = {
+        'Janeiro': '01', 'Fevereiro': '02', 'Marco': '03', 'Abril': '04',
+        'Maio': '05', 'Junho': '06', 'Julho': '07', 'Agosto': '08',
+        'Setembro': '09', 'Outubro': '10', 'Novembro': '11', 'Dezembro': '12'
+    }
+    mes_num = meses_num.get(nome_mes, '01')
+    html = '''<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + '''</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; line-height: 1.6; }
+    .container { max-width: 1200px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 28px; border-bottom: 3px solid #3498db; padding-bottom: 15px; }
+    .info { text-align: center; margin-bottom: 20px; color: #7f8c8d; font-style: italic; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 14px; }
+    th, td { border: 1px solid #ddd; padding: 12px 8px; text-align: center; vertical-align: middle; }
+    th { background-color: #3498db; color: white; font-weight: bold; text-transform: uppercase; font-size: 12px; }
+    tr:nth-child(even) { background-color: #f8f9fa; }
+    tr:hover { background-color: #e3f2fd; }
+    .total-row { background-color: #fff3cd !important; font-weight: bold; border-top: 3px solid #ffc107; }
+    .total-row:hover { background-color: #fff3cd !important; }
+    img.thumb { max-height: 50px; max-width: 80px; cursor: pointer; transition: transform 0.3s ease; border-radius: 5px; border: 1px solid #ddd; }
+    img.thumb:hover { transform: scale(3); z-index: 9999; position: relative; border: 2px solid #3498db; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    .modal { display: none; position: fixed; z-index: 9999; padding-top: 0; left: 0; top: 0; width: 100vw; height: 100vh; overflow: auto; background-color: rgba(0,0,0,0.95); }
+    .modal-content { margin: auto; display: block; width: 100%; height: 100%; object-fit: contain; }
+    .modal.show { display: block; }
+    .valor { font-weight: bold; color: #27ae60; }
+    .data-hora { font-family: monospace; font-size: 12px; white-space: nowrap; }
+    .classificacao { padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+    .transferencia { background-color: #e8f5e8; color: #2e7d32; }
+    .pagamento { background-color: #fff3e0; color: #f57c00; }
+    @media (max-width: 768px) { .container { margin: 10px; padding: 15px; } table { font-size: 12px; } th, td { padding: 8px 4px; } h1 { font-size: 22px; } img.thumb { max-height: 40px; max-width: 60px; } img.thumb:hover { transform: scale(2.5); } table th:nth-child(1), table td:nth-child(1) { font-size: 10px; white-space: normal; word-break: break-word; } table th:nth-child(2), table td:nth-child(2) { font-size: 0; width: 30px; position: relative; } table th:nth-child(2) button { font-size: 0; border: none; background: none; padding: 4px; display: block; width: 100%; height: 100%; cursor: pointer; } table th:nth-child(2) { position: relative; z-index: 1; cursor: pointer; } table th:nth-child(2)::after { display: none; } span.classificacao.transferencia::before { content: "⇆"; } span.classificacao.pagamento::before { content: "💸"; } span.classificacao { font-size: 0; display: inline-block; width: 1em; height: 1em; } table th:nth-child(3)::after { content: "RI"; } table th:nth-child(4)::after { content: "RA"; } table th:nth-child(5)::after { content: "📎"; } table th:nth-child(6), table td:nth-child(6) { display: none; } }  </style>\n</head>\n<body>\n  <!-- Mensagem de carregamento -->\n  <div id=\"loading-overlay\" style=\"position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;\">\n    <div style=\"font-size:18px;color:#333;font-family:sans-serif;\">Carregando relatório, aguarde por favor...</div>\n  </div>\n  <div class=\"container\">\n    <h1>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + '''</h1>\n    <div class=\"info\">Gerado automaticamente em ''' + pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S') + '''</div>\n    <div style=\"text-align: right; margin-bottom: 10px;\">\n      <a href=\"report-edit-''' + f"{ano}-{mes_num}-{nome_mes}" + '''.html\" target=\"_blank\">\n        <button>Editar Relatório</button>\n      </a>\n    </div>\n    <table>\n      <thead>\n        <tr>\n          <th>Data-Hora</th>\n          <th><button id=\"toggle-payments\" style=\"background:none;border:none;cursor:pointer;font-size:16px;\" aria-label=\"Alternar pagamentos\"></button></th>\n          <th>Ricardo (R$)</th>\n          <th>Rafael (R$)</th>\n          <th>Anexo</th>\n          <th>Descrição</th>\n        </tr>\n      </thead>\n      <tbody>\n'''
+    for idx, row in df_mes.iterrows():
+        data = str(row.get('DATA', ''))
+        hora = str(row.get('HORA', ''))
+        data_hora = f"{data} {hora}".strip()
+        classificacao = str(row.get('CLASSIFICACAO', ''))
+        ricardo = str(row.get('RICARDO', ''))
+        rafael = str(row.get('RAFAEL', ''))
+        descricao = str(row.get('DESCRICAO', ''))
+        anexo = str(row.get('ANEXO', ''))
+        row_class = ''
+        classificacao_html = ''
+        if classificacao.lower() == 'transferência':
+            row_class = 'transferencia'
+            classificacao_html = '<span class="classificacao transferencia">Transferência</span>'
+        elif classificacao.lower() == 'pagamento':
+            row_class = 'pagamento'
+            classificacao_html = '<span class="classificacao pagamento">Pagamento</span>'
+        else:
+            classificacao_html = f'<span class="classificacao">{classificacao}</span>'
+        ricardo_html = ricardo
+        rafael_html = rafael
+        descricao_html = descricao
+        # Referenciar imagem por caminho relativo
+        img_html = ''
+        if anexo:
+            if os.path.exists(os.path.join('imgs', anexo)):
+                img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
+            elif os.path.exists(os.path.join('input', anexo)):
+                img_html = f'<img src="input/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
+            else:
+                img_html = f'<span style="color:#e67e22;font-size:12px;">Sem anexo</span>'
+        html += f'''        <tr class="{row_class}">\n          <td class="data-hora">{data_hora}</td>\n          <td>{classificacao_html}</td>\n          <td>{ricardo_html}</td>\n          <td>{rafael_html}</td>\n          <td>{img_html}</td>\n          <td style="text-align: left; font-size: 12px;">{descricao_html}</td>\n        </tr>\n'''
+    html += '''      </tbody>\n    </table>\n  </div>\n  <div id="modal" class="modal" onclick="hideModal()">\n    <img class="modal-content" id="modal-img">\n  </div>\n  <script>\n    function showModal(imgSrc) {\n      const modal = document.getElementById('modal');\n      const modalImg = document.getElementById('modal-img');\n      modalImg.src = imgSrc;\n      modal.classList.add('show');\n    }\n    function hideModal() {\n      const modal = document.getElementById('modal');\n      modal.classList.remove('show');\n    }\n    let showPayments = false;\n    document.addEventListener('DOMContentLoaded', () => {\n      const toggleBtn = document.getElementById('toggle-payments');\n      toggleBtn.addEventListener('click', () => {\n        showPayments = !showPayments;\n        document.querySelectorAll('tbody tr').forEach(row => {\n          const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');\n          row.style.display = isPayment ? (showPayments ? '' : 'none') : '';\n        });\n      });\n      document.querySelectorAll('tbody tr').forEach(row => {\n        const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');\n        if (isPayment) row.style.display = 'none';\n      });\n    });\n    document.addEventListener('DOMContentLoaded', () => {\n      const overlay = document.getElementById('loading-overlay');\n      if (overlay) overlay.style.display = 'none';\n    });\n  </script>\n</body>\n</html>'''
+    with open(nome_arquivo, "w", encoding="utf-8") as f:
+        f.write(html)
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Uso:")
         print("  python app.py processar              # Processamento incremental automático")
         print("  python app.py processar --force      # Reprocessa todos os arquivos de input/")
+        print("  python app.py processar --entry 'DD/MM/AAAA HH:MM:SS'  # Reprocessa apenas a linha correspondente")
         print("  python app.py verificar <arquivo_csv>")
         print("  python app.py corrigir <arquivo_csv> # Corrige totalizadores duplicados")
         print("  python app.py teste                  # Executa testes E2E completos")
@@ -1321,23 +1427,33 @@ if __name__ == "__main__":
     comando = sys.argv[1]
     
     if comando == "processar":
-        force = len(sys.argv) > 2 and sys.argv[2] == "--force"
+        force = False
+        entry = None
+        # Suporte a --force e --entry
+        if len(sys.argv) > 2:
+            if sys.argv[2] == "--force":
+                force = True
+            elif sys.argv[2] == "--entry":
+                if len(sys.argv) > 3:
+                    entry = sys.argv[3]
+                else:
+                    print("Uso: python app.py processar --entry 'DD/MM/AAAA HH:MM:SS'")
+                    sys.exit(1)
+        # Permitir --force --entry juntos
+        if len(sys.argv) > 4:
+            if sys.argv[2] == "--force" and sys.argv[3] == "--entry":
+                force = True
+                entry = sys.argv[4]
+            elif sys.argv[2] == "--entry" and sys.argv[4] == "--force":
+                entry = sys.argv[3]
+                force = True
+        processar_incremental(force=force, entry=entry)
         if force:
-            print("=== MODO FORÇADO: Reprocessando todos os arquivos de input/ ===")
-            # Não usar incremental, processar tudo
-            # Opcional: pode-se limpar imgs/ ou apenas sobrescrever
-            # Processa todos os arquivos de input/ (inclusive já processados)
-            # Aqui, basta não filtrar por incremental
-            # Você pode adaptar processar_incremental para aceitar um parâmetro force
-            processar_incremental(force=True)
-            # Após o processamento, move todos os arquivos de input/ para imgs/
             for f in os.listdir('input'):
                 caminho = os.path.join('input', f)
                 if os.path.isfile(caminho):
                     shutil.move(caminho, os.path.join('imgs', f))
             print("Arquivos reprocessados e movidos de volta para imgs/.")
-        else:
-            processar_incremental()
         
     elif comando == "verificar":
         if len(sys.argv) != 3:
