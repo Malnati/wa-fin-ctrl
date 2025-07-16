@@ -31,11 +31,30 @@ fi
 # 3. Executa o script com venv
 
 COMANDO=${1:-processar}
+FORCE=0
+if [ "$2" = "--force" ]; then
+    FORCE=1
+fi
 
 if [ "$COMANDO" = "processar" ]; then
-    log "Suporte a arquivos ZIP: Se houver um arquivo .zip em input/, será descomprimido automaticamente"
-    log "Iniciando processamento incremental..."
-    python app.py processar
+    if [ $FORCE -eq 1 ]; then
+        log "Modo FORÇADO: copiando todos os arquivos de imgs/ para input/ para reprocessamento total."
+        mkdir -p input
+        for f in imgs/*; do
+            if [ -f "$f" ]; then
+                basef=$(basename "$f")
+                if [ ! -f "input/$basef" ]; then
+                    cp "$f" "input/"
+                fi
+            fi
+        done
+        log "Iniciando processamento forçado de todos os arquivos."
+        python app.py processar --force
+    else
+        log "Suporte a arquivos ZIP: Se houver um arquivo .zip em input/, será descomprimido automaticamente"
+        log "Iniciando processamento incremental..."
+        python app.py processar
+    fi
 elif [ "$COMANDO" = "verificar" ]; then
     ARQUIVO_CSV=${2:-calculo.csv}
     echo "Verificando totais do arquivo: $ARQUIVO_CSV"
