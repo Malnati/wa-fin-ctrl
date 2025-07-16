@@ -787,6 +787,23 @@ def carregar_edits_json():
                 print(f"Aviso: não foi possível ler {path}")
     return edits
 
+def diagnostico_erro_ocr(image_path, ocr_result):
+    if ocr_result == "Arquivo não encontrado":
+        return "Arquivo não encontrado no disco"
+    if ocr_result == "Erro ao carregar imagem":
+        return "Imagem corrompida ou formato não suportado"
+    if ocr_result == "Nenhum texto detectado":
+        ext = os.path.splitext(image_path)[1].lower()
+        if ext == '.pdf':
+            return "PDF escaneado ilegível, protegido ou em branco"
+        else:
+            return "Imagem ilegível ou em branco"
+    if ocr_result.startswith("Erro ao processar PDF"):
+        return "PDF protegido, corrompido ou formato incompatível"
+    if ocr_result.startswith("Erro no OCR"):
+        return "Falha no OCR"
+    return "Sem diagnóstico detalhado"
+
 def processar_incremental(force=False):
     """Função principal para processamento incremental ou forçado"""
     print("=== INICIANDO PROCESSAMENTO {} ===".format("FORÇADO" if force else "INCREMENTAL"))
@@ -807,8 +824,7 @@ def processar_incremental(force=False):
             print("Nenhum arquivo para reprocessar em modo forçado.")
         else:
             print(f"Arquivos a reprocessar: {arquivos}")
-            # Simula um chat_file para o fluxo de processamento (pode ser adaptado conforme o fluxo real)
-            # Aqui, processa cada arquivo individualmente
+            registros = []
             for arquivo in arquivos:
                 caminho = os.path.join(input_dir, arquivo)
                 print(f"Processando arquivo (forçado): {arquivo}")
@@ -816,9 +832,20 @@ def processar_incremental(force=False):
                 valor_total = extract_total_value_with_chatgpt(ocr_result)
                 descricao = generate_payment_description_with_chatgpt(ocr_result)
                 classificacao = classify_transaction_type_with_chatgpt(ocr_result)
-                # Aqui você pode salvar os resultados em um DataFrame ou CSV conforme o fluxo normal
-                # (Sugestão: adaptar para salvar em calculo.csv e mensagens.csv como no fluxo incremental)
-            print("Reprocessamento forçado concluído.")
+                motivo_erro = ""
+                if not valor_total and not descricao and not classificacao:
+                    motivo_erro = diagnostico_erro_ocr(caminho, ocr_result)
+                registros.append({
+                    'ARQUIVO': arquivo,
+                    'VALOR': valor_total,
+                    'DESCRICAO': descricao,
+                    'CLASSIFICACAO': classificacao,
+                    'MOTIVO_ERRO': motivo_erro
+                })
+            # Salva resultado em CSV detalhado
+            df_diag = pd.DataFrame(registros)
+            df_diag.to_csv('diagnostico_processamento.csv', index=False)
+            print("Reprocessamento forçado concluído. Diagnóstico salvo em diagnostico_processamento.csv.")
     else:
         # Fluxo incremental padrão
         tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
@@ -833,6 +860,23 @@ def processar_incremental(force=False):
         df_completo = txt_to_csv(chat_file, "mensagens.csv")
         print("\n=== PROCESSANDO APENAS ANEXOS ===")
         df_anexos = txt_to_csv_anexos_only(chat_file, "calculo.csv")
+        # Diagnóstico incremental: para cada linha sem valor, descrição e classificação, registrar motivo
+        if 'ANEXO' in df_anexos.columns:
+            motivos = []
+            for idx, row in df_anexos.iterrows():
+                if (not row.get('VALOR')) and (not row.get('DESCRICAO')) and (not row.get('CLASSIFICACAO')):
+                    anexo = row.get('ANEXO')
+                    if anexo:
+                        caminho = os.path.join('imgs', anexo) if os.path.exists(os.path.join('imgs', anexo)) else os.path.join('input', anexo)
+                        ocr_result = row.get('OCR', '')
+                        motivo = diagnostico_erro_ocr(caminho, ocr_result)
+                        motivos.append(motivo)
+                    else:
+                        motivos.append("")
+                else:
+                    motivos.append("")
+            df_anexos['MOTIVO_ERRO'] = motivos
+            df_anexos.to_csv('calculo.csv', index=False)
         print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
         arquivos_movidos = mover_arquivos_processados()
         try:

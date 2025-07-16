@@ -15,6 +15,7 @@ def gerar_relatorio_html(csv_path):
             print(f"📁 Relatório anterior renomeado para: {arquivo_backup}")
         print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
         df = pd.read_csv(csv_path)
+        tem_motivo = 'MOTIVO_ERRO' in df.columns
         html = '''<!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -69,7 +70,10 @@ def gerar_relatorio_html(csv_path):
           <th>Ricardo (R$)</th>
           <th>Rafael (R$)</th>
           <th>Anexo</th>
-          <th>Descrição</th>
+          <th>Descrição</th>'''
+        if tem_motivo:
+            html += '<th>Motivo do Erro</th>'
+        html += '''
         </tr>
       </thead>
       <tbody>
@@ -111,7 +115,7 @@ def gerar_relatorio_html(csv_path):
                                 ext = img_path.suffix.replace(".", "").lower()
                                 if ext == 'jpg':
                                     ext = 'jpeg'
-                                img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                                img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
                         except Exception as e:
                                 print(f"Erro ao processar imagem {anexo}: {e}")
                                 img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
@@ -125,9 +129,11 @@ def gerar_relatorio_html(csv_path):
           <td>{ricardo_html}</td>
           <td>{rafael_html}</td>
           <td>{img_html}</td>
-          <td style="text-align: left; font-size: 12px;">{descricao_html}</td>
-        </tr>
-'''
+          <td style="text-align: left; font-size: 12px;">{descricao_html}</td>'''
+            if tem_motivo:
+                motivo = str(row.get('MOTIVO_ERRO', ''))
+                html += f'<td style="color:#e67e22;font-size:12px;">{motivo}</td>'
+            html += '</tr>\n'
         html += '''      </tbody>
     </table>
   </div>
@@ -232,6 +238,7 @@ def gerar_relatorios_mensais_html(csv_path):
 
 def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
     try:
+        tem_motivo = 'MOTIVO_ERRO' in df_mes.columns
         meses_num = {
             'Janeiro': '01', 'Fevereiro': '02', 'Marco': '03', 'Abril': '04',
             'Maio': '05', 'Junho': '06', 'Julho': '07', 'Agosto': '08',
@@ -289,7 +296,10 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
           <th>Ricardo (R$)</th>
           <th>Rafael (R$)</th>
           <th>Anexo</th>
-          <th>Descrição</th>
+          <th>Descrição</th>'''
+        if tem_motivo:
+            html += '<th>Motivo do Erro</th>'
+        html += '''
         </tr>
       </thead>
       <tbody>
@@ -345,9 +355,11 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
           <td>{ricardo_html}</td>
           <td>{rafael_html}</td>
           <td>{img_html}</td>
-          <td style="text-align: left; font-size: 12px;">{descricao_html}</td>
-        </tr>
-'''
+          <td style="text-align: left; font-size: 12px;">{descricao_html}</td>'''
+            if tem_motivo:
+                motivo = str(row.get('MOTIVO_ERRO', ''))
+                html += f'<td style="color:#e67e22;font-size:12px;">{motivo}</td>'
+            html += '</tr>\n'
         html += '''      </tbody>
     </table>
   </div>
@@ -410,8 +422,189 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
         print(f"❌ Erro ao gerar relatório mensal: {str(e)}")
 
 def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
-    # ... (implementar corpo real da função conforme extraído do app.py, se houver) ...
-    pass
+    try:
+        tem_motivo = 'MOTIVO_ERRO' in df_mes.columns
+        meses_num = {
+            'Janeiro': '01', 'Fevereiro': '02', 'Marco': '03', 'Abril': '04',
+            'Maio': '05', 'Junho': '06', 'Julho': '07', 'Agosto': '08',
+            'Setembro': '09', 'Outubro': '10', 'Novembro': '11', 'Dezembro': '12'
+        }
+        mes_num = meses_num.get(nome_mes, '01')
+        html = '''<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + '''</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; line-height: 1.6; }
+    .container { max-width: 1200px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 28px; border-bottom: 3px solid #3498db; padding-bottom: 15px; }
+    .info { text-align: center; margin-bottom: 20px; color: #7f8c8d; font-style: italic; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 14px; }
+    th, td { border: 1px solid #ddd; padding: 12px 8px; text-align: center; vertical-align: middle; }
+    th { background-color: #3498db; color: white; font-weight: bold; text-transform: uppercase; font-size: 12px; }
+    tr:nth-child(even) { background-color: #f8f9fa; }
+    tr:hover { background-color: #e3f2fd; }
+    .total-row { background-color: #fff3cd !important; font-weight: bold; border-top: 3px solid #ffc107; }
+    .total-row:hover { background-color: #fff3cd !important; }
+    img.thumb { max-height: 50px; max-width: 80px; cursor: pointer; transition: transform 0.3s ease; border-radius: 5px; border: 1px solid #ddd; }
+    img.thumb:hover { transform: scale(3); z-index: 9999; position: relative; border: 2px solid #3498db; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+    .modal { display: none; position: fixed; z-index: 9999; padding-top: 0; left: 0; top: 0; width: 100vw; height: 100vh; overflow: auto; background-color: rgba(0,0,0,0.95); }
+    .modal-content { margin: auto; display: block; width: 100%; height: 100%; object-fit: contain; }
+    .modal.show { display: block; }
+    .valor { font-weight: bold; color: #27ae60; }
+    .data-hora { font-family: monospace; font-size: 12px; white-space: nowrap; }
+    .classificacao { padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+    .transferencia { background-color: #e8f5e8; color: #2e7d32; }
+    .pagamento { background-color: #fff3e0; color: #f57c00; }
+    @media (max-width: 768px) { .container { margin: 10px; padding: 15px; } table { font-size: 12px; } th, td { padding: 8px 4px; } h1 { font-size: 22px; } img.thumb { max-height: 40px; max-width: 60px; } img.thumb:hover { transform: scale(2.5); } table th:nth-child(1), table td:nth-child(1) { font-size: 10px; white-space: normal; word-break: break-word; } table th:nth-child(2), table td:nth-child(2) { font-size: 0; width: 30px; position: relative; } table th:nth-child(2) button { font-size: 0; border: none; background: none; padding: 4px; display: block; width: 100%; height: 100%; cursor: pointer; } table th:nth-child(2) { position: relative; z-index: 1; cursor: pointer; } table th:nth-child(2)::after { display: none; } span.classificacao.transferencia::before { content: "⇆"; } span.classificacao.pagamento::before { content: "💸"; } span.classificacao { font-size: 0; display: inline-block; width: 1em; height: 1em; } table th:nth-child(3)::after { content: "RI"; } table th:nth-child(4)::after { content: "RA"; } table th:nth-child(5)::after { content: "📎"; } table th:nth-child(6), table td:nth-child(6) { display: none; } }  </style>
+</head>
+<body>
+  <!-- Mensagem de carregamento -->
+  <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;">
+    <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde por favor...</div>
+  </div>
+  <div class="container">
+    <h1>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + '''</h1>
+    <div class="info">Gerado automaticamente em ''' + pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S') + '''</div>
+    <div style="text-align: right; margin-bottom: 10px;">
+      <a href="report-edit-''' + f"{ano}-{mes_num}-{nome_mes}" + '''.html" target="_blank">
+        <button>Editar Relatório</button>
+      </a>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Data-Hora</th>
+          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;font-size:16px;" aria-label="Alternar pagamentos"></button></th>
+          <th>Ricardo (R$)</th>
+          <th>Rafael (R$)</th>
+          <th>Anexo</th>
+          <th>Descrição</th>'''
+        if tem_motivo:
+            html += '<th>Motivo do Erro</th>'
+        html += '''
+        </tr>
+      </thead>
+      <tbody>
+'''
+        for _, row in df_mes.iterrows():
+            data = str(row.get('DATA', ''))
+            hora = str(row.get('HORA', ''))
+            data_hora = f"{data} {hora}" if data != 'nan' and hora != 'nan' else ''
+            classificacao = str(row.get('CLASSIFICACAO', ''))
+            if classificacao.lower() == 'transferência':
+                class_css = 'transferencia'
+            elif classificacao.lower() == 'pagamento':
+                class_css = 'pagamento'
+            else:
+                class_css = ''
+            classificacao_html = f'<span class="classificacao {class_css}">{classificacao}</span>' if classificacao != 'nan' else ''
+            ricardo = str(row.get('RICARDO', ''))
+            rafael = str(row.get('RAFAEL', ''))
+            ricardo_html = f'<span class="valor">{ricardo}</span>' if ricardo != 'nan' and ricardo != '' else ''
+            rafael_html = f'<span class="valor">{rafael}</span>' if rafael != 'nan' and rafael != '' else ''
+            remetente = str(row.get('REMETENTE', ''))
+            row_class = 'total-row' if 'TOTAL' in remetente.upper() else ''
+            if row_class == 'total-row':
+                img_html = ''
+            else:
+                anexo = str(row.get('ANEXO', ''))
+                img_html = ""
+                if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
+                    img_path = None
+                    for diretorio in ['imgs', 'input']:
+                        caminho_completo = Path(diretorio) / anexo
+                        if caminho_completo.is_file():
+                            img_path = caminho_completo
+                            break
+                    if img_path:
+                        try:
+                            with open(img_path, "rb") as f:
+                                encoded = base64.b64encode(f.read()).decode()
+                                ext = img_path.suffix.replace(".", "").lower()
+                                if ext == 'jpg':
+                                    ext = 'jpeg'
+                                img_html = f'<img src="data:image/{ext};base64,{encoded}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
+                        except Exception as e:
+                                print(f"Erro ao processar imagem {anexo}: {e}")
+                                img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'
+                    else:
+                        img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
+            descricao = str(row.get('DESCRICAO', ''))
+            descricao_html = descricao if descricao != 'nan' else ''
+            html += f'''        <tr class="{row_class}">
+          <td class="data-hora">{data_hora}</td>
+          <td>{classificacao_html}</td>
+          <td>{ricardo_html}</td>
+          <td>{rafael_html}</td>
+          <td>{img_html}</td>
+          <td style="text-align: left; font-size: 12px;">{descricao_html}</td>'''
+            if tem_motivo:
+                motivo = str(row.get('MOTIVO_ERRO', ''))
+                html += f'<td style="color:#e67e22;font-size:12px;">{motivo}</td>'
+            html += '</tr>\n'
+        html += '''      </tbody>
+    </table>
+  </div>
+  <div id="modal" class="modal" onclick="hideModal()">
+    <img class="modal-content" id="modal-img">
+  </div>
+  <script>
+    function showModal(imgSrc) {
+      const modal = document.getElementById('modal');
+      const modalImg = document.getElementById('modal-img');
+      modalImg.src = imgSrc;
+      modal.classList.add('show');
+    }
+    function hideModal() {
+      const modal = document.getElementById('modal');
+      modal.classList.remove('show');
+    }
+    let showPayments = false;
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('toggle-payments');
+      toggleBtn.addEventListener('click', () => {
+        showPayments = !showPayments;
+        document.querySelectorAll('tbody tr').forEach(row => {
+          const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
+          row.style.display = isPayment ? (showPayments ? '' : 'none') : '';
+        });
+      });
+      document.querySelectorAll('tbody tr').forEach(row => {
+        const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
+        if (isPayment) row.style.display = 'none';
+      });
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+      const overlay = document.getElementById('loading-overlay');
+      const progressBar = document.getElementById('progress-bar');
+      const progressText = document.getElementById('progress-text');
+      if (overlay && progressBar && progressText) {
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += Math.random() * 15 + 5;
+          if (progress >= 100) {
+            progress = 100;
+            clearInterval(interval);
+            setTimeout(() => {
+              overlay.style.display = 'none';
+            }, 500);
+          }
+          progressBar.style.width = progress + '%';
+          progressText.textContent = Math.round(progress) + '%';
+        }, 100);
+      }
+    });
+  </script>
+</body>
+</html>'''
+        with open(nome_arquivo, "w", encoding="utf-8") as f:
+            f.write(html)
+        print(f"✅ Relatório HTML mensal editável gerado: {nome_arquivo}")
+    except Exception as e:
+        print(f"❌ Erro ao gerar relatório mensal editável: {str(e)}")
 
 def gerar_html_impressao(df_mes, nome_arquivo, nome_mes, ano):
     try:
