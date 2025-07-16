@@ -1,0 +1,300 @@
+    input_dir = "input"
+    print("Processando OCR das imagens novas (apenas anexos)...")
+    for idx, row in df_anexos.iterrows():
+        # 2) se já processado antes, recupera valores e pula chamadas de API
+        anexo = str(row['ANEXO'])
+        if anexo in processed:
+            prev = df_existente[df_existente['ANEXO'] == anexo].iloc[0]
+            for col in ['OCR','VALOR','DESCRICAO','CLASSIFICACAO','RICARDO','RAFAEL']:
+                df_anexos.at[idx, col] = prev[col]
+            continue
+            
+        if row['ANEXO'] and (row['ANEXO'].endswith('.jpg') or row['ANEXO'].endswith('.jpeg') or row['ANEXO'].endswith('.png')):
+            # Verifica se o arquivo existe em input/ (imagens novas)
+            caminho_input = os.path.join(input_dir, row['ANEXO'])
+            if os.path.exists(caminho_input):
+                print(f"Processando OCR: {row['ANEXO']}")
+                ocr_result = process_image_ocr(caminho_input)
+                df_anexos.at[idx, 'OCR'] = ocr_result
+                
+                # Extrai valor total usando ChatGPT
+                print(f"Extraindo valor total: {row['ANEXO']}")
+                valor_total = extract_total_value_with_chatgpt(ocr_result)
+                df_anexos.at[idx, 'VALOR'] = valor_total
+                
+                # Gera descrição do pagamento usando ChatGPT
+                print(f"Gerando descrição: {row['ANEXO']}")
+                descricao = generate_payment_description_with_chatgpt(ocr_result)
+                df_anexos.at[idx, 'DESCRICAO'] = descricao
+                
+                # Classifica o tipo de transação usando ChatGPT
+                print(f"Classificando transação: {row['ANEXO']}")
+                classificacao = classify_transaction_type_with_chatgpt(ocr_result)
+                df_anexos.at[idx, 'CLASSIFICACAO'] = classificacao
+                
+                # Adiciona o valor à coluna do remetente correspondente APENAS para transferências
+                if valor_total and valor_total.strip() and classificacao == 'Transferência':
+                    if row['REMETENTE'] == 'Ricardo':
+                        df_anexos.at[idx, 'RICARDO'] = valor_total
+                    elif row['REMETENTE'] == 'Rafael':
+                        df_anexos.at[idx, 'RAFAEL'] = valor_total
+            elif os.path.exists(os.path.join("imgs", row['ANEXO'])):
+                # Se está em imgs/, não processa novamente (será tratado pela recuperação de dados)
+                continue
+            else:
+                # 3) arquivo não encontrado: sinaliza e pula chamadas
+                df_anexos.at[idx, 'OCR'] = "Arquivo não encontrado"
+                continue
+    
+    # debug: inspeciona se os campos foram preenchidos
+    print("DEBUG df_anexos Preview:")
+    print(df_anexos[['ANEXO','DESCRICAO','VALOR','CLASSIFICACAO']].head(10))
+    
+    # Remove a coluna bruta e reordena as colunas conforme especificado
+    df_anexos.drop(columns=['raw'], inplace=True)
+    
+    # Adiciona linhas de totalização mensal
+    df_anexos = adicionar_totalizacao_mensal(df_anexos)
+    
+    # Reordena as colunas na ordem desejada: DATA, HORA, REMETENTE, CLASSIFICACAO, RICARDO, RAFAEL, ANEXO, DESCRICAO, VALOR, OCR
+    ordem_colunas = ['DATA', 'HORA', 'REMETENTE', 'CLASSIFICACAO', 'RICARDO', 'RAFAEL', 'ANEXO', 'DESCRICAO', 'VALOR', 'OCR']
+    df_anexos = df_anexos[ordem_colunas]
+    
+    # Incrementa o CSV em vez de sobrescrever
+    df_final = incrementar_csv(df_anexos, output_file)
+    
+    # Calcula e exibe totais por remetente apenas dos novos dados
+    def convert_to_float(value):
+        if pd.isna(value) or value == '':
+            return 0.0
+        try:
+            return float(str(value).replace(',', '.'))
+        except:
+            return 0.0
+    
+    ricardo_values = df_anexos['RICARDO'].apply(convert_to_float)
+    rafael_values = df_anexos['RAFAEL'].apply(convert_to_float)
+    
+    total_ricardo = ricardo_values.sum()
+    total_rafael = rafael_values.sum()
+    
+    print(f"Total Ricardo (novos): R$ {total_ricardo:.2f}")
+    print(f"Total Rafael (novos): R$ {total_rafael:.2f}")
+    print(f"Total Geral (novos): R$ {(total_ricardo + total_rafael):.2f}")
+    
+    return df_final
+
+def verificar_totais(csv_file):
+    """Verifica e exibe totais financeiros detalhados de um arquivo CSV"""
+    try:
+        if not os.path.exists(csv_file):
+            print(f"Arquivo {csv_file} não encontrado!")
+            return
+            
+        df = pd.read_csv(csv_file)
+        
+        def convert_to_float(value):
+            if pd.isna(value) or value == '':
+                return 0.0
+            try:
+                return float(str(value).replace(',', '.'))
+            except:
+                return 0.0
+
+        ricardo_total = df['RICARDO'].apply(convert_to_float).sum()
+        rafael_total = df['RAFAEL'].apply(convert_to_float).sum()
+        valor_total = df['VALOR'].apply(convert_to_float).sum()
+
+        print('=== TOTAIS FINANCEIROS ===')
+        print(f'Total RICARDO (transferências): R$ {ricardo_total:.2f}')
+        print(f'Total RAFAEL (transferências): R$ {rafael_total:.2f}')
+        print(f'Total de transferências: R$ {(ricardo_total + rafael_total):.2f}')
+        print(f'Total VALOR (todos os comprovantes): R$ {valor_total:.2f}')
+        print()
+
+        print('=== DISTRIBUIÇÃO POR TIPO ===')
+        transferencias = df[df['CLASSIFICACAO'] == 'Transferência']
+        pagamentos = df[df['CLASSIFICACAO'] == 'Pagamento']
+
+        transferencia_total = transferencias['VALOR'].apply(convert_to_float).sum()
+        pagamento_total = pagamentos['VALOR'].apply(convert_to_float).sum()
+
+        print(f'Total em Transferências: R$ {transferencia_total:.2f}')
+        print(f'Total em Pagamentos: R$ {pagamento_total:.2f}')
+        print(f'Verificação: {transferencia_total + pagamento_total:.2f} = {valor_total:.2f}')
+        
+        # Verificação de consistência
+        if abs((transferencia_total + pagamento_total) - valor_total) < 0.01:
+            print("✅ Verificação: Totais consistentes!")
+        else:
+            print("❌ Aviso: Diferença detectada nos totais!")
+            
+    except Exception as e:
+        print(f"Erro ao verificar totais: {str(e)}")
+
+def carregar_edits_json():
+    """Verifica diretório 'input' por todos os arquivos .json e retorna um dict unificado"""
+    import_dir = 'input'
+    edits = {}
+    # Verifica se o diretório existe
+    if not os.path.exists(import_dir):
+        return edits
+    # Itera todos os arquivos .json no diretório input/
+    for fname in os.listdir(import_dir):
+        if fname.lower().endswith('.json'):
+            path = os.path.join(import_dir, fname)
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    # Mescla conteúdo, chaves duplicadas serão sobrescritas pela última
+                    edits.update(data)
+            except Exception:
+                print(f"Aviso: não foi possível ler {path}")
+    return edits
+
+def processar_incremental():
+    """Função principal para processamento incremental com gerenciamento de arquivos"""
+    print("=== INICIANDO PROCESSAMENTO INCREMENTAL ===")
+    
+    # 1) carrega edições do JSON, se existir
+    edits_json = carregar_edits_json()
+    if edits_json:
+        print(f"Edições encontradas em arquivos JSON de input/: aplicando após confirmação.")
+    
+    # Primeiro, verifica e descomprime arquivo ZIP se existir
+    print("\n=== VERIFICANDO ARQUIVOS ZIP ===")
+    if not descomprimir_zip_se_existir():
+        print("❌ Erro na descompressão de arquivo ZIP. Processamento interrompido.")
+        return
+    
+    # Verifica se há subdiretórios em input/ e organiza arquivos se necessário
+    print("\n=== VERIFICANDO SUBDIRETÓRIOS ===")
+    organizar_subdiretorios_se_necessario()
+    
+    # Gerencia arquivos incrementais
+    tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
+    
+    if not tem_arquivos:
+        print("Nenhum arquivo novo para processar.")
+        # Mesmo sem arquivos novos, tenta gerar relatório HTML se calculo.csv existir
+        print("\n=== GERANDO RELATÓRIO HTML ===")
+        gerar_relatorio_html("calculo.csv")
+        gerar_relatorios_mensais_html("calculo.csv")
+        return
+    
+    # Processamento dos dados
+    print(f"\n=== PROCESSANDO DADOS DE {chat_file} ===")
+    
+    # Processa dados completos
+    print("=== PROCESSANDO DADOS COMPLETOS ===")
+    df_completo = txt_to_csv(chat_file, "mensagens.csv")
+    
+    # Processa apenas anexos
+    print("\n=== PROCESSANDO APENAS ANEXOS ===")
+    df_anexos = txt_to_csv_anexos_only(chat_file, "calculo.csv")
+    
+    # Move arquivos processados de input/ para imgs/
+    print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
+    arquivos_movidos = mover_arquivos_processados()
+    
+    # Remove arquivo _chat.txt de input/
+    try:
+        os.remove(chat_file)
+        print(f"Arquivo {chat_file} removido após processamento")
+    except Exception as e:
+        print(f"Erro ao remover {chat_file}: {e}")
+    
+    # Verifica se input/ está vazio
+    input_dir = "input"
+    arquivos_restantes = os.listdir(input_dir)
+    if not arquivos_restantes:
+        print(f"✅ Diretório {input_dir}/ está vazio - processamento concluído")
+    else:
+        print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
+    
+    print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
+    
+    # 2) perguntar ao usuário se deve aplicar edições ao CSV
+    if edits_json:
+        resposta = input("Deseja aplicar as edições do JSON em calculo.csv antes de gerar relatórios? (s/n): ").strip().lower()
+        if resposta == 's':
+            # 3) aplica edições
+            df_calc = pd.read_csv('calculo.csv', dtype=str)
+            for row_id, campos in edits_json.items():
+                # localiza linha pelo índice convertido de 'row_X'
+                idx = int(row_id.split('_')[1])  # row_5 -> 5
+                for campo, valor in campos.items():
+                    if campo.upper() in df_calc.columns:
+                        df_calc.at[idx, campo.upper()] = valor
+            df_calc.to_csv('calculo.csv', index=False, quoting=1)
+            print("Edições aplicadas em calculo.csv.")
+    
+    # Sempre gera relatório HTML (independente de ter novos arquivos)
+    print("\n=== GERANDO RELATÓRIO HTML ===")
+    gerar_relatorio_html("calculo.csv")
+    
+    # Gera relatórios mensais
+    print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
+    gerar_relatorios_mensais_html("calculo.csv")
+
+    # Gera HTML de impressão para cada relatório mensal
+    df_all = pd.read_csv("calculo.csv")
+    df_all['DATA_DT'] = pd.to_datetime(df_all['DATA'], format='%d/%m/%Y', errors='coerce')
+    df_all['ANO_MES'] = df_all['DATA_DT'].dt.to_period('M')
+    nomes_meses = {
+        1: 'Janeiro', 2: 'Fevereiro', 3: 'Marco', 4: 'Abril',
+        5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+        9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+    }
+    for periodo, dados_mes in df_all.groupby('ANO_MES'):
+        ano = periodo.year
+        mes = periodo.month
+        nome_mes = nomes_meses.get(mes, str(mes))
+        nome_arquivo_impressao = f"impressao-{ano}-{mes:02d}-{nome_mes}.html"
+        # gerar_html_impressao(dados_mes, nome_arquivo_impressao, nome_mes, ano)
+        print(f"✅ HTML de impressão gerado: {nome_arquivo_impressao}")
+
+def descomprimir_zip_se_existir():
+    """Verifica se existe apenas um arquivo ZIP em input/ e o descomprime"""
+    input_dir = "input"
+    
+    # Verifica se o diretório input existe
+    if not os.path.exists(input_dir):
+        print(f"Diretório {input_dir}/ não encontrado!")
+        return False
+    
+    # Lista todos os arquivos no diretório input/
+    todos_arquivos = os.listdir(input_dir)
+    
+    # Filtra apenas arquivos ZIP
+    arquivos_zip = [f for f in todos_arquivos if f.lower().endswith('.zip')]
+    
+    # Verifica se existe apenas um arquivo ZIP
+    if len(arquivos_zip) == 0:
+        print("Nenhum arquivo ZIP encontrado em input/")
+        return True  # Não é erro, apenas não há ZIP para processar
+    
+    if len(arquivos_zip) > 1:
+        print(f"Encontrados {len(arquivos_zip)} arquivos ZIP em input/. Deve haver apenas um.")
+        print(f"Arquivos ZIP encontrados: {arquivos_zip}")
+        return False
+    
+    # Se chegou aqui, existe exatamente um arquivo ZIP
+    arquivo_zip = arquivos_zip[0]
+    caminho_zip = os.path.join(input_dir, arquivo_zip)
+    
+    print(f"Encontrado arquivo ZIP: {arquivo_zip}")
+    print("Descomprimindo arquivo ZIP...")
+    
+    try:
+        # Descomprime o arquivo ZIP
+        with zipfile.ZipFile(caminho_zip, 'r') as zip_ref:
+            # Lista o conteúdo do ZIP antes de extrair
+            lista_arquivos = zip_ref.namelist()
+            print(f"Arquivos no ZIP: {len(lista_arquivos)} itens")
+            
+            # Extrai todos os arquivos para o diretório input/
+            zip_ref.extractall(input_dir)
+            
+            print(f"✅ Arquivo ZIP descomprimido com sucesso!")
+            print(f"Extraídos {len(lista_arquivos)} itens para {input_dir}/")

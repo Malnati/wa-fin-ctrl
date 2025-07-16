@@ -1,0 +1,13 @@
+        
+    elif comando == "teste":
+        # Executa testes E2E
+        sucesso = executar_testes_e2e()
+        sys.exit(0 if sucesso else 1)
+    elif comando == "prestacao":
+        # Gera planilha no formato da Justiça
+        gerar_formato_justica("calculo.csv", "prestacao_contas.xls", "prestacao_contas_justica.xlsx")
+        sys.exit(0)
+    else:
+        print("Comando inválido. Use 'processar', 'verificar' ou 'teste'")
+        sys.exit(1)
+

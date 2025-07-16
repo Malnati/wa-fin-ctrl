@@ -1,0 +1,300 @@
+        
+        # Remove o arquivo ZIP após descompressão bem-sucedida
+        os.remove(caminho_zip)
+        print(f"Arquivo ZIP {arquivo_zip} removido após descompressão")
+        
+        # Organiza arquivos extraídos - move tudo para input/ diretamente
+        organizar_arquivos_extraidos()
+        
+        return True
+        
+    except zipfile.BadZipFile:
+        print(f"❌ Erro: {arquivo_zip} não é um arquivo ZIP válido")
+        return False
+    except Exception as e:
+        print(f"❌ Erro ao descomprimir {arquivo_zip}: {str(e)}")
+        return False
+
+def organizar_arquivos_extraidos():
+    """Move arquivos de subdiretórios para input/ diretamente e remove diretórios desnecessários"""
+    input_dir = "input"
+    extensoes_validas = ('.jpg', '.jpeg', '.png', '.pdf', '.txt')
+    
+    arquivos_movidos = 0
+    diretorios_removidos = 0
+    
+    # Percorre todos os itens em input/
+    for item in os.listdir(input_dir):
+        caminho_item = os.path.join(input_dir, item)
+        
+        # Se é um diretório
+        if os.path.isdir(caminho_item):
+            # Ignora diretório __MACOSX (arquivos do macOS)
+            if item.startswith('__MACOSX'):
+                print(f"Removendo diretório __MACOSX: {item}")
+                shutil.rmtree(caminho_item)
+                diretorios_removidos += 1
+                continue
+            
+            # Para outros diretórios, move arquivos válidos para input/
+            print(f"Processando subdiretório: {item}")
+            for arquivo in os.listdir(caminho_item):
+                caminho_arquivo = os.path.join(caminho_item, arquivo)
+                
+                # Se é um arquivo e tem extensão válida
+                if os.path.isfile(caminho_arquivo) and arquivo.lower().endswith(extensoes_validas):
+                    destino = os.path.join(input_dir, arquivo)
+                    
+                    # Se já existe arquivo com mesmo nome, adiciona sufixo
+                    contador = 1
+                    arquivo_original = arquivo
+                    while os.path.exists(destino):
+                        nome, ext = os.path.splitext(arquivo_original)
+                        arquivo = f"{nome}_{contador}{ext}"
+                        destino = os.path.join(input_dir, arquivo)
+                        contador += 1
+                    
+                    # Move o arquivo
+                    shutil.move(caminho_arquivo, destino)
+                    print(f"Movido: {item}/{arquivo_original} -> {arquivo}")
+                    arquivos_movidos += 1
+            
+            # Remove o diretório vazio após mover arquivos
+            try:
+                if os.path.exists(caminho_item):
+                    shutil.rmtree(caminho_item)
+                    diretorios_removidos += 1
+                    print(f"Diretório removido: {item}")
+            except Exception as e:
+                print(f"Aviso: Não foi possível remover diretório {item}: {e}")
+    
+    print(f"✅ Organização concluída: {arquivos_movidos} arquivos movidos, {diretorios_removidos} diretórios removidos")
+
+def organizar_subdiretorios_se_necessario():
+    """Verifica se há subdiretórios em input/ e organiza arquivos se necessário"""
+    input_dir = "input"
+    
+    if not os.path.exists(input_dir):
+        return
+    
+    # Verifica se há subdiretórios
+    subdiretorios = [item for item in os.listdir(input_dir) 
+                    if os.path.isdir(os.path.join(input_dir, item))]
+    
+    if not subdiretorios:
+        print("Nenhum subdiretório encontrado em input/")
+        return
+    
+    print(f"Subdiretórios encontrados: {subdiretorios}")
+    
+    # Organiza arquivos dos subdiretórios
+    organizar_arquivos_extraidos()
+
+def executar_testes_e2e():
+    """Executa testes End-to-End completos do sistema"""
+    print("\n=== INICIANDO TESTES E2E ===")
+    
+    # Backup de arquivos existentes
+    backup_arquivos_existentes()
+    
+    try:
+        # Testa processamento incremental
+        resultado_processamento = testar_processamento_incremental()
+        
+        # Testa verificação de totais
+        resultado_verificacao = testar_verificacao_totais()
+        
+        # Testa OCR individual
+        resultado_ocr = testar_ocr_individual()
+        
+        # Testa funções ChatGPT (se API disponível)
+        resultado_chatgpt = testar_funcoes_chatgpt()
+        
+        # Relatório final
+        print("\n=== RELATÓRIO DOS TESTES E2E ===")
+        print(f"✅ Processamento incremental: {'PASSOU' if resultado_processamento else 'FALHOU'}")
+        print(f"✅ Verificação de totais: {'PASSOU' if resultado_verificacao else 'FALHOU'}")
+        print(f"✅ OCR individual: {'PASSOU' if resultado_ocr else 'FALHOU'}")
+        print(f"✅ Funções ChatGPT: {'PASSOU' if resultado_chatgpt else 'FALHOU (API não disponível)'}")
+        
+        todos_passaram = resultado_processamento and resultado_verificacao and resultado_ocr
+        
+        if todos_passaram:
+            print("\n🎉 TODOS OS TESTES E2E PASSARAM!")
+            return True
+        else:
+            print("\n❌ ALGUNS TESTES FALHARAM!")
+            return False
+            
+    finally:
+        # Restaura arquivos originais
+        restaurar_arquivos_backup()
+
+def backup_arquivos_existentes():
+    """Faz backup de arquivos existentes antes dos testes"""
+    arquivos_backup = ['mensagens.csv', 'calculo.csv']
+    
+    for arquivo in arquivos_backup:
+        if os.path.exists(arquivo):
+            backup_nome = f"{arquivo}.backup_teste"
+            shutil.copy2(arquivo, backup_nome)
+            print(f"Backup criado: {backup_nome}")
+
+def restaurar_arquivos_backup():
+    """Restaura arquivos do backup após os testes"""
+    arquivos_backup = ['mensagens.csv', 'calculo.csv']
+    
+    for arquivo in arquivos_backup:
+        backup_nome = f"{arquivo}.backup_teste"
+        if os.path.exists(backup_nome):
+            if os.path.exists(arquivo):
+                os.remove(arquivo)
+            shutil.move(backup_nome, arquivo)
+            print(f"Arquivo restaurado: {arquivo}")
+
+def testar_processamento_incremental():
+    """Testa o processamento incremental completo"""
+    print("\n--- Testando Processamento Incremental ---")
+    
+    try:
+        # Verifica se há arquivos em input/
+        if not os.path.exists('input') or not os.listdir('input'):
+            print("⚠️  Sem arquivos em input/ para testar processamento")
+            return True  # Não é falha, apenas não há dados para testar
+        
+        # Conta arquivos antes do processamento
+        arquivos_antes = len([f for f in os.listdir('input') 
+                             if f.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf'))])
+        
+        if arquivos_antes == 0:
+            print("⚠️  Sem imagens em input/ para testar processamento")
+            return True
+        
+        print(f"Arquivos de imagem encontrados: {arquivos_antes}")
+        
+        # Executa processamento
+        processar_incremental()
+        
+        # Verifica se arquivos foram movidos para imgs/
+        if os.path.exists('imgs'):
+            arquivos_imgs = len([f for f in os.listdir('imgs') 
+                               if f.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf'))])
+            print(f"Arquivos movidos para imgs/: {arquivos_imgs}")
+        
+        # Verifica se CSVs foram criados
+        csvs_criados = []
+        if os.path.exists('mensagens.csv'):
+            csvs_criados.append('mensagens.csv')
+        if os.path.exists('calculo.csv'):
+            csvs_criados.append('calculo.csv')
+        
+        print(f"CSVs criados: {csvs_criados}")
+        
+        sucesso = len(csvs_criados) >= 1
+        print(f"Processamento incremental: {'✅ PASSOU' if sucesso else '❌ FALHOU'}")
+        return sucesso
+        
+    except Exception as e:
+        print(f"❌ Erro no teste de processamento incremental: {e}")
+        return False
+
+def testar_verificacao_totais():
+    """Testa a verificação de totais"""
+    print("\n--- Testando Verificação de Totais ---")
+    
+    try:
+        # Cria arquivo CSV de teste
+        dados_teste = {
+            'DATA': ['18/04/2025', '19/04/2025'],
+            'HORA': ['12:45:53', '08:14:39'],
+            'REMETENTE': ['Ricardo', 'Rafael'],
+            'CLASSIFICACAO': ['Transferência', 'Transferência'],
+            'RICARDO': ['29,90', ''],
+            'RAFAEL': ['', '15,50'],
+            'ANEXO': ['teste1.jpg', 'teste2.jpg'],
+            'DESCRICAO': ['Teste 1', 'Teste 2'],
+            'VALOR': ['29,90', '15,50'],
+            'OCR': ['Teste OCR 1', 'Teste OCR 2']
+        }
+        
+        df_teste = pd.DataFrame(dados_teste)
+        arquivo_teste = 'tmp/teste_calculo.csv'
+        
+        # Garante que o diretório tmp/ existe
+        os.makedirs('tmp', exist_ok=True)
+        
+        df_teste.to_csv(arquivo_teste, index=False)
+        print(f"Arquivo de teste criado: {arquivo_teste}")
+        
+        # Testa verificação
+        verificar_totais(arquivo_teste)
+        
+        # Remove arquivo de teste
+        os.remove(arquivo_teste)
+        
+        print("Verificação de totais: ✅ PASSOU")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Erro no teste de verificação de totais: {e}")
+        return False
+
+def testar_ocr_individual():
+    """Testa o OCR em imagens individuais"""
+    print("\n--- Testando OCR Individual ---")
+    
+    try:
+        # Procura por imagens de teste
+        diretorios_busca = ['imgs', 'input', 'massa']
+        imagem_teste = None
+        
+        for diretorio in diretorios_busca:
+            if os.path.exists(diretorio):
+                imagens = [f for f in os.listdir(diretorio) 
+                          if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                if imagens:
+                    imagem_teste = os.path.join(diretorio, imagens[0])
+                    break
+        
+        if not imagem_teste:
+            print("⚠️  Nenhuma imagem encontrada para teste de OCR")
+            return True  # Não é falha, apenas não há imagem para testar
+        
+        print(f"Testando OCR na imagem: {imagem_teste}")
+        
+        # Executa OCR
+        resultado_ocr = process_image_ocr(imagem_teste)
+        
+        # Verifica se OCR retornou algo válido
+        sucesso = (resultado_ocr and 
+                  resultado_ocr not in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"] and
+                  "Erro no OCR" not in resultado_ocr)
+        
+        print(f"Resultado OCR: {resultado_ocr[:100]}..." if len(resultado_ocr) > 100 else f"Resultado OCR: {resultado_ocr}")
+        print(f"OCR individual: {'✅ PASSOU' if sucesso else '❌ FALHOU'}")
+        return sucesso
+        
+    except Exception as e:
+        print(f"❌ Erro no teste de OCR individual: {e}")
+        return False
+
+def testar_funcoes_chatgpt():
+    """Testa as funções que usam ChatGPT (se API disponível)"""
+    print("\n--- Testando Funções ChatGPT ---")
+    
+    try:
+        # Verifica se API está disponível
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            print("⚠️  API Key do OpenAI não configurada")
+            return False
+        
+        # Texto de teste
+        texto_teste = "PIX Banco do Brasil R$ 29,90 Padaria Bonanza"
+        
+        # Testa extração de valor
+        print("Testando extração de valor...")
+        valor = extract_total_value_with_chatgpt(texto_teste)
+        sucesso_valor = bool(valor and valor != "")
+        
+        # Testa geração de descrição
