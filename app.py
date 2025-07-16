@@ -13,9 +13,16 @@ from openai import OpenAI
 import base64
 from pathlib import Path
 import json
+# Adiciona imports para PDF
+try:
+    import pdfplumber
+    from pdf2image import convert_from_path
+except ImportError:
+    pdfplumber = None
+    convert_from_path = None
 
 def process_image_ocr(image_path):
-    """Processa uma imagem e extrai texto usando OCR"""
+    """Processa uma imagem ou PDF e extrai texto usando OCR"""
     try:
         # Se o caminho já é completo (contém diretório), usa como está
         if os.path.exists(image_path):
@@ -35,27 +42,54 @@ def process_image_ocr(image_path):
                     return "Arquivo não encontrado"
         elif not os.path.exists(image_path):
             return "Arquivo não encontrado"
-        
+
+        # Se for PDF, processa de forma especial
+        if image_path.lower().endswith('.pdf'):
+            if pdfplumber is None or convert_from_path is None:
+                return ("Erro: Suporte a PDF não disponível. "
+                        "Adicione as bibliotecas 'pdfplumber' e 'pdf2image' no Dockerfile para processar PDFs.")
+            texto_pdf = ""
+            # Primeiro tenta extrair texto pesquisável
+            try:
+                with pdfplumber.open(image_path) as pdf:
+                    for page in pdf.pages:
+                        texto_pdf += page.extract_text() or ''
+                texto_pdf = texto_pdf.strip()
+            except Exception as e:
+                texto_pdf = ""
+            # Se não extraiu nada, tenta OCR nas imagens das páginas
+            if not texto_pdf:
+                try:
+                    imagens = convert_from_path(image_path)
+                    texto_ocr = []
+                    for img in imagens:
+                        # Converte PIL Image para array do OpenCV
+                        img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                        gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+                        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                        texto_ocr.append(pytesseract.image_to_string(thresh, lang='eng'))
+                    texto_pdf = '\n'.join(texto_ocr).strip()
+                except Exception as e:
+                    return f"Erro ao processar PDF: {str(e)}"
+            # Limpa o texto extraído
+            texto_pdf = re.sub(r'\n+', ' ', texto_pdf).strip()
+            texto_pdf = re.sub(r'\s+', ' ', texto_pdf)
+            return texto_pdf if texto_pdf else "Nenhum texto detectado"
+        # Caso contrário, processa como imagem
         # Carrega a imagem
         img = cv2.imread(image_path)
         if img is None:
             return "Erro ao carregar imagem"
-        
         # Converte para escala de cinza
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        
         # Aplica threshold para melhorar o OCR
         _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        
         # Extrai texto usando pytesseract
         text = pytesseract.image_to_string(thresh, lang='eng')
-        
         # Remove quebras de linha excessivas e espaços
         text = re.sub(r'\n+', ' ', text).strip()
         text = re.sub(r'\s+', ' ', text)
-        
         return text if text else "Nenhum texto detectado"
-        
     except Exception as e:
         return f"Erro no OCR: {str(e)}"
 
