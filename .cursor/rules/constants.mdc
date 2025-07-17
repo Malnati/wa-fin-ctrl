@@ -1,0 +1,5 @@
+---
+description: Caminhos ou nomes de arquivos, valores fixos e demais hard-code values devem ser sempre declarados em constantes, no topo dos arquivos Python.
+globs: '*.py'
+alwaysApply: true
+---

@@ -45,7 +45,7 @@ if [ "$COMANDO" = "processar" ]; then
         poetry run python app.py processar
     fi
 elif [ "$COMANDO" = "verificar" ]; then
-    ARQUIVO_CSV=${2:-calculo.csv}
+    ARQUIVO_CSV=${2:-data/calculo.csv}
     echo "Verificando totais do arquivo: $ARQUIVO_CSV"
     poetry run python app.py verificar "$ARQUIVO_CSV"
 elif [ "$COMANDO" = "teste" ]; then
@@ -69,6 +69,6 @@ else
     echo ""
     echo "Exemplos:"
     echo "  ./app.sh processar              # Processa arquivos em input/ (incluindo ZIPs)"
-    echo "  ./app.sh verificar calculo.csv  # Verifica totais financeiros"
+    echo "  ./app.sh verificar data/calculo.csv  # Verifica totais financeiros"
     echo "  ./app.sh teste                  # Executa todos os testes do sistema"
 fi

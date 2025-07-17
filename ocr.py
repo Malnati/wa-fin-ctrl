@@ -4,17 +4,21 @@ import cv2
 import pytesseract
 import numpy as np
 
+# === CONSTANTES DE DIRETÓRIOS ===
+DIR_INPUT = "input"
+DIR_IMGS = "imgs"
+
 def process_image_ocr(image_path):
     """Processa uma imagem e extrai texto usando OCR"""
     try:
         if os.path.exists(image_path):
             pass
         elif not image_path.startswith(('imgs/', 'input/')):
-            input_path = os.path.join('input', image_path)
+            input_path = os.path.join(DIR_INPUT, image_path)
             if os.path.exists(input_path):
                 image_path = input_path
             else:
-                imgs_path = os.path.join('imgs', image_path)
+                imgs_path = os.path.join(DIR_IMGS, image_path)
                 if os.path.exists(imgs_path):
                     image_path = imgs_path
                 else:

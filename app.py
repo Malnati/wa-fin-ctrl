@@ -21,51 +21,83 @@ try:
 except ImportError:
     pdfplumber = None
     convert_from_path = None
-try:
-    import PyPDF2
-except ImportError:
-    PyPDF2 = None
+
+# === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
+DIR_INPUT = "input"
+DIR_IMGS = "imgs"
+DIR_MASSA = "massa"
+DIR_TMP = "tmp"
+ARQ_CALCULO = "calculo.csv"
+ARQ_MENSAGENS = "mensagens.csv"
+ARQ_DIAGNOSTICO = "diagnostico.csv"
+ARQ_CHAT = "_chat.txt"
 
 def process_image_ocr(image_path):
-    """Processa uma imagem ou PDF e extrai texto. Para PDF, tenta extrair texto via PyPDF2; se falhar, faz OCR."""
+    """Processa uma imagem ou PDF e extrai texto usando OCR"""
     try:
-        if image_path.lower().endswith('.pdf'):
-            # 1. Tenta extrair texto diretamente do PDF
-            if PyPDF2 is not None:
-                try:
-                    reader = PyPDF2.PdfReader(image_path)
-                    texto = ""
-                    for page in reader.pages:
-                        t = page.extract_text()
-                        if t:
-                            texto += t + "\n"
-                    if texto.strip():
-                        return texto.strip()
-                except Exception as e:
-                    pass  # Se falhar, tenta OCR
-            # 2. Se não extraiu nada, tenta OCR via imagem
-            if convert_from_path is not None:
-                try:
-                    imagens = convert_from_path(image_path, first_page=1, last_page=1)
-                    if imagens:
-                        from pathlib import Path
-                        img_name = Path(image_path).stem + '_page1.jpg'
-                        img_path = os.path.join('imgs', img_name)
-                        imagens[0].save(img_path, 'JPEG')
-                        return process_image_ocr(img_path)
-                    else:
-                        return "Erro: PDF convertido, mas nenhuma imagem gerada"
-                except Exception as e:
-                    return f"Erro ao converter PDF para imagem: {str(e)}"
+        # Se o caminho já é completo (contém diretório), usa como está
+        if os.path.exists(image_path):
+            pass  # Usa o caminho fornecido
+        # Se não existe, tenta em imgs/ (para compatibilidade)
+        elif not image_path.startswith((DIR_IMGS + '/', DIR_INPUT + '/')):
+            # Tenta primeiro em input/ (arquivos novos)
+            input_path = os.path.join(DIR_INPUT, image_path)
+            if os.path.exists(input_path):
+                image_path = input_path
+            # Se não está em input/, tenta em imgs/ (arquivos já processados)
             else:
-                return "Erro: Nenhum método disponível para processar PDF"
+                imgs_path = os.path.join(DIR_IMGS, image_path)
+                if os.path.exists(imgs_path):
+                    image_path = imgs_path
+                else:
+                    return "Arquivo não encontrado"
+        elif not os.path.exists(image_path):
+            return "Arquivo não encontrado"
+
+        # Se for PDF, processa de forma especial
+        if image_path.lower().endswith('.pdf'):
+            if pdfplumber is None or convert_from_path is None:
+                return ("Erro: Suporte a PDF não disponível. "
+                        "Adicione as bibliotecas 'pdfplumber' e 'pdf2image' no Dockerfile para processar PDFs.")
+            texto_pdf = ""
+            # Primeiro tenta extrair texto pesquisável
+            try:
+                with pdfplumber.open(image_path) as pdf:
+                    for page in pdf.pages:
+                        texto_pdf += page.extract_text() or ''
+                texto_pdf = texto_pdf.strip()
+            except Exception as e:
+                texto_pdf = ""
+            # Se não extraiu nada, tenta OCR nas imagens das páginas
+            if not texto_pdf:
+                try:
+                    imagens = convert_from_path(image_path)
+                    texto_ocr = []
+                    for img in imagens:
+                        # Converte PIL Image para array do OpenCV
+                        img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                        gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+                        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                        texto_ocr.append(pytesseract.image_to_string(thresh, lang='eng'))
+                    texto_pdf = '\n'.join(texto_ocr).strip()
+                except Exception as e:
+                    return f"Erro ao processar PDF: {str(e)}"
+            # Limpa o texto extraído
+            texto_pdf = re.sub(r'\n+', ' ', texto_pdf).strip()
+            texto_pdf = re.sub(r'\s+', ' ', texto_pdf)
+            return texto_pdf if texto_pdf else "Nenhum texto detectado"
         # Caso contrário, processa como imagem
+        # Carrega a imagem
         img = cv2.imread(image_path)
         if img is None:
             return "Erro ao carregar imagem"
+        # Converte para escala de cinza
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Aplica threshold para melhorar o OCR
         _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        # Extrai texto usando pytesseract
         text = pytesseract.image_to_string(thresh, lang='eng')
+        # Remove quebras de linha excessivas e espaços
         text = re.sub(r'\n+', ' ', text).strip()
         text = re.sub(r'\s+', ' ', text)
         return text if text else "Nenhum texto detectado"
@@ -839,8 +871,8 @@ def processar_incremental(force=False, entry=None):
                 else:
                     print("Colunas DATA/HORA não encontradas para filtro --entry.")
                     return
-            df_diag.to_csv('diagnostico_processamento.csv', index=False)
-            print("Reprocessamento forçado concluído. Diagnóstico salvo em diagnostico_processamento.csv.")
+            df_diag.to_csv('diagnostico.csv', index=False)
+            print("Reprocessamento forçado concluído. Diagnóstico salvo em diagnostico.csv.")
     else:
         tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
         if not tem_arquivos:

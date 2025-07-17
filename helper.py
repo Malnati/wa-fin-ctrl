@@ -3,6 +3,12 @@ import os
 import pandas as pd
 import shutil
 
+# === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
+DIR_INPUT = "input"
+DIR_IMGS = "imgs"
+ARQ_CALCULO = "calculo.csv"
+ARQ_MENSAGENS = "mensagens.csv"
+
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""
     if not valor or not re.match(r'^\d+([.,]\d+)?$', valor):
