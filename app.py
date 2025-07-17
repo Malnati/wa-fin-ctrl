@@ -29,7 +29,7 @@ DIR_MASSA = os.getenv('ATTR_FIN_DIR_MASSA', 'massa')
 DIR_TMP = os.getenv('ATTR_FIN_DIR_TMP', 'tmp')
 ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'mensagens/calculo.csv')
 ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
-ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'diagnostico.csv')
+ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'mensagens/diagnostico.csv')
 ARQ_CHAT = os.getenv('ATTR_FIN_ARQ_CHAT', '_chat.txt')
 
 def process_image_ocr(image_path):
@@ -871,8 +871,8 @@ def processar_incremental(force=False, entry=None):
                 else:
                     print("Colunas DATA/HORA não encontradas para filtro --entry.")
                     return
-            df_diag.to_csv('diagnostico.csv', index=False)
-            print("Reprocessamento forçado concluído. Diagnóstico salvo em diagnostico.csv.")
+            df_diag.to_csv(ARQ_DIAGNOSTICO, index=False)
+            print("Reprocessamento forçado concluído. Diagnóstico salvo em mensagens/diagnostico.csv.")
     else:
         tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
         if not tem_arquivos:
