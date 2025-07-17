@@ -12,8 +12,20 @@ DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
 DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
 
 def process_image_ocr(image_path):
-    """Processa uma imagem e extrai texto usando OCR"""
+    """Processa uma imagem ou PDF e extrai texto usando OCR, consultando o XML incremental antes."""
     try:
+        arq_xml = os.getenv('ATTR_FIN_OCR', 'ocr/extract.xml')
+        # 1. Consulta o XML incremental
+        if os.path.exists(arq_xml):
+            try:
+                tree = ET.parse(arq_xml)
+                root = tree.getroot()
+                for entry in root.findall('entry'):
+                    if entry.get('arquivo') == os.path.basename(image_path):
+                        return entry.text or ""
+            except Exception:
+                pass  # Se falhar, ignora e tenta extrair normalmente
+        # 2. Resolve caminho real
         if os.path.exists(image_path):
             pass
         elif not image_path.startswith(('imgs/', 'input/')):
@@ -28,6 +40,41 @@ def process_image_ocr(image_path):
                     return "Arquivo não encontrado"
         elif not os.path.exists(image_path):
             return "Arquivo não encontrado"
+        # 3. Se for PDF, tenta extrair texto pesquisável e OCR
+        if image_path.lower().endswith('.pdf'):
+            try:
+                import pdfplumber
+                from pdf2image import convert_from_path
+            except ImportError:
+                return ("Erro: Suporte a PDF não disponível. "
+                        "Adicione as bibliotecas 'pdfplumber' e 'pdf2image' no Dockerfile para processar PDFs.")
+            texto_pdf = ""
+            try:
+                with pdfplumber.open(image_path) as pdf:
+                    for page in pdf.pages:
+                        texto_pdf += page.extract_text() or ''
+                texto_pdf = texto_pdf.strip()
+            except Exception:
+                texto_pdf = ""
+            if not texto_pdf:
+                try:
+                    imagens = convert_from_path(image_path)
+                    texto_ocr = []
+                    for img in imagens:
+                        import cv2
+                        import numpy as np
+                        img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                        gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+                        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                        texto_ocr.append(pytesseract.image_to_string(thresh, lang='eng'))
+                    texto_pdf = '\n'.join(texto_ocr).strip()
+                except Exception as e:
+                    return f"Erro ao processar PDF: {str(e)}"
+            texto_pdf = re.sub(r'\n+', ' ', texto_pdf).strip()
+            texto_pdf = re.sub(r'\s+', ' ', texto_pdf)
+            registrar_ocr_xml(os.path.basename(image_path), texto_pdf)
+            return texto_pdf if texto_pdf else "Nenhum texto detectado"
+        # 4. Caso contrário, processa como imagem
         img = cv2.imread(image_path)
         if img is None:
             return "Erro ao carregar imagem"
@@ -36,6 +83,7 @@ def process_image_ocr(image_path):
         text = pytesseract.image_to_string(thresh, lang='eng')
         text = re.sub(r'\n+', ' ', text).strip()
         text = re.sub(r'\s+', ' ', text)
+        registrar_ocr_xml(os.path.basename(image_path), text)
         return text if text else "Nenhum texto detectado"
     except Exception as e:
         return f"Erro no OCR: {str(e)}"
