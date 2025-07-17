@@ -27,8 +27,8 @@ DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
 DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
 DIR_MASSA = os.getenv('ATTR_FIN_DIR_MASSA', 'massa')
 DIR_TMP = os.getenv('ATTR_FIN_DIR_TMP', 'tmp')
-ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'calculo.csv')
-ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens.csv')
+ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'mensagens/calculo.csv')
+ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
 ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'diagnostico.csv')
 ARQ_CHAT = os.getenv('ATTR_FIN_ARQ_CHAT', '_chat.txt')
 
@@ -1124,7 +1124,7 @@ def executar_testes_e2e():
         todos_passaram = resultado_processamento and resultado_verificacao and resultado_ocr
         
         if todos_passaram:
-            print("\n🎉 TODOS OS TESTES E2E PASSARAM!")
+            print("\n�� TODOS OS TESTES E2E PASSARAM!")
             return True
         else:
             print("\n❌ ALGUNS TESTES FALHARAM!")

@@ -5,8 +5,8 @@ export ATTR_FIN_DIR_INPUT="input"
 export ATTR_FIN_DIR_IMGS="imgs"
 export ATTR_FIN_DIR_MASSA="massa"
 export ATTR_FIN_DIR_TMP="tmp"
-export ATTR_FIN_ARQ_CALCULO="calculo.csv"
-export ATTR_FIN_ARQ_MENSAGENS="mensagens.csv"
+export ATTR_FIN_ARQ_CALCULO="mensagens/calculo.csv"
+export ATTR_FIN_ARQ_MENSAGENS="mensagens/mensagens.csv"
 export ATTR_FIN_ARQ_DIAGNOSTICO="diagnostico.csv"
 export ATTR_FIN_ARQ_CHAT="_chat.txt"
 
@@ -55,7 +55,7 @@ if [ "$COMANDO" = "processar" ]; then
         poetry run python app.py processar
     fi
 elif [ "$COMANDO" = "verificar" ]; then
-    ARQUIVO_CSV=${2:-data/calculo.csv}
+    ARQUIVO_CSV=${2:-mensagens/calculo.csv}
     echo "Verificando totais do arquivo: $ARQUIVO_CSV"
     poetry run python app.py verificar "$ARQUIVO_CSV"
 elif [ "$COMANDO" = "teste" ]; then
@@ -79,6 +79,6 @@ else
     echo ""
     echo "Exemplos:"
     echo "  ./app.sh processar              # Processa arquivos em input/ (incluindo ZIPs)"
-    echo "  ./app.sh verificar data/calculo.csv  # Verifica totais financeiros"
+    echo "  ./app.sh verificar mensagens/calculo.csv  # Verifica totais financeiros"
     echo "  ./app.sh teste                  # Executa todos os testes do sistema"
 fi
