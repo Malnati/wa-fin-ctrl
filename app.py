@@ -878,14 +878,14 @@ def processar_incremental(force=False, entry=None):
         if not tem_arquivos:
             print("Nenhum arquivo novo para processar.")
             print("\n=== GERANDO RELATÓRIO HTML ===")
-            gerar_relatorio_html("calculo.csv")
-            gerar_relatorios_mensais_html("calculo.csv")
+            gerar_relatorio_html(ARQ_CALCULO)
+            gerar_relatorios_mensais_html(ARQ_CALCULO)
             return
         print(f"\n=== PROCESSANDO DADOS DE {chat_file} ===")
         print("=== PROCESSANDO DADOS COMPLETOS ===")
-        df_completo = txt_to_csv(chat_file, "mensagens.csv")
+        df_completo = txt_to_csv(chat_file, ARQ_MENSAGENS)
         print("\n=== PROCESSANDO APENAS ANEXOS ===")
-        df_anexos = txt_to_csv_anexos_only(chat_file, "calculo.csv")
+        df_anexos = txt_to_csv_anexos_only(chat_file, ARQ_CALCULO)
         if entry:
             # Filtra apenas a linha correspondente
             if 'DATA' in df_anexos.columns and 'HORA' in df_anexos.columns:
@@ -894,7 +894,7 @@ def processar_incremental(force=False, entry=None):
                 if df_anexos.empty:
                     print(f"Nenhuma linha encontrada para --entry {entry}.")
                     return
-                df_anexos.to_csv('calculo.csv', index=False)
+                df_anexos.to_csv(ARQ_CALCULO, index=False)
             else:
                 print("Colunas DATA/HORA não encontradas para filtro --entry.")
                 return
@@ -914,7 +914,7 @@ def processar_incremental(force=False, entry=None):
                 else:
                     motivos.append("")
             df_anexos['MOTIVO_ERRO'] = motivos
-            df_anexos.to_csv('calculo.csv', index=False)
+            df_anexos.to_csv(ARQ_CALCULO, index=False)
         print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
         arquivos_movidos = mover_arquivos_processados()
         try:
@@ -931,19 +931,19 @@ def processar_incremental(force=False, entry=None):
         if edits_json:
             resposta = input("Deseja aplicar as edições do JSON em calculo.csv antes de gerar relatórios? (s/n): ").strip().lower()
             if resposta == 's':
-                df_calc = pd.read_csv('calculo.csv', dtype=str)
+                df_calc = pd.read_csv(ARQ_CALCULO, dtype=str)
                 for row_id, campos in edits_json.items():
                     idx = int(row_id.split('_')[1])
                     for campo, valor in campos.items():
                         if campo.upper() in df_calc.columns:
                             df_calc.at[idx, campo.upper()] = valor
-                df_calc.to_csv('calculo.csv', index=False, quoting=1)
+                df_calc.to_csv(ARQ_CALCULO, index=False, quoting=1)
                 print("Edições aplicadas em calculo.csv.")
     print("\n=== GERANDO RELATÓRIO HTML ===")
-    gerar_relatorio_html("calculo.csv")
+    gerar_relatorio_html(ARQ_CALCULO)
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
-    gerar_relatorios_mensais_html("calculo.csv")
-    df_all = pd.read_csv("calculo.csv")
+    gerar_relatorios_mensais_html(ARQ_CALCULO)
+    df_all = pd.read_csv(ARQ_CALCULO)
     df_all['DATA_DT'] = pd.to_datetime(df_all['DATA'], format='%d/%m/%Y', errors='coerce')
     df_all['ANO_MES'] = df_all['DATA_DT'].dt.to_period('M')
     nomes_meses = {
@@ -1136,7 +1136,7 @@ def executar_testes_e2e():
 
 def backup_arquivos_existentes():
     """Faz backup de arquivos existentes antes dos testes"""
-    arquivos_backup = ['mensagens.csv', 'calculo.csv']
+    arquivos_backup = [ARQ_MENSAGENS, ARQ_CALCULO]
     
     for arquivo in arquivos_backup:
         if os.path.exists(arquivo):
@@ -1146,7 +1146,7 @@ def backup_arquivos_existentes():
 
 def restaurar_arquivos_backup():
     """Restaura arquivos do backup após os testes"""
-    arquivos_backup = ['mensagens.csv', 'calculo.csv']
+    arquivos_backup = [ARQ_MENSAGENS, ARQ_CALCULO]
     
     for arquivo in arquivos_backup:
         backup_nome = f"{arquivo}.backup_teste"
@@ -1187,10 +1187,10 @@ def testar_processamento_incremental():
         
         # Verifica se CSVs foram criados
         csvs_criados = []
-        if os.path.exists('mensagens.csv'):
-            csvs_criados.append('mensagens.csv')
-        if os.path.exists('calculo.csv'):
-            csvs_criados.append('calculo.csv')
+        if os.path.exists(ARQ_MENSAGENS):
+            csvs_criados.append(ARQ_MENSAGENS)
+        if os.path.exists(ARQ_CALCULO):
+            csvs_criados.append(ARQ_CALCULO)
         
         print(f"CSVs criados: {csvs_criados}")
         

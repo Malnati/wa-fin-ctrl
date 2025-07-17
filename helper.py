@@ -134,7 +134,7 @@ def mover_arquivos_processados():
         destino = os.path.join(imgs_dir, arquivo)
         shutil.move(origem, destino)
         arquivos_movidos += 1
-        print(f"Movido: {arquivo} -> imgs/")
+        print(f"Movido: {arquivo} -> {DIR_IMGS}/")
     if arquivos_movidos > 0:
-        print(f"Total de {arquivos_movidos} arquivos movidos para imgs/")
+        print(f"Total de {arquivos_movidos} arquivos movidos para {DIR_IMGS}/")
     return arquivos_movidos
