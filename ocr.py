@@ -3,6 +3,9 @@ import re
 import cv2
 import pytesseract
 import numpy as np
+import xml.etree.ElementTree as ET
+from threading import Lock
+ocr_xml_lock = Lock()
 
 # === CONSTANTES DE DIRETÓRIOS ===
 DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
@@ -36,3 +39,22 @@ def process_image_ocr(image_path):
         return text if text else "Nenhum texto detectado"
     except Exception as e:
         return f"Erro no OCR: {str(e)}"
+
+def registrar_ocr_xml(arquivo, texto, arq_xml=os.getenv('ATTR_FIN_OCR', 'ocr/extract.xml')):
+    """Registra extração OCR no arquivo XML incrementalmente, sem sobrescrever entradas existentes."""
+    with ocr_xml_lock:
+        if not os.path.exists(os.path.dirname(arq_xml)):
+            os.makedirs(os.path.dirname(arq_xml), exist_ok=True)
+        if os.path.exists(arq_xml):
+            tree = ET.parse(arq_xml)
+            root = tree.getroot()
+        else:
+            root = ET.Element('ocr')
+            tree = ET.ElementTree(root)
+        # Não duplica entradas
+        for entry in root.findall('entry'):
+            if entry.get('arquivo') == arquivo:
+                return  # Já existe, não sobrescreve
+        entry = ET.SubElement(root, 'entry', {'arquivo': arquivo})
+        entry.text = texto
+        tree.write(arq_xml, encoding='utf-8', xml_declaration=True)

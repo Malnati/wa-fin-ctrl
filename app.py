@@ -355,6 +355,8 @@ def txt_to_csv(input_file, output_file):
                 print(f"Processando OCR: {row['anexo']}")
                 ocr_result = process_image_ocr(caminho_input)
                 df.at[idx, 'OCR'] = ocr_result
+                # Registra extração no XML
+                registrar_ocr_xml(row['anexo'], ocr_result)
             else:
                 # Se não está em input/, verifica se está em imgs/ (já processado)
                 caminho_imgs = os.path.join("imgs", row['anexo'])
@@ -661,6 +663,8 @@ def txt_to_csv_anexos_only(input_file, output_file):
                 print(f"Processando OCR: {row['ANEXO']}")
                 ocr_result = process_image_ocr(caminho_input)
                 df_anexos.at[idx, 'OCR'] = ocr_result
+                # Registra extração no XML
+                registrar_ocr_xml(row['ANEXO'], ocr_result)
                 
                 # Extrai valor total usando ChatGPT
                 print(f"Extraindo valor total: {row['ANEXO']}")
@@ -849,6 +853,8 @@ def processar_incremental(force=False, entry=None):
                 descricao = generate_payment_description_with_chatgpt(ocr_result)
                 classificacao = classify_transaction_type_with_chatgpt(ocr_result)
                 motivo_erro = ""
+                # Registra extração no XML
+                registrar_ocr_xml(arquivo, ocr_result)
                 if not valor_total and not descricao and not classificacao:
                     motivo_erro = diagnostico_erro_ocr(caminho, ocr_result)
                 registros.append({

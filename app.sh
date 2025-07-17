@@ -7,7 +7,7 @@ export ATTR_FIN_DIR_MASSA="massa"
 export ATTR_FIN_DIR_TMP="tmp"
 export ATTR_FIN_ARQ_CALCULO="mensagens/calculo.csv"
 export ATTR_FIN_ARQ_MENSAGENS="mensagens/mensagens.csv"
-export ATTR_FIN_ARQ_DIAGNOSTICO="diagnostico.csv"
+export ATTR_FIN_ARQ_DIAGNOSTICO="mensagens/diagnostico.csv"
 export ATTR_FIN_ARQ_CHAT="_chat.txt"
 export ATTR_FIN_OCR="ocr/extract.xml"
 
