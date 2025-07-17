@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "gastos-tia-claudia"
+version = "0.1.0"
+description = "Processador de comprovantes WhatsApp"
+authors = ["Seu Nome <seu@email.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pandas = "*"
+pillow = "*"
+pytesseract = "*"
+opencv-python = "*"
+openai = "*"
+openpyxl = "*"
+PyPDF2 = "*"
+pdf2image = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api" 
