@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 
+# === VARIÁVEIS DE AMBIENTE PARA ARQUIVOS/DIRETÓRIOS FINANCEIROS ===
+export ATTR_FIN_DIR_INPUT="input"
+export ATTR_FIN_DIR_IMGS="imgs"
+export ATTR_FIN_DIR_MASSA="massa"
+export ATTR_FIN_DIR_TMP="tmp"
+export ATTR_FIN_ARQ_CALCULO="calculo.csv"
+export ATTR_FIN_ARQ_MENSAGENS="mensagens.csv"
+export ATTR_FIN_ARQ_DIAGNOSTICO="diagnostico.csv"
+export ATTR_FIN_ARQ_CHAT="_chat.txt"
+
 log() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }

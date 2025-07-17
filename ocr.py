@@ -5,8 +5,8 @@ import pytesseract
 import numpy as np
 
 # === CONSTANTES DE DIRETÓRIOS ===
-DIR_INPUT = "input"
-DIR_IMGS = "imgs"
+DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
+DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
 
 def process_image_ocr(image_path):
     """Processa uma imagem e extrai texto usando OCR"""

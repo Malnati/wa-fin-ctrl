@@ -4,10 +4,10 @@ import pandas as pd
 import shutil
 
 # === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
-DIR_INPUT = "input"
-DIR_IMGS = "imgs"
-ARQ_CALCULO = "calculo.csv"
-ARQ_MENSAGENS = "mensagens.csv"
+DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
+DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
+ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'calculo.csv')
+ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens.csv')
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""

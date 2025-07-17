@@ -4,9 +4,9 @@ import base64
 from pathlib import Path
 
 # === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
-DIR_INPUT = "input"
-DIR_IMGS = "imgs"
-ARQ_CALCULO = "calculo.csv"
+DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
+DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
+ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'calculo.csv')
 
 def gerar_relatorio_html(csv_path):
     try:

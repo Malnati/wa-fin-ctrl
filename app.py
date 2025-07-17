@@ -23,14 +23,14 @@ except ImportError:
     convert_from_path = None
 
 # === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
-DIR_INPUT = "input"
-DIR_IMGS = "imgs"
-DIR_MASSA = "massa"
-DIR_TMP = "tmp"
-ARQ_CALCULO = "calculo.csv"
-ARQ_MENSAGENS = "mensagens.csv"
-ARQ_DIAGNOSTICO = "diagnostico.csv"
-ARQ_CHAT = "_chat.txt"
+DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
+DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
+DIR_MASSA = os.getenv('ATTR_FIN_DIR_MASSA', 'massa')
+DIR_TMP = os.getenv('ATTR_FIN_DIR_TMP', 'tmp')
+ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'calculo.csv')
+ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens.csv')
+ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'diagnostico.csv')
+ARQ_CHAT = os.getenv('ATTR_FIN_ARQ_CHAT', '_chat.txt')
 
 def process_image_ocr(image_path):
     """Processa uma imagem ou PDF e extrai texto usando OCR"""
