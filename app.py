@@ -22,6 +22,8 @@ except ImportError:
     pdfplumber = None
     convert_from_path = None
 
+from ocr import registrar_ocr_xml
+
 # === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
 DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
 DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
@@ -31,6 +33,7 @@ ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'mensagens/calculo.csv')
 ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
 ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'mensagens/diagnostico.csv')
 ARQ_CHAT = os.getenv('ATTR_FIN_ARQ_CHAT', '_chat.txt')
+ARQ_OCR_XML = os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/ocr.xml')
 
 def process_image_ocr(image_path):
     """Processa uma imagem ou PDF e extrai texto usando OCR"""

@@ -43,8 +43,9 @@ def process_image_ocr(image_path):
 def registrar_ocr_xml(arquivo, texto, arq_xml=os.getenv('ATTR_FIN_OCR', 'ocr/extract.xml')):
     """Registra extração OCR no arquivo XML incrementalmente, sem sobrescrever entradas existentes."""
     with ocr_xml_lock:
-        if not os.path.exists(os.path.dirname(arq_xml)):
-            os.makedirs(os.path.dirname(arq_xml), exist_ok=True)
+        dir_ocr = os.path.dirname(arq_xml)
+        if dir_ocr and not os.path.exists(dir_ocr):
+            os.makedirs(dir_ocr, exist_ok=True)
         if os.path.exists(arq_xml):
             tree = ET.parse(arq_xml)
             root = tree.getroot()
