@@ -1,5 +1,5 @@
 ---
-description: Todas as dependencias devem estar automatisadas em app.sh, este é o único arquivo shell permitido.
+description: Todas as dependencias devem estar automatisadas em Makefile, este é o único arquivo shell permitido.
 globs:
 alwaysApply: true
 ---
