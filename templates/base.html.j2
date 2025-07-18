@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Relatório de Prestação de Contas{% endblock %}</title>
+  <link rel="stylesheet" href="static/styles.css">
+  <style>
+    {% block extra_styles %}{% endblock %}
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <!-- Verificação de paths de imagens -->
+  
+  <div id="loading-overlay">
+    <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde...</div>
+  </div>
+  
+  <div class="container">
+    <h1>{% block header_title %}Relatório de Prestação de Contas{% endblock %}</h1>
+    <div class="info">Gerado automaticamente em {{ timestamp }}</div>
+    
+    <div style="text-align:right; margin-bottom:10px;">
+      {% block header_buttons %}{% endblock %}
+    </div>
+    
+    <table>
+      <thead>
+        {% block table_head %}
+          <tr>
+            <th>Data-Hora</th>
+            <th>
+              <button id="toggle-payments" class="toggle-payments-btn" aria-label="Alternar pagamentos">
+                {% block toggle_button_content %}⇄{% endblock %}
+              </button>
+            </th>
+            <th>Ricardo (R$)</th>
+            <th>Rafael (R$)</th>
+            <th>Anexo</th>
+            <th>Descrição</th>
+            <th>OCR</th>
+            {% if tem_motivo %}
+              <th>Motivo do Erro</th>
+            {% endif %}
+          </tr>
+        {% endblock %}
+      </thead>
+      <tbody>
+        {% block table_body %}
+          {# linhas serão renderizadas nas views filhas #}
+        {% endblock %}
+      </tbody>
+    </table>
+    
+    {% block extra_content %}{% endblock %}
+  </div>
+  
+  <div id="modal" class="modal" onclick="hideModal()">
+    <img id="modal-img" class="modal-content">
+  </div>
+  
+  <script src="static/scripts.js"></script>
+  
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html> 

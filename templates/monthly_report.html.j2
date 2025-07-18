@@ -1,161 +1,18 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Relatório de Prestação de Contas - {{ periodo }}</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; line-height: 1.6; }
-    .container { max-width: 1200px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-    h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 28px; border-bottom: 3px solid #3498db; padding-bottom: 15px; }
-    .info { text-align: center; margin-bottom: 20px; color: #7f8c8d; font-style: italic; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 14px; }
-    th, td { border: 1px solid #ddd; padding: 12px 8px; text-align: center; vertical-align: middle; }
-    th { background-color: #3498db; color: white; font-weight: bold; text-transform: uppercase; font-size: 12px; }
-    tr:nth-child(even) { background-color: #f8f9fa; }
-    tr:hover { background-color: #e3f2fd; }
-    .total-row { background-color: #fff3cd !important; font-weight: bold; border-top: 3px solid #ffc107; }
-    .total-row:hover { background-color: #fff3cd !important; }
-    img.thumb { max-height: 50px; max-width: 80px; cursor: pointer; transition: transform 0.3s ease; border-radius: 5px; border: 1px solid #ddd; }
-    img.thumb:hover { transform: scale(3); z-index: 9999; position: relative; border: 2px solid #3498db; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-    .modal { display: none; position: fixed; z-index: 9999; padding-top: 0; left: 0; top: 0; width: 100vw; height: 100vh; overflow: auto; background-color: rgba(0,0,0,0.95); }
-    .modal-content { margin: auto; display: block; width: 100%; height: 100%; object-fit: contain; }
-    .modal.show { display: block; }
-    .valor { font-weight: bold; color: #27ae60; }
-    .data-hora { font-family: monospace; font-size: 12px; white-space: nowrap; }
-    .classificacao { padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-    .transferencia { background-color: #e8f5e8; color: #2e7d32; }
-    .pagamento { background-color: #fff3e0; color: #f57c00; }
-    @media (max-width: 768px) { .container { margin: 10px; padding: 15px; } table { font-size: 12px; } th, td { padding: 8px 4px; } h1 { font-size: 22px; } img.thumb { max-height: 40px; max-width: 60px; } img.thumb:hover { transform: scale(2.5); } table th:nth-child(1), table td:nth-child(1) { font-size: 10px; white-space: normal; word-break: break-word; } table th:nth-child(2), table td:nth-child(2) { font-size: 0; width: 30px; position: relative; } table th:nth-child(2) button { font-size: 0; border: none; background: none; padding: 4px; display: block; width: 100%; height: 100%; cursor: pointer; } table th:nth-child(2) { position: relative; z-index: 1; cursor: pointer; } table th:nth-child(2)::after { display: none; } span.classificacao.transferencia::before { content: "⇆"; } span.classificacao.pagamento::before { content: "💸"; } span.classificacao { font-size: 0; display: inline-block; width: 1em; height: 1em; } table th:nth-child(3)::after { content: "RI"; } table th:nth-child(4)::after { content: "RA"; } table th:nth-child(5)::after { content: "📎"; } table th:nth-child(6), table td:nth-child(6) { display: none; } }  </style>
-</head>
-<body>
-  <!-- Mensagem de carregamento -->
-  <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;">
-    <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde por favor...</div>
-  </div>
-  <div class="container">
-    <h1>Relatório de Prestação de Contas - {{ periodo }}</h1>
-    <div class="info">Gerado automaticamente em {{ timestamp }}</div>
-    {% if edit_link %}
-    <div style="text-align: right; margin-bottom: 10px;">
-      <a href="{{ edit_link }}" target="_blank">
-        <button>Editar Relatório</button>
-      </a>
-    </div>
-    {% endif %}
-    <table>
-      <thead>
-        <tr>
-          <th>Data-Hora</th>
-          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;font-size:16px;" aria-label="Alternar pagamentos"></button></th>
-          <th>Ricardo (R$)</th>
-          <th>Rafael (R$)</th>
-          <th>Anexo</th>
-          <th>Descrição</th>
-          {% if tem_motivo %}
-          <th>Motivo do Erro</th>
-          {% endif %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in rows %}
-        <tr class="{{ row.row_class }}">
-          <td class="data-hora">{{ row.data_hora }}</td>
-          <td>
-            {% if row.classificacao and row.classificacao != 'nan' %}
-              {% if row.classificacao.lower() == 'transferência' %}
-                <span class="classificacao transferencia">{{ row.classificacao }}</span>
-              {% elif row.classificacao.lower() == 'pagamento' %}
-                <span class="classificacao pagamento">{{ row.classificacao }}</span>
-              {% else %}
-                <span class="classificacao">{{ row.classificacao }}</span>
-              {% endif %}
-            {% endif %}
-          </td>
-          <td>
-            {% if row.ricardo and row.ricardo != 'nan' and row.ricardo != '' %}
-              <span class="valor">{{ row.ricardo }}</span>
-            {% endif %}
-          </td>
-          <td>
-            {% if row.rafael and row.rafael != 'nan' and row.rafael != '' %}
-              <span class="valor">{{ row.rafael }}</span>
-            {% endif %}
-          </td>
-          <td>
-            {% if row.row_class != 'total-row' and row.anexo and row.anexo != 'nan' and row.anexo != '' %}
-              {% if row.anexo.lower().endswith(('.jpg', '.jpeg', '.png')) %}
-                {% if attrs.IMGS_DIR_PATH and attrs.INPUT_DIR_PATH %}
-                  {% set img_found = false %}
-                  {% if attrs.IMGS_DIR_PATH %}
-                    <img src="{{ attrs.IMGS_DIR_PATH }}/{{ row.anexo }}" class="thumb" alt="Comprovante {{ row.anexo }}" title="{{ row.anexo }}" onclick="showModal(this.src)">
-                    {% set img_found = true %}
-                  {% endif %}
-                  {% if not img_found and attrs.INPUT_DIR_PATH %}
-                    <img src="{{ attrs.INPUT_DIR_PATH }}/{{ row.anexo }}" class="thumb" alt="Comprovante {{ row.anexo }}" title="{{ row.anexo }}" onclick="showModal(this.src)">
-                    {% set img_found = true %}
-                  {% endif %}
-                  {% if not img_found %}
-                    <span style="color: #f39c12; font-size: 11px;">Não encontrado: {{ row.anexo }}</span>
-                  {% endif %}
-                {% else %}
-                  <span style="color: #f39c12; font-size: 11px;">Não encontrado: {{ row.anexo }}</span>
-                {% endif %}
-              {% endif %}
-            {% endif %}
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            {% if row.descricao and row.descricao != 'nan' %}
-              {{ row.descricao }}
-            {% endif %}
-          </td>
-          {% if tem_motivo %}
-          <td style="color:#e67e22;font-size:12px;">
-            {% if row.motivo %}
-              {{ row.motivo }}
-            {% endif %}
-          </td>
-          {% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  <div id="modal" class="modal" onclick="hideModal()">
-    <img class="modal-content" id="modal-img">
-  </div>
-  <script>
-    function showModal(imgSrc) {
-      const modal = document.getElementById('modal');
-      const modalImg = document.getElementById('modal-img');
-      modalImg.src = imgSrc;
-      modal.classList.add('show');
-    }
-    function hideModal() {
-      const modal = document.getElementById('modal');
-      modal.classList.remove('show');
-    }
-    let showPayments = false;
-    document.addEventListener('DOMContentLoaded', () => {
-      const toggleBtn = document.getElementById('toggle-payments');
-      toggleBtn.addEventListener('click', () => {
-        showPayments = !showPayments;
-        document.querySelectorAll('tbody tr').forEach(row => {
-          const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
-          row.style.display = isPayment ? (showPayments ? '' : 'none') : '';
-        });
-      });
-      document.querySelectorAll('tbody tr').forEach(row => {
-        const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
-        if (isPayment) row.style.display = 'none';
-      });
-    });
-    document.addEventListener('DOMContentLoaded', () => {
-      const overlay = document.getElementById('loading-overlay');
-      if (overlay) {
-        overlay.style.display = 'none';
-      }
-    });
-  </script>
-</body>
-</html> 
+{% extends "base.html.j2" %}
+{% from "_row.html.j2" import render_row %}
+
+{% block title %}Relatório de Prestação de Contas - {{ periodo }}{% endblock %}
+
+{% block header_title %}Relatório de Prestação de Contas - {{ periodo }}{% endblock %}
+
+{% block header_buttons %}
+  {% if edit_link %}
+    <a href="{{ edit_link }}" target="_blank" class="btn-edit">Editar Relatório</a>
+  {% endif %}
+{% endblock %}
+
+{% block table_body %}
+  {% for row in rows %}
+    {{ render_row(row, loop.index0, attrs) }}
+  {% endfor %}
+{% endblock %} 

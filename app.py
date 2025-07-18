@@ -16,7 +16,7 @@ from openai import OpenAI
 import base64
 from pathlib import Path
 import json
-from html import gerar_relatorio_html, gerar_relatorios_mensais_html, gerar_html_impressao
+from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html, gerar_html_impressao
 # Adiciona imports para PDF
 try:
     import pdfplumber
@@ -599,9 +599,13 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
                 df_anexos.at[idx, col] = prev[col]
             continue
             
-        if row['ANEXO'] and (row['ANEXO'].endswith('.jpg') or row['ANEXO'].endswith('.jpeg') or row['ANEXO'].endswith('.png')):
-            # Verifica se o arquivo existe em input/ (imagens novas)
+        # Trata imagens e PDFs da mesma forma
+        if row['ANEXO'] and row['ANEXO'].lower().endswith(('.jpg', '.jpeg', '.png', '.pdf')):
+            # Tenta localizar no diretório input, senão imgs
             caminho_input = os.path.join(input_dir, row['ANEXO'])
+            if not os.path.exists(caminho_input):
+                caminho_input = os.path.join(ATTR_FIN_DIR_IMGS, row['ANEXO'])
+            
             if os.path.exists(caminho_input):
                 print(f"Processando OCR: {row['ANEXO']}")
                 ocr_result = process_image_ocr(caminho_input)
@@ -628,11 +632,8 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
                         df_anexos.at[idx, 'RICARDO'] = valor_total
                     elif row['REMETENTE'] == 'Rafael':
                         df_anexos.at[idx, 'RAFAEL'] = valor_total
-            elif os.path.exists(os.path.join(ATTR_FIN_DIR_IMGS, row['ANEXO'])):
-                # Se está em imgs/, não processa novamente (será tratado pela recuperação de dados)
-                continue
             else:
-                # 3) arquivo não encontrado: sinaliza e pula chamadas
+                # Arquivo não encontrado: sinaliza e pula chamadas
                 df_anexos.at[idx, 'OCR'] = "Arquivo não encontrado"
                 continue
     
