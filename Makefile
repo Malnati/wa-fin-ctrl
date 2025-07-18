@@ -3,16 +3,16 @@
 
 .PHONY: help
 
-VAR_FIN_OPENAI_API_KEY=""
-VAR_FIN_DIR_INPUT="input"
-VAR_FIN_DIR_IMGS="imgs"
-VAR_FIN_DIR_MASSA="massa"
-VAR_FIN_DIR_TMP="tmp"
-VAR_FIN_ARQ_CALCULO="mensagens/calculo.csv"
-VAR_FIN_ARQ_MENSAGENS="mensagens/mensagens.csv"
-VAR_FIN_ARQ_DIAGNOSTICO="diagnostico.csv"
-VAR_FIN_ARQ_CHAT="_chat.txt"
-VAR_FIN_ARQ_OCR_XML="ocr/extract.xml"
+VAR_FIN_OPENAI_API_KEY=${OPENAI_API_KEY}
+VAR_FIN_DIR_INPUT=input
+VAR_FIN_DIR_IMGS=imgs
+VAR_FIN_DIR_MASSA=massa
+VAR_FIN_DIR_TMP=tmp
+VAR_FIN_ARQ_CALCULO=mensagens/calculo.csv
+VAR_FIN_ARQ_MENSAGENS=mensagens/mensagens.csv
+VAR_FIN_ARQ_DIAGNOSTICO=diagnostico.csv
+VAR_FIN_ARQ_CHAT=_chat.txt
+VAR_FIN_ARQ_OCR_XML=ocr/extract.xml
 
 # Configuração de ambiente
 export ATTR_FIN_OPENAI_API_KEY="${VAR_FIN_OPENAI_API_KEY}"
