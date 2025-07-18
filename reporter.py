@@ -43,7 +43,13 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     
     # Buscar texto OCR pelo nome do arquivo (campo ANEXO)
     anexo = str(row.get('ANEXO', ''))
-    texto_ocr = ocr_map.get(anexo, '') if anexo and anexo != 'nan' else ''
+    # 1) primeiro, tenta usar o que já veio no CSV (coluna "OCR")
+    texto_csv = str(row.get('OCR', '') or '').strip()
+    if texto_csv and texto_csv.lower() != 'nan':
+        texto_ocr = texto_csv
+    else:
+        # 2) fallback: puxa do XML carregado em ocr_map
+        texto_ocr = ocr_map.get(anexo, '') if anexo and anexo.lower() != 'nan' else ''
     
     # Flag para linha de total
     remetente = str(row.get('REMETENTE', ''))

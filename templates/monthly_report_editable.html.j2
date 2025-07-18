@@ -118,7 +118,7 @@
           </td>
           {% if tem_motivo %}
           <td style="color:#e67e22;font-size:12px;">
-            {% if row.motivo %}
+            {% if row.motivo and row.motivo != 'nan' %}
               {{ row.motivo }}
             {% endif %}
           </td>

@@ -23,7 +23,7 @@ server:
 
 copy:
 	@mkdir -p tmp
-	@mkdir -p ocr
+	@echo "Copiando os arquivos ocr.py, app.py, env.py, template.py, reporter.py, check.py, templates/monthly_report_editable.html.j2, templates/monthly_report.html.j2 para analise. " > tmp/copy2chatgpt.txt
 	@cat app.py cli.py helper.py ia.py \
 	ocr.py \
 	app.sh \
@@ -32,11 +32,22 @@ copy:
 	reporter.py \
 	check.py \
 	templates/monthly_report_editable.html.j2 \
-	templates/monthly_report.html.j2 \
-	report-2025-07-Julho.html > tmp/copy2chatgpt.txt
-	@echo "<!-- ocr/extract.xml -->" >> tmp/copy2chatgpt.txt
-	@cat ocr/extract.xml >> tmp/copy2chatgpt.txt
+	templates/monthly_report.html.j2 >> tmp/copy2chatgpt.txt
 	@pbcopy < tmp/copy2chatgpt.txt
 	@echo "✅ Conteúdo copiado para a área de transferência"
+
+copy-report:
+	@mkdir -p tmp
+	@echo "Copiando o relatório..." > tmp/copy2chatgpt.txt
+	@cat report-2025-07-Julho.html >> tmp/copy2chatgpt.txt
+	@pbcopy < tmp/copy2chatgpt.txt
+	@echo "✅ Conteúdo do relatório copiado para a área de transferência"
+
+copy-ocr:
+	@mkdir -p ocr
+	@echo "<!-- ocr/extract.xml -->" > tmp/copy2chatgpt.txt
+	@cat ocr/extract.xml >> tmp/copy2chatgpt.txt
+	@pbcopy < tmp/copy2chatgpt.txt
+	@echo "✅ Conteúdo do OCR copiado para a área de transferência"
 
 .PHONY: help install run server copy
