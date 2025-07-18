@@ -5,11 +5,31 @@ import os
 import pandas as pd
 import base64
 import subprocess
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from env import *
 from template import TemplateRenderer
 
-def _preparar_linha(row, tem_motivo=False):
+def _carregar_ocr_map():
+    """Carrega o mapeamento de arquivos para textos OCR do arquivo extract.xml."""
+    ocr_map = {}
+    try:
+        xml_path = os.path.join(ATTR_FIN_DIR_OCR, "extract.xml")
+        if os.path.exists(xml_path):
+            tree = ET.parse(xml_path)
+            root = tree.getroot()
+            for entry in root.findall('entry'):
+                arquivo = entry.get('arquivo', '')
+                texto = entry.text or ''
+                ocr_map[arquivo] = texto
+            print(f"📄 Carregados {len(ocr_map)} registros OCR de {xml_path}")
+        else:
+            print(f"⚠️  Arquivo OCR não encontrado: {xml_path}")
+    except Exception as e:
+        print(f"❌ Erro ao carregar OCR: {str(e)}")
+    return ocr_map
+
+def _preparar_linha(row, ocr_map, tem_motivo=False):
     """Prepara os dados de uma linha para o template - apenas dados puros, sem HTML."""
     data = str(row.get('DATA', ''))
     hora = str(row.get('HORA', ''))
@@ -20,6 +40,10 @@ def _preparar_linha(row, tem_motivo=False):
     rafael = str(row.get('RAFAEL', ''))
     anexo = str(row.get('ANEXO', ''))
     descricao = str(row.get('DESCRICAO', ''))
+    
+    # Buscar texto OCR pelo nome do arquivo (campo ANEXO)
+    anexo = str(row.get('ANEXO', ''))
+    texto_ocr = ocr_map.get(anexo, '') if anexo and anexo != 'nan' else ''
     
     # Flag para linha de total
     remetente = str(row.get('REMETENTE', ''))
@@ -32,7 +56,7 @@ def _preparar_linha(row, tem_motivo=False):
         'rafael': rafael,
         'anexo': anexo,
         'descricao': descricao,
-        'ocr': str(row.get('OCR', '')),  # NOVO: campo OCR - convertido para string
+        'ocr': texto_ocr,  # Texto OCR carregado do XML
         'row_class': row_class
     }
     
@@ -92,13 +116,16 @@ def gerar_relatorio_html(csv_path):
             print(f"📁 Relatório anterior renomeado para: {arquivo_backup}")
         print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
         
+        # Carregar dados OCR
+        ocr_map = _carregar_ocr_map()
+        
         df = pd.read_csv(csv_path)
         tem_motivo = 'MOTIVO_ERRO' in df.columns
         
         # Preparar dados para o template
         rows = []
         for _, row in df.iterrows():
-            rows.append(_preparar_linha(row, tem_motivo))
+            rows.append(_preparar_linha(row, ocr_map, tem_motivo))
         
         context = {
             "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
@@ -136,6 +163,9 @@ def gerar_relatorios_mensais_html(csv_path):
             return
         print(f"📅 Gerando relatórios mensais baseados em {csv_path}...")
         
+        # Carregar dados OCR
+        ocr_map = _carregar_ocr_map()
+        
         df = pd.read_csv(csv_path)
         df['DATA_DT'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
         df = df.dropna(subset=['DATA_DT'])
@@ -169,7 +199,7 @@ def gerar_relatorios_mensais_html(csv_path):
             tem_motivo = 'MOTIVO_ERRO' in dados_mes.columns
             rows = []
             for _, row in dados_mes.iterrows():
-                rows.append(_preparar_linha(row, tem_motivo))
+                rows.append(_preparar_linha(row, ocr_map, tem_motivo))
             
             context = {
                 "periodo": f"{nome_mes} {ano}",

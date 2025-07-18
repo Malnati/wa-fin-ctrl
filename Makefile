@@ -32,7 +32,9 @@ copy:
 	check.py \
 	templates/monthly_report_editable.html.j2 \
 	templates/monthly_report.html.j2 \
-	report-2025-07-Julho.html > tmp/copy2chatgpt.txt; \
+	echo "<!-- ocr/extract.xml -->" > tmp/copy2chatgpt.txt; \
+	report-2025-07-Julho.html >> tmp/copy2chatgpt.txt; \
+	cat ocr/extract.xml >> tmp/copy2chatgpt.xml; \
 	pbcopy < tmp/copy2chatgpt.txt
 
 .PHONY: help install run server copy

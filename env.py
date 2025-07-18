@@ -10,4 +10,5 @@ ATTR_FIN_ARQ_CALCULO        = os.getenv('ATTR_FIN_ARQ_CALCULO', 'mensagens/calcu
 ATTR_FIN_ARQ_MENSAGENS      = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
 ATTR_FIN_ARQ_DIAGNOSTICO    = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'mensagens/diagnostico.csv')
 ATTR_FIN_ARQ_CHAT           = os.getenv('ATTR_FIN_ARQ_CHAT', '_chat.txt')
+ATTR_FIN_DIR_OCR            = os.getenv('ATTR_FIN_DIR_OCR', 'ocr')
 ATTR_FIN_ARQ_OCR_XML        = os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/extract.xml') 
