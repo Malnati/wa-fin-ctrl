@@ -6,6 +6,7 @@ import pandas as pd
 import base64
 import subprocess
 import xml.etree.ElementTree as ET
+import re
 from pathlib import Path
 from env import *
 from template import TemplateRenderer
@@ -247,45 +248,39 @@ def gerar_relatorio_html(csv_path):
         )
         print("✅ Relatório HTML gerado: report.html")
         
-        # Garante que o index.html existe (página de entrada)
-        if not os.path.exists("index.html"):
-            print("📄 Criando página de entrada: index.html")
-            # Cria um index.html básico se não existir
-            index_content = '''<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gastos Tia Claudia - Relatórios</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
-    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
-    .reports { list-style: none; padding: 0; }
-    .reports li { margin: 10px 0; }
-    .reports a { display: block; padding: 15px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; transition: background 0.3s; }
-    .reports a:hover { background: #2980b9; }
-    .info { background: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>📊 Relatórios de Gastos</h1>
-    <div class="info">
-      <strong>Sistema de Prestação de Contas</strong><br>
-      Relatórios gerados automaticamente a partir dos comprovantes processados.
-    </div>
-    <ul class="reports">
-      <li><a href="report.html">📊 Relatório Geral</a></li>
-    </ul>
-  </div>
-</body>
-</html>'''
-            with open("index.html", "w", encoding="utf-8") as f:
-                f.write(index_content)
-            print("✅ Página de entrada criada: index.html")
-        else:
-            print("✅ Página de entrada mantida: index.html")
+        # Gera o index.html a partir do template
+        print("📄 Gerando página de entrada: index.html")
+        
+        # Detecta relatórios mensais disponíveis
+        monthly_reports = []
+        for file in os.listdir("."):
+            if file.startswith("report-") and file.endswith(".html"):
+                # Extrai informações do nome do arquivo: report-2025-04-Abril.html
+                match = re.match(r"report-(\d{4})-(\d{2})-(.+)\.html", file)
+                if match:
+                    year = match.group(1)
+                    month = match.group(3)
+                    display_name = f"📅 {month} {year}"
+                    monthly_reports.append({
+                        "filename": file,
+                        "display_name": display_name
+                    })
+        
+        # Ordena por data (mais recente primeiro)
+        monthly_reports.sort(key=lambda x: x["filename"], reverse=True)
+        
+        # Contexto para o template
+        index_context = {
+            "monthly_reports": monthly_reports
+        }
+        
+        # Renderiza o template
+        TemplateRenderer.render(
+            template_name="index.html.j2",
+            context=index_context,
+            output_path="index.html"
+        )
+        print("✅ Página de entrada gerada: index.html")
         
         # Validação OCR
         print("🔍 Validando conformidade OCR...")
