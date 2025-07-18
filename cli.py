@@ -15,7 +15,8 @@ from app import (
     processar_incremental, 
     verificar_totais, 
     corrigir_totalizadores_duplicados, 
-    executar_testes_e2e
+    executar_testes_e2e,
+    dismiss_entry
 )
 
 @click.group()
@@ -90,6 +91,13 @@ def prestacao():
     """Gera planilha no formato da Justiça (função removida)."""
     print("A função gerar_formato_justica foi removida.")
     exit(0)
+
+@cli.command()
+@click.argument('data_hora', type=str)
+def dismiss(data_hora):
+    """Marca uma entrada como desconsiderada (dismiss) em todos os arquivos CSV."""
+    sucesso = dismiss_entry(data_hora)
+    exit(0 if sucesso else 1)
 
 if __name__ == '__main__':
     cli() 

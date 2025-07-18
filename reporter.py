@@ -41,6 +41,7 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     anexo = str(row.get('ANEXO', ''))
     descricao = str(row.get('DESCRICAO', ''))
     valor = str(row.get('VALOR', ''))
+    validade = str(row.get('VALIDADE', ''))
     
     # Buscar texto OCR pelo nome do arquivo (campo ANEXO)
     anexo = str(row.get('ANEXO', ''))
@@ -141,6 +142,11 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
 
     # Flag para linha de total
     row_class = 'total-row' if 'TOTAL' in remetente.upper() else ''
+    
+    # Se a entrada está marcada como dismiss, altera a descrição
+    if validade and validade.lower() == 'dismiss':
+        descricao = 'desconsiderado'
+        row_class = 'dismiss-row' if not row_class else f'{row_class} dismiss-row'
     
     linha = {
         'data_hora': data_hora,

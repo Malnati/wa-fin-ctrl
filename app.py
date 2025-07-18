@@ -263,6 +263,8 @@ def txt_to_csv(input_file, output_file):
     
     # Adiciona coluna para dados do OCR
     df['OCR'] = ''
+    # Adiciona coluna para validade
+    df['VALIDADE'] = ''
     
     # Processa OCR apenas para anexos que existem no diretório input/
     input_dir = ATTR_FIN_DIR_INPUT
@@ -404,6 +406,11 @@ def incrementar_csv(novo_df, arquivo_csv):
                 # Se não tem coluna OCR, adiciona todos os novos registros
                 novos_registros = novo_df.copy()
         
+        # Adiciona coluna VALIDADE se não existir no CSV existente
+        if 'VALIDADE' not in df_existente.columns:
+            df_existente['VALIDADE'] = ''
+            print(f"➕ Coluna VALIDADE adicionada ao CSV existente")
+        
         if len(novos_registros) > 0:
             # Combina com os novos dados
             df_combinado = pd.concat([df_existente, novos_registros], ignore_index=True)
@@ -492,6 +499,7 @@ def adicionar_totalizacao_mensal(df):
                 'DESCRICAO': f'Total do mês {mes:02d}/{ano}',
                 'VALOR': '',
                 'OCR': '',
+                'VALIDADE': '',
                 'DATA_DT': datetime(ano, mes, ultimo_dia, 23, 59),
                 'MES_ANO': mes_periodo
             }
@@ -578,6 +586,8 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
     df_anexos['CLASSIFICACAO'] = ''
     df_anexos['RICARDO'] = ''
     df_anexos['RAFAEL'] = ''
+    # Adiciona coluna para validade
+    df_anexos['VALIDADE'] = ''
     
     # 1) carrega CSV existente para recuperação de dados
     if os.path.exists(output_file):
@@ -595,7 +605,7 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
         anexo = str(row['ANEXO'])
         if anexo in processed:
             prev = df_existente[df_existente['ANEXO'] == anexo].iloc[0]
-            for col in ['OCR','VALOR','DESCRICAO','CLASSIFICACAO','RICARDO','RAFAEL']:
+            for col in ['OCR','VALOR','DESCRICAO','CLASSIFICACAO','RICARDO','RAFAEL','VALIDADE']:
                 df_anexos.at[idx, col] = prev[col]
             continue
             
@@ -647,8 +657,8 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
     # Adiciona linhas de totalização mensal
     df_anexos = adicionar_totalizacao_mensal(df_anexos)
     
-    # Reordena as colunas na ordem desejada: DATA, HORA, REMETENTE, CLASSIFICACAO, RICARDO, RAFAEL, ANEXO, DESCRICAO, VALOR, OCR
-    ordem_colunas = ['DATA', 'HORA', 'REMETENTE', 'CLASSIFICACAO', 'RICARDO', 'RAFAEL', 'ANEXO', 'DESCRICAO', 'VALOR', 'OCR']
+    # Reordena as colunas na ordem desejada: DATA, HORA, REMETENTE, CLASSIFICACAO, RICARDO, RAFAEL, ANEXO, DESCRICAO, VALOR, OCR, VALIDADE
+    ordem_colunas = ['DATA', 'HORA', 'REMETENTE', 'CLASSIFICACAO', 'RICARDO', 'RAFAEL', 'ANEXO', 'DESCRICAO', 'VALOR', 'OCR', 'VALIDADE']
     df_anexos = df_anexos[ordem_colunas]
     
     # Incrementa o CSV em vez de sobrescrever
@@ -1405,6 +1415,97 @@ def corrigir_totalizadores_duplicados(csv_file):
         
     except Exception as e:
         print(f"❌ Erro ao corrigir totalizadores: {str(e)}")
+        return False
+
+def dismiss_entry(data_hora):
+    """Marca uma entrada como desconsiderada (dismiss) em todos os arquivos CSV do diretório mensagens/"""
+    try:
+        # Parse da data e hora
+        if ' ' not in data_hora:
+            print("❌ Formato inválido. Use: DD/MM/AAAA HH:MM:SS")
+            return False
+        
+        data, hora = data_hora.strip().split(' ', 1)
+        
+        # Valida formato da data
+        if not re.match(r'^\d{2}/\d{2}/\d{4}$', data):
+            print("❌ Formato de data inválido. Use: DD/MM/AAAA")
+            return False
+        
+        # Valida formato da hora
+        if not re.match(r'^\d{2}:\d{2}:\d{2}$', hora):
+            print("❌ Formato de hora inválido. Use: HH:MM:SS")
+            return False
+        
+        print(f"🔍 Procurando entrada: {data} {hora}")
+        
+        # Lista todos os arquivos CSV no diretório mensagens/
+        mensagens_dir = os.path.dirname(ATTR_FIN_ARQ_MENSAGENS)
+        if not os.path.exists(mensagens_dir):
+            print(f"❌ Diretório {mensagens_dir} não encontrado!")
+            return False
+        
+        arquivos_csv = [f for f in os.listdir(mensagens_dir) if f.endswith('.csv')]
+        
+        if not arquivos_csv:
+            print(f"❌ Nenhum arquivo CSV encontrado em {mensagens_dir}/")
+            return False
+        
+        entradas_encontradas = 0
+        
+        for arquivo_csv in arquivos_csv:
+            caminho_csv = os.path.join(mensagens_dir, arquivo_csv)
+            print(f"📄 Verificando arquivo: {arquivo_csv}")
+            
+            try:
+                df = pd.read_csv(caminho_csv)
+                
+                # Verifica se tem as colunas necessárias
+                if 'DATA' not in df.columns or 'HORA' not in df.columns:
+                    print(f"⚠️  Arquivo {arquivo_csv} não tem colunas DATA/HORA - pulando")
+                    continue
+                
+                # Adiciona coluna VALIDADE se não existir
+                if 'VALIDADE' not in df.columns:
+                    df['VALIDADE'] = ''
+                    print(f"➕ Coluna VALIDADE adicionada ao arquivo {arquivo_csv}")
+                
+                # Procura pela entrada específica
+                mask = (df['DATA'] == data) & (df['HORA'] == hora)
+                linhas_encontradas = df[mask]
+                
+                if len(linhas_encontradas) > 0:
+                    # Marca como dismiss
+                    df.loc[mask, 'VALIDADE'] = 'dismiss'
+                    
+                    # Salva o arquivo atualizado
+                    df.to_csv(caminho_csv, index=False, quoting=1)
+                    
+                    print(f"✅ {len(linhas_encontradas)} entrada(s) marcada(s) como 'dismiss' em {arquivo_csv}")
+                    entradas_encontradas += len(linhas_encontradas)
+                    
+                    # Mostra detalhes das entradas encontradas
+                    for idx, row in linhas_encontradas.iterrows():
+                        anexo = row.get('ANEXO', 'N/A')
+                        descricao = row.get('DESCRICAO', 'N/A')
+                        print(f"   - {anexo}: {descricao}")
+                else:
+                    print(f"ℹ️  Nenhuma entrada encontrada em {arquivo_csv}")
+                    
+            except Exception as e:
+                print(f"❌ Erro ao processar {arquivo_csv}: {str(e)}")
+                continue
+        
+        if entradas_encontradas > 0:
+            print(f"\n✅ Total de {entradas_encontradas} entrada(s) marcada(s) como 'dismiss'")
+            print("🔄 Execute 'poetry run python cli.py processar' para regenerar os relatórios HTML")
+            return True
+        else:
+            print(f"\n❌ Nenhuma entrada encontrada para {data} {hora}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Erro ao executar dismiss: {str(e)}")
         return False
 
 

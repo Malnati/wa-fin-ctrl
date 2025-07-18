@@ -78,6 +78,7 @@ def adicionar_totalizacao_mensal(df):
                 'DESCRICAO': f'Total do mês {mes:02d}/{ano}',
                 'VALOR': '',
                 'OCR': '',
+                'VALIDADE': '',
                 'DATA_DT': datetime(ano, mes, ultimo_dia, 23, 59),
                 'MES_ANO': mes_periodo
             }
@@ -108,6 +109,11 @@ def incrementar_csv(novo_df, arquivo_csv):
                 novos_registros = novo_df[mascara_novos].copy()
             else:
                 novos_registros = novo_df.copy()
+        
+        # Adiciona coluna VALIDADE se não existir no CSV existente
+        if 'VALIDADE' not in df_existente.columns:
+            df_existente['VALIDADE'] = ''
+            print(f"➕ Coluna VALIDADE adicionada ao CSV existente")
         if len(novos_registros) > 0:
             df_combinado = pd.concat([df_existente, novos_registros], ignore_index=True)
             print(f"CSV {arquivo_csv} incrementado: {len(df_existente)} + {len(novos_registros)} = {len(df_combinado)} registros")
