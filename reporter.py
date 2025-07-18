@@ -209,12 +209,12 @@ def gerar_relatorio_html(csv_path):
     print(f"DEBUG: Iniciando gerar_relatorio_html com csv_path: {csv_path}")
     try:
         if not os.path.exists(csv_path):
-            print(f"❌ O relatório report.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
+            print(f"❌ O relatório index.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
             return
-        if os.path.exists("report.html"):
+        if os.path.exists("index.html"):
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-            arquivo_backup = f"report-{timestamp}.bak"
-            os.rename("report.html", arquivo_backup)
+            arquivo_backup = f"index-{timestamp}.bak"
+            os.rename("index.html", arquivo_backup)
             print(f"📁 Relatório anterior renomeado para: {arquivo_backup}")
         print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
         
@@ -239,13 +239,13 @@ def gerar_relatorio_html(csv_path):
             }
         }
         
-        print(f"DEBUG: Chamando TemplateRenderer.render com output_path: report.html")
+        print(f"DEBUG: Chamando TemplateRenderer.render com output_path: index.html")
         TemplateRenderer.render(
             template_name="unified_report.html.j2",
             context=context,
-            output_path="report.html"
+            output_path="index.html"
         )
-        print("✅ Relatório HTML gerado: report.html")
+        print("✅ Relatório HTML gerado: index.html")
         
         # Validação OCR
         print("🔍 Validando conformidade OCR...")
