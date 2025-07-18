@@ -58,6 +58,11 @@
   </td>
   <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
     {% if row.ocr and row.ocr != 'nan' %}
+      {% if row.anexo and row.anexo.lower().endswith('.pdf') %}
+        📄 
+      {% elif row.anexo and row.anexo.lower().endswith(('.jpg', '.jpeg', '.png')) %}
+        🖼️ 
+      {% endif %}
       {{ row.ocr[:100] }}{% if row.ocr|length > 100 %}...{% endif %}
     {% endif %}
   </td>
