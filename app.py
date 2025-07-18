@@ -36,7 +36,8 @@ ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'mensagens/calculo.csv')
 ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
 ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'mensagens/diagnostico.csv')
 ARQ_CHAT = os.getenv('ATTR_FIN_ARQ_CHAT', '_chat.txt')
-ARQ_OCR_XML = os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/ocr.xml')
+# Usar o caminho correto para o arquivo de extração OCR
+ARQ_OCR_XML = os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/extract.xml')
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""
@@ -528,8 +529,23 @@ def adicionar_totalizacao_mensal(df):
     
     return df_combinado
 
-def txt_to_csv_anexos_only(input_file, output_file):
+def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
     """Nova funcionalidade - extrai apenas dados de anexos (DATA/HORA, remetente, anexos e OCR) com valor total via ChatGPT"""
+    
+    # Se não foi fornecido input_file, usa o arquivo de chat padrão
+    if input_file is None:
+        # Busca arquivo de chat no diretório input/
+        input_dir = Path(DIR_INPUT)
+        chat_files = list(input_dir.glob('*_chat.txt'))
+        if not chat_files:
+            print("Nenhum arquivo de chat encontrado em input/")
+            return pd.DataFrame()
+        input_file = str(chat_files[0])
+    
+    # Se não foi fornecido output_file, usa o padrão
+    if output_file is None:
+        output_file = ARQ_CALCULO
+    
     # Lê cada linha completa do arquivo de chat
     with open(input_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
@@ -545,6 +561,16 @@ def txt_to_csv_anexos_only(input_file, output_file):
     
     # Filtra apenas linhas que têm anexos (remove mensagens de texto)
     df_anexos = df[df['anexo'] != ''].copy()
+    
+    # Aplica filtro por tipo de arquivo se especificado
+    if filter == 'pdf':
+        df_anexos = df_anexos[df_anexos['anexo'].str.lower().endswith('.pdf')].copy()
+        print(f"Filtro aplicado: apenas PDFs ({len(df_anexos)} arquivos)")
+    elif filter == 'img':
+        df_anexos = df_anexos[df_anexos['anexo'].str.lower().endswith(('.jpg','.jpeg','.png'))].copy()
+        print(f"Filtro aplicado: apenas imagens ({len(df_anexos)} arquivos)")
+    else:
+        print(f"Processando todos os anexos ({len(df_anexos)} arquivos)")
     
     # Remove a coluna mensagem pois não precisamos dela
     df_anexos.drop(columns=['mensagem'], inplace=True)
@@ -891,6 +917,121 @@ def processar_incremental(force=False, entry=None):
         nome_mes = nomes_meses.get(mes, str(mes))
         nome_arquivo_impressao = f"impressao-{ano}-{mes:02d}-{nome_mes}.html"
         print(f"✅ HTML de impressão gerado: {nome_arquivo_impressao}")
+
+def processar_pdfs(force=False, entry=None):
+    """Processa apenas arquivos .pdf no diretório input/."""
+    print("=== INICIANDO PROCESSAMENTO DE PDFs {} ===".format("FORÇADO" if force else "INCREMENTAL"))
+    if entry:
+        print(f"Filtro de entrada ativado: {entry}")
+        try:
+            data_entry, hora_entry = entry.strip().split()
+        except Exception:
+            print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
+            return
+    
+    input_dir = Path(DIR_INPUT)
+    
+    if not input_dir.exists():
+        print(f"Diretório {DIR_INPUT}/ não encontrado!")
+        return
+    
+    # Busca apenas arquivos PDF
+    arquivos_pdf = list(input_dir.glob('*.pdf'))
+    
+    if not arquivos_pdf:
+        print("Nenhum arquivo PDF encontrado em input/")
+        return
+    
+    print(f"Encontrados {len(arquivos_pdf)} arquivos PDF para processar")
+    
+    # Processa cada PDF
+    for pdf_path in arquivos_pdf:
+        print(f"Processando PDF: {pdf_path.name}")
+        
+        # Extrai texto via OCR
+        ocr_text = process_image_ocr(str(pdf_path))
+        
+        # Registra no XML (usar só o nome do arquivo)
+        registrar_ocr_xml(os.path.basename(str(pdf_path)), ocr_text)
+        
+        # Extrai valor total usando ChatGPT
+        valor_total = extract_total_value_with_chatgpt(ocr_text)
+        
+        # Gera descrição do pagamento usando ChatGPT
+        descricao = generate_payment_description_with_chatgpt(ocr_text)
+        
+        # Classifica o tipo de transação usando ChatGPT
+        classificacao = classify_transaction_type_with_chatgpt(ocr_text)
+        
+        print(f"  - Valor: {valor_total}")
+        print(f"  - Descrição: {descricao}")
+        print(f"  - Classificação: {classificacao}")
+    
+    # Atualiza mensagens/calculo.csv apenas com PDFs
+    print("\n=== ATUALIZANDO CSV APENAS COM PDFs ===")
+    txt_to_csv_anexos_only(filter='pdf', output_file=ARQ_CALCULO)
+    # Também atualizar o CSV de mensagens apenas com PDFs
+    txt_to_csv_anexos_only(filter='pdf', output_file=ARQ_MENSAGENS)
+    
+    print("✅ Processamento de PDFs concluído!")
+
+def processar_imgs(force=False, entry=None):
+    """Processa apenas arquivos de imagem (.jpg, .png, .jpeg) no diretório input/."""
+    print("=== INICIANDO PROCESSAMENTO DE IMAGENS {} ===".format("FORÇADO" if force else "INCREMENTAL"))
+    if entry:
+        print(f"Filtro de entrada ativado: {entry}")
+        try:
+            data_entry, hora_entry = entry.strip().split()
+        except Exception:
+            print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
+            return
+    
+    input_dir = Path(DIR_INPUT)
+    
+    if not input_dir.exists():
+        print(f"Diretório {DIR_INPUT}/ não encontrado!")
+        return
+    
+    # Busca apenas arquivos de imagem
+    extensoes_img = ('.jpg', '.jpeg', '.png')
+    imagens = [p for p in input_dir.iterdir() if p.is_file() and p.suffix.lower() in extensoes_img]
+    
+    if not imagens:
+        print("Nenhum arquivo de imagem encontrado em input/")
+        return
+    
+    print(f"Encontradas {len(imagens)} imagens para processar")
+    
+    # Processa cada imagem
+    for img_path in imagens:
+        print(f"Processando imagem: {img_path.name}")
+        
+        # Extrai texto via OCR
+        ocr_text = process_image_ocr(str(img_path))
+        
+        # Registra no XML (usar só o nome do arquivo)
+        registrar_ocr_xml(os.path.basename(str(img_path)), ocr_text)
+        
+        # Extrai valor total usando ChatGPT
+        valor_total = extract_total_value_with_chatgpt(ocr_text)
+        
+        # Gera descrição do pagamento usando ChatGPT
+        descricao = generate_payment_description_with_chatgpt(ocr_text)
+        
+        # Classifica o tipo de transação usando ChatGPT
+        classificacao = classify_transaction_type_with_chatgpt(ocr_text)
+        
+        print(f"  - Valor: {valor_total}")
+        print(f"  - Descrição: {descricao}")
+        print(f"  - Classificação: {classificacao}")
+    
+    # Atualiza mensagens/calculo.csv apenas com imagens
+    print("\n=== ATUALIZANDO CSV APENAS COM IMAGENS ===")
+    txt_to_csv_anexos_only(filter='img', output_file=ARQ_CALCULO)
+    # Também atualizar o CSV de mensagens apenas com imagens
+    txt_to_csv_anexos_only(filter='img', output_file=ARQ_MENSAGENS)
+    
+    print("✅ Processamento de imagens concluído!")
 
 def descomprimir_zip_se_existir():
     """Verifica se existe apenas um arquivo ZIP em input/ e o descomprime"""

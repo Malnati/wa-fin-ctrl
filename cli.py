@@ -26,7 +26,7 @@ def cli():
 @click.option('--force', is_flag=True, help='Reprocessa todos os arquivos de input/')
 @click.option('--entry', type=str, help='Reprocessa apenas a linha correspondente (formato: DD/MM/AAAA HH:MM:SS)')
 def processar(force, entry):
-    """Executa o processamento incremental dos comprovantes."""
+    """Executa o processamento incremental dos comprovantes (PDFs + imagens)."""
     processar_incremental(force=force, entry=entry)
     
     # Se foi modo forçado, move arquivos de volta para imgs/
@@ -40,6 +40,30 @@ def processar(force, entry):
                 if os.path.isfile(caminho):
                     shutil.move(caminho, os.path.join(imgs_dir, f))
             print("Arquivos reprocessados e movidos de volta para imgs/.")
+
+@cli.command('pdf')
+@click.option('--force', is_flag=True, help='Reprocessa todos os PDFs do diretório input/')
+@click.option('--entry', type=str, help='Reprocessa apenas o PDF da entrada (formato: DD/MM/AAAA HH:MM:SS)')
+def processar_pdf(force, entry):
+    """
+    Processa apenas arquivos .pdf:
+    - Extrai texto via OCR e registra em ocr-extract.xml
+    - Atualiza mensagens/calculo.csv (somente entradas PDF)
+    """
+    from app import processar_pdfs
+    processar_pdfs(force=force, entry=entry)
+
+@cli.command('img')
+@click.option('--force', is_flag=True, help='Reprocessa todas as imagens do diretório input/')
+@click.option('--entry', type=str, help='Reprocessa apenas a imagem da entrada (formato: DD/MM/AAAA HH:MM:SS)')
+def processar_img(force, entry):
+    """
+    Processa apenas arquivos de imagem:
+    - Extrai texto via OCR e registra em ocr-extract.xml
+    - Atualiza mensagens/calculo.csv (somente entradas IMG)
+    """
+    from app import processar_imgs
+    processar_imgs(force=force, entry=entry)
 
 @cli.command()
 @click.argument('csv_file', type=click.Path(exists=True))
