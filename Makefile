@@ -18,6 +18,12 @@ install:
 run:
 	poetry run python cli.py
 
+process:
+	@bash app.sh process
+
+force:
+	@bash app.sh process --force
+
 server:
 	poetry run python -m http.server 8000
 
