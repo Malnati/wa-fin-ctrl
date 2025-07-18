@@ -34,16 +34,21 @@ copy:
 	@pbcopy < tmp/copy2chatgpt.txt
 	@echo "✅ Conteúdo copiado para a área de transferência"
 
-copy-report:
+copy-july-report:
 	@mkdir -p tmp
-	@echo "Copiando o relatório..." > tmp/copy2chatgpt.txt
+	@echo "Copiando o relatório de Julho..." > tmp/copy2chatgpt.txt
 	@cat report-2025-07-Julho.html >> tmp/copy2chatgpt.txt
 	@echo "Copiando o relatório editavel..." >> tmp/copy2chatgpt.txt
 	@cat report-edit-2025-07-Julho.html >> tmp/copy2chatgpt.txt
-	@echo "Copiando o relatório geral..." >> tmp/copy2chatgpt.txt
+	@pbcopy < tmp/copy2chatgpt.txt
+	@echo "✅ Conteúdo do relatório de Julho copiado para a área de transferência"
+
+copy-report:
+	@mkdir -p tmp
+	@echo "Copiando o relatório report.html para analise..." > tmp/copy2chatgpt.txt
 	@cat report.html >> tmp/copy2chatgpt.txt
 	@pbcopy < tmp/copy2chatgpt.txt
-	@echo "✅ Conteúdo do relatório copiado para a área de transferência"
+	@echo "✅ Conteúdo do relatório report.html copiado para a área de transferência"
 
 copy-templates:
 	@mkdir -p tmp
