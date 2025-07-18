@@ -223,9 +223,20 @@ def gerar_relatorios_mensais_html(csv_path):
             relatorios_gerados += 1
             print(f"✅ Relatório mensal gerado: {nome_arquivo}")
             
-            # Relatório mensal editável
+            # Relatório mensal editável (sem botão de edição)
             nome_arquivo_edit = f"report-edit-{ano}-{mes:02d}-{nome_mes}.html"
-            TemplateRenderer.render("unified_report.html.j2", context, nome_arquivo_edit)
+            context_edit = {
+                "periodo": f"{nome_mes} {ano}",
+                "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
+                "rows": rows,
+                "tem_motivo": tem_motivo,
+                # Não incluir edit_link para relatórios de edição
+                "attrs": {
+                    "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
+                    "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
+                }
+            }
+            TemplateRenderer.render("unified_report.html.j2", context_edit, nome_arquivo_edit)
             print(f"✅ Relatório mensal editável gerado: {nome_arquivo_edit}")
         
         print(f"📅 Total de relatórios mensais gerados: {relatorios_gerados}")
