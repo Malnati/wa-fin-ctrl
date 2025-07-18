@@ -29,7 +29,7 @@ def process_image_ocr(image_path):
         # 2. Resolve caminho real
         if os.path.exists(image_path):
             pass
-        elif not image_path.startswith(('imgs/', 'input/')):
+        elif not image_path.startswith((f'{ATTR_FIN_DIR_IMGS}/', f'{ATTR_FIN_DIR_INPUT}/')):
             input_path = os.path.join(ATTR_FIN_DIR_INPUT, image_path)
             if os.path.exists(input_path):
                 image_path = input_path

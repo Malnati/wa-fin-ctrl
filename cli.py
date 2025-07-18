@@ -40,7 +40,7 @@ def processar(force, entry):
                 caminho = os.path.join(input_dir, f)
                 if os.path.isfile(caminho):
                     shutil.move(caminho, os.path.join(imgs_dir, f))
-            print("Arquivos reprocessados e movidos de volta para imgs/.")
+            print(f"Arquivos reprocessados e movidos de volta para {ATTR_FIN_DIR_IMGS}/.")
 
 @cli.command('pdf')
 @click.option('--force', is_flag=True, help='Reprocessa todos os PDFs do diretório input/')

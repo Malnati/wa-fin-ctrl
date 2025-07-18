@@ -307,7 +307,7 @@ def gerenciar_arquivos_incrementais():
                       if f.lower().endswith(extensoes_imagem)]
     
     if not arquivos_input:
-        print("Nenhuma imagem encontrada no diretório input/")
+        print(f"Nenhuma imagem encontrada no diretório {ATTR_FIN_DIR_INPUT}/")
         # Verifica se há arquivo _chat.txt
         chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
         if os.path.exists(chat_file):
@@ -336,19 +336,19 @@ def gerenciar_arquivos_incrementais():
     
     # Verifica se ainda há arquivos para processar
     if not arquivos_input:
-        print("Todos os arquivos de input/ já foram processados anteriormente")
+        print(f"Todos os arquivos de {ATTR_FIN_DIR_INPUT}/ já foram processados anteriormente")
         # Verifica se há arquivo _chat.txt
         chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
         if os.path.exists(chat_file):
             return True, chat_file
         return False, None
     
-    print(f"Encontrados {len(arquivos_input)} arquivos novos para processar em input/")
+    print(f"Encontrados {len(arquivos_input)} arquivos novos para processar em {ATTR_FIN_DIR_INPUT}/")
     
     # Verifica se há arquivo _chat.txt
     chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
     if not os.path.exists(chat_file):
-        print("Arquivo input/_chat.txt não encontrado!")
+        print(f"Arquivo {ATTR_FIN_DIR_INPUT}/{ATTR_FIN_ARQ_CHAT} não encontrado!")
         return False, None
     
     return True, chat_file
@@ -372,10 +372,10 @@ def mover_arquivos_processados():
         destino = os.path.join(imgs_dir, arquivo)
         shutil.move(origem, destino)
         arquivos_movidos += 1
-        print(f"Movido: {arquivo} -> imgs/")
+        print(f"Movido: {arquivo} -> {ATTR_FIN_DIR_IMGS}/")
     
     if arquivos_movidos > 0:
-        print(f"Total de {arquivos_movidos} arquivos movidos para imgs/")
+        print(f"Total de {arquivos_movidos} arquivos movidos para {ATTR_FIN_DIR_IMGS}/")
     
     return arquivos_movidos
 
@@ -523,7 +523,7 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
         input_dir = Path(ATTR_FIN_DIR_INPUT)
         chat_files = list(input_dir.glob('*_chat.txt'))
         if not chat_files:
-            print("Nenhum arquivo de chat encontrado em input/")
+            print(f"Nenhum arquivo de chat encontrado em {ATTR_FIN_DIR_INPUT}/")
             return pd.DataFrame()
         input_file = str(chat_files[0])
     
@@ -924,7 +924,7 @@ def processar_pdfs(force=False, entry=None):
     arquivos_pdf = list(input_dir.glob('*.pdf'))
     
     if not arquivos_pdf:
-        print("Nenhum arquivo PDF encontrado em input/")
+        print(f"Nenhum arquivo PDF encontrado em {ATTR_FIN_DIR_INPUT}/")
         return
     
     print(f"Encontrados {len(arquivos_pdf)} arquivos PDF para processar")
@@ -952,7 +952,7 @@ def processar_pdfs(force=False, entry=None):
         print(f"  - Descrição: {descricao}")
         print(f"  - Classificação: {classificacao}")
     
-    # Atualiza mensagens/calculo.csv apenas com PDFs
+    # Atualiza calculo.csv apenas com PDFs
     print("\n=== ATUALIZANDO CSV APENAS COM PDFs ===")
     txt_to_csv_anexos_only(filter='pdf', output_file=ATTR_FIN_ARQ_CALCULO)
     # Também atualizar o CSV de mensagens apenas com PDFs
@@ -982,7 +982,7 @@ def processar_imgs(force=False, entry=None):
     imagens = [p for p in input_dir.iterdir() if p.is_file() and p.suffix.lower() in extensoes_img]
     
     if not imagens:
-        print("Nenhum arquivo de imagem encontrado em input/")
+        print(f"Nenhum arquivo de imagem encontrado em {ATTR_FIN_DIR_INPUT}/")
         return
     
     print(f"Encontradas {len(imagens)} imagens para processar")
@@ -1010,7 +1010,7 @@ def processar_imgs(force=False, entry=None):
         print(f"  - Descrição: {descricao}")
         print(f"  - Classificação: {classificacao}")
     
-    # Atualiza mensagens/calculo.csv apenas com imagens
+    # Atualiza calculo.csv apenas com imagens
     print("\n=== ATUALIZANDO CSV APENAS COM IMAGENS ===")
     txt_to_csv_anexos_only(filter='img', output_file=ATTR_FIN_ARQ_CALCULO)
     # Também atualizar o CSV de mensagens apenas com imagens
@@ -1024,7 +1024,7 @@ def descomprimir_zip_se_existir():
     
     # Verifica se o diretório input existe
     if not os.path.exists(input_dir):
-        print(f"Diretório {input_dir}/ não encontrado!")
+        print(f"Diretório {ATTR_FIN_DIR_INPUT}/ não encontrado!")
         return False
     
     # Lista todos os arquivos no diretório input/
@@ -1035,11 +1035,11 @@ def descomprimir_zip_se_existir():
     
     # Verifica se existe apenas um arquivo ZIP
     if len(arquivos_zip) == 0:
-        print("Nenhum arquivo ZIP encontrado em input/")
+        print(f"Nenhum arquivo ZIP encontrado em {ATTR_FIN_DIR_INPUT}/")
         return True  # Não é erro, apenas não há ZIP para processar
     
     if len(arquivos_zip) > 1:
-        print(f"Encontrados {len(arquivos_zip)} arquivos ZIP em input/. Deve haver apenas um.")
+        print(f"Encontrados {len(arquivos_zip)} arquivos ZIP em {ATTR_FIN_DIR_INPUT}/. Deve haver apenas um.")
         print(f"Arquivos ZIP encontrados: {arquivos_zip}")
         return False
     
@@ -1146,7 +1146,7 @@ def organizar_subdiretorios_se_necessario():
                     if os.path.isdir(os.path.join(input_dir, item))]
     
     if not subdiretorios:
-        print("Nenhum subdiretório encontrado em input/")
+        print(f"Nenhum subdiretório encontrado em {ATTR_FIN_DIR_INPUT}/")
         return
     
     print(f"Subdiretórios encontrados: {subdiretorios}")
@@ -1223,7 +1223,7 @@ def testar_processamento_incremental():
     try:
         # Verifica se há arquivos em input/
         if not os.path.exists(ATTR_FIN_DIR_INPUT) or not os.listdir(ATTR_FIN_DIR_INPUT):
-            print("⚠️  Sem arquivos em input/ para testar processamento")
+            print(f"⚠️  Sem arquivos em {ATTR_FIN_DIR_INPUT}/ para testar processamento")
             return True  # Não é falha, apenas não há dados para testar
         
         # Conta arquivos antes do processamento
@@ -1231,7 +1231,7 @@ def testar_processamento_incremental():
                              if f.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf'))])
         
         if arquivos_antes == 0:
-            print("⚠️  Sem imagens em input/ para testar processamento")
+            print(f"⚠️  Sem imagens em {ATTR_FIN_DIR_INPUT}/ para testar processamento")
             return True
         
         print(f"Arquivos de imagem encontrados: {arquivos_antes}")
@@ -1243,7 +1243,7 @@ def testar_processamento_incremental():
         if os.path.exists(ATTR_FIN_DIR_IMGS):
             arquivos_imgs = len([f for f in os.listdir(ATTR_FIN_DIR_IMGS) 
                                if f.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf'))])
-            print(f"Arquivos movidos para imgs/: {arquivos_imgs}")
+            print(f"Arquivos movidos para {ATTR_FIN_DIR_IMGS}/: {arquivos_imgs}")
         
         # Verifica se CSVs foram criados
         csvs_criados = []
