@@ -24,13 +24,13 @@ check_poetry_installed:
 	fi
 
 # Adicionando a verificação de Poetry como dependência para todos os alvos
-install: check_poetry_installed
-run: check_poetry_installed
-process: check_poetry_installed
-force: check_poetry_installed
-server: check_poetry_installed
-copy: check_poetry_installed
-copy-july-report: check_poetry_installed
+install: check_poetry_installed 
+run: check_poetry_installed install
+process: check_poetry_installed install
+force: check_poetry_installed install
+server: check_poetry_installed install
+copy: check_poetry_installed install
+copy-july-report: check_poetry_installed install
 copy-report: check_poetry_installed
 
 help:
