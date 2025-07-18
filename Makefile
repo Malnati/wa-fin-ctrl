@@ -174,4 +174,26 @@ remove-all:
 	@$(MAKE) remove-tmp
 	@$(MAKE) remove-input
 
-.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables
+
+copy-april:
+	@cp -v "massa/04 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-may:
+	@cp -v "massa/05 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-june:
+	@cp -v "massa/06 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-july:
+	@cp -v "massa/07 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-august:
+	@cp -v "massa/08 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-september:
+	@cp -v "massa/09 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-october:
+	@cp -v "massa/10 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october
