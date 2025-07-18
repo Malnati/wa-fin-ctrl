@@ -41,7 +41,7 @@ def process_image_ocr(image_path):
                     return "Arquivo não encontrado"
         elif not os.path.exists(image_path):
             return "Arquivo não encontrado"
-        # 3. Se for PDF, tenta extrair texto pesquisável e OCR
+        # 3. Se for PDF, aplica pdfplumber e fallback com OCR via pdf2image
         if image_path.lower().endswith('.pdf'):
             try:
                 import pdfplumber
@@ -49,30 +49,39 @@ def process_image_ocr(image_path):
             except ImportError:
                 return ("Erro: Suporte a PDF não disponível. "
                         "Adicione as bibliotecas 'pdfplumber' e 'pdf2image' no Dockerfile para processar PDFs.")
+            
             texto_pdf = ""
+
+            # Método 1: pdfplumber
             try:
                 with pdfplumber.open(image_path) as pdf:
                     for page in pdf.pages:
-                        texto_pdf += page.extract_text() or ''
-                texto_pdf = texto_pdf.strip()
+                        texto_pagina = page.extract_text() or ''
+                        texto_pdf += texto_pagina
             except Exception:
                 texto_pdf = ""
+            
+            texto_pdf = texto_pdf.strip()
+            texto_pdf = re.sub(r'\n+', ' ', texto_pdf)
+            texto_pdf = re.sub(r'\s+', ' ', texto_pdf)
+
+            # Método 2: OCR com pdf2image se pdfplumber falhar ou retornar vazio
             if not texto_pdf:
                 try:
                     imagens = convert_from_path(image_path)
                     texto_ocr = []
                     for img in imagens:
-                        import cv2
-                        import numpy as np
                         img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
                         gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
                         _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-                        texto_ocr.append(pytesseract.image_to_string(thresh, lang='eng'))
+                        texto_pagina = pytesseract.image_to_string(thresh, lang='eng')
+                        texto_ocr.append(texto_pagina)
                     texto_pdf = '\n'.join(texto_ocr).strip()
+                    texto_pdf = re.sub(r'\n+', ' ', texto_pdf)
+                    texto_pdf = re.sub(r'\s+', ' ', texto_pdf)
                 except Exception as e:
                     return f"Erro ao processar PDF: {str(e)}"
-            texto_pdf = re.sub(r'\n+', ' ', texto_pdf).strip()
-            texto_pdf = re.sub(r'\s+', ' ', texto_pdf)
+
             registrar_ocr_xml(os.path.basename(image_path), texto_pdf)
             return texto_pdf if texto_pdf else "Nenhum texto detectado"
         # 4. Caso contrário, processa como imagem
