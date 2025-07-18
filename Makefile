@@ -3,17 +3,32 @@
 
 .PHONY: help
 
+VAR_FIN_OPENAI_API_KEY=""
+VAR_FIN_DIR_INPUT="input"
+VAR_FIN_DIR_IMGS="imgs"
+VAR_FIN_DIR_MASSA="massa"
+VAR_FIN_DIR_TMP="tmp"
+VAR_FIN_ARQ_CALCULO="mensagens/calculo.csv"
+VAR_FIN_ARQ_MENSAGENS="mensagens/mensagens.csv"
+VAR_FIN_ARQ_DIAGNOSTICO="diagnostico.csv"
+VAR_FIN_ARQ_CHAT="_chat.txt"
+VAR_FIN_ARQ_OCR_XML="ocr/extract.xml"
+
 # Configuração de ambiente
-export ATTR_FIN_OPENAI_API_KEY="${OPENAI_API_KEY:-}"
-export ATTR_FIN_DIR_INPUT="input"
-export ATTR_FIN_DIR_IMGS="imgs"
-export ATTR_FIN_DIR_MASSA="massa"
-export ATTR_FIN_DIR_TMP="tmp"
-export ATTR_FIN_ARQ_CALCULO="mensagens/calculo.csv"
-export ATTR_FIN_ARQ_MENSAGENS="mensagens/mensagens.csv"
-export ATTR_FIN_ARQ_DIAGNOSTICO="diagnostico.csv"
-export ATTR_FIN_ARQ_CHAT="_chat.txt"
-export ATTR_FIN_ARQ_OCR_XML="ocr/extract.xml"
+export ATTR_FIN_OPENAI_API_KEY="${VAR_FIN_OPENAI_API_KEY}"
+export ATTR_FIN_DIR_INPUT="${VAR_FIN_DIR_INPUT}"
+export ATTR_FIN_DIR_IMGS="${VAR_FIN_DIR_IMGS}"
+export ATTR_FIN_DIR_MASSA="${VAR_FIN_DIR_MASSA}"
+export ATTR_FIN_DIR_TMP="${VAR_FIN_DIR_TMP}"
+export ATTR_FIN_ARQ_CALCULO="${VAR_FIN_ARQ_CALCULO}"
+export ATTR_FIN_ARQ_MENSAGENS="${VAR_FIN_ARQ_MENSAGENS}"
+export ATTR_FIN_ARQ_DIAGNOSTICO="${VAR_FIN_ARQ_DIAGNOSTICO}"
+export ATTR_FIN_ARQ_CHAT="${VAR_FIN_ARQ_CHAT}"
+export ATTR_FIN_ARQ_OCR_XML="${VAR_FIN_ARQ_OCR_XML}"
+
+create-directories:
+	@echo "Criando diretórios: ${ATTR_TEST} ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}"
+	@mkdir -p "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" || { echo "Erro ao criar diretórios"; exit 1; }
 
 # Verificar se Poetry está disponível
 check_poetry_installed:
@@ -24,7 +39,7 @@ check_poetry_installed:
 	fi
 
 # Adicionando a verificação de Poetry como dependência para todos os alvos
-install: check_poetry_installed 
+install: check_poetry_installed create-directories
 run: check_poetry_installed install
 process: check_poetry_installed install
 force: check_poetry_installed install
@@ -49,7 +64,7 @@ run:
 	poetry run python cli.py
 
 process:
-	poetry run python cli.py processar
+	poetry run python cli.py processar || echo "Erro ao executar o comando 'processar'. Verifique os logs para mais detalhes."
 
 force:
 	poetry run python cli.py processar --force
@@ -103,4 +118,26 @@ copy-ocr:
 	@pbcopy < tmp/copy2chatgpt.txt
 	@echo "✅ Conteúdo do OCR copiado para a área de transferência"
 
-.PHONY: help install run server copy
+remove-reports:
+	@rm -rf *.html
+
+remove-baks:
+	@rm -rf *.bak
+
+remove-ocr:
+	@rm -rf ocr/extract.xml
+
+remove-mensagens:
+	@rm -rf mensagens/*
+
+remove-imgs:
+	@rm -rf imgs/*
+
+remove-all:
+	@$(MAKE) remove-reports
+	@$(MAKE) remove-baks
+	@$(MAKE) remove-ocr
+	@$(MAKE) remove-mensagens
+	@$(MAKE) remove-imgs
+
+.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-all
