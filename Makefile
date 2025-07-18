@@ -21,7 +21,9 @@ run:
 server:
 	poetry run python -m http.server 8000
 
-.PHONY: help install run server
-
 copy:
-	cat app.py cli.py helper.py ia.py ocr.py app.sh > tmp/copy2chatgpt.txt | pbcopy
+	@mkdir -p tmp
+	cat app.py cli.py helper.py ia.py ocr.py app.sh > tmp/copy2chatgpt.txt
+	pbcopy < tmp/copy2chatgpt.txt
+
+.PHONY: help install run server copy
