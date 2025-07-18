@@ -155,6 +155,9 @@ remove-imgs:
 remove-tmp:
 	@rm -rf tmp/*
 
+remove-input:
+	@rm -rf input/*
+
 remove-all:
 	@$(MAKE) remove-reports
 	@$(MAKE) remove-baks
@@ -162,5 +165,6 @@ remove-all:
 	@$(MAKE) remove-mensagens
 	@$(MAKE) remove-imgs
 	@$(MAKE) remove-tmp
+	@$(MAKE) remove-input
 
-.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-all
+.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all
