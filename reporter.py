@@ -1,5 +1,5 @@
-# report_generator.py
-# Caminho relativo ao projeto: report_generator.py
+# reporter.py
+# Caminho relativo ao projeto: reporter.py
 # Módulo de geração de relatórios HTML para prestação de contas
 import os
 import pandas as pd

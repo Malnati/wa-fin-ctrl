@@ -16,7 +16,7 @@ from openai import OpenAI
 import base64
 from pathlib import Path
 import json
-from report_generator import gerar_relatorio_html, gerar_relatorios_mensais_html, gerar_html_impressao
+from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html, gerar_html_impressao
 # Adiciona imports para PDF
 try:
     import pdfplumber
