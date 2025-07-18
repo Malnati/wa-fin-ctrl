@@ -3,6 +3,7 @@ __pycache__
 *.html
 split/
 tmp/
+ocr/extract.xml
 report.html
 report-2025-04-Abril.html
 report-2025-05-Maio.html
