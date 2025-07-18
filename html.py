@@ -57,7 +57,8 @@ def _preparar_linhas_impressao(df_mes):
         valor = to_float(row.get('VALOR', '0'))
         identificador_unico = f"{index}_{data}_{valor}"
         
-        if row.get('CLASSIFICACAO', '').lower() == 'transferência':
+        classificacao = str(row.get('CLASSIFICACAO', ''))
+        if classificacao.lower() == 'transferência':
             receitas = f"{valor:.2f}"
             despesas = ''
             saldo += valor
