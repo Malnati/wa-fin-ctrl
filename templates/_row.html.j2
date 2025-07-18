@@ -1,0 +1,72 @@
+{# Macro para renderizar uma linha da tabela #}
+{% macro render_row(row, loop_index, attrs) %}
+<tr class="{{ row.row_class }}" data-row-id="{{ loop_index }}" {% if row.motivo %} data-motivo="{{ row.motivo }}"{% endif %}>
+  <td class="data-hora">{{ row.data_hora }}</td>
+  <td>
+    {% if row.classificacao and row.classificacao != 'nan' %}
+      {% if row.classificacao.lower() == 'transferência' %}
+        <span class="classificacao transferencia">{{ row.classificacao }}</span>
+      {% elif row.classificacao.lower() == 'pagamento' %}
+        <span class="classificacao pagamento">{{ row.classificacao }}</span>
+      {% else %}
+        <span class="classificacao">{{ row.classificacao }}</span>
+      {% endif %}
+    {% endif %}
+  </td>
+  <td>
+    {% if row.ricardo and row.ricardo != 'nan' and row.ricardo != '' %}
+      <span class="valor">{{ row.ricardo }}</span>
+    {% endif %}
+  </td>
+  <td>
+    {% if row.rafael and row.rafael != 'nan' and row.rafael != '' %}
+      <span class="valor">{{ row.rafael }}</span>
+    {% endif %}
+  </td>
+  <td>
+    {% if row.row_class != 'total-row' and row.anexo and row.anexo != 'nan' and row.anexo != '' %}
+      {% if row.anexo.lower().endswith(('.jpg', '.jpeg', '.png')) %}
+        {% if attrs.IMGS_DIR_PATH and attrs.INPUT_DIR_PATH %}
+          {% set img_found = false %}
+          {% if attrs.IMGS_DIR_PATH %}
+            <img src="{{ attrs.IMGS_DIR_PATH }}/{{ row.anexo }}" 
+                 class="thumb" 
+                 alt="Comprovante {{ row.anexo }}" 
+                 title="{{ row.anexo }}">
+            {% set img_found = true %}
+          {% endif %}
+          {% if not img_found and attrs.INPUT_DIR_PATH %}
+            <img src="{{ attrs.INPUT_DIR_PATH }}/{{ row.anexo }}" 
+                 class="thumb" 
+                 alt="Comprovante {{ row.anexo }}" 
+                 title="{{ row.anexo }}">
+            {% set img_found = true %}
+          {% endif %}
+          {% if not img_found %}
+            <span style="color: #f39c12; font-size: 11px;">Não encontrado: {{ row.anexo }}</span>
+          {% endif %}
+        {% else %}
+          <span style="color: #f39c12; font-size: 11px;">Não encontrado: {{ row.anexo }}</span>
+        {% endif %}
+      {% endif %}
+    {% endif %}
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    {% if row.descricao and row.descricao != 'nan' %}
+      {{ row.descricao }}
+    {% endif %}
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    {% if row.ocr and row.ocr != 'nan' %}
+      {{ row.ocr[:100] }}{% if row.ocr|length > 100 %}...{% endif %}
+    {% endif %}
+  </td>
+  {% if tem_motivo %}
+  <td style="color:#e67e22;font-size:12px;">
+    {% if row.motivo and row.motivo != 'nan' %}
+      {{ row.motivo }}
+    {% endif %}
+  </td>
+  {% endif %}
+</tr>
+{% endmacro %} 
