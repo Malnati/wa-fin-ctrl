@@ -874,7 +874,7 @@ def processar_incremental(force=False, entry=None):
             print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
         print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
         if edits_json:
-            resposta = input("Deseja aplicar as edições do JSON em calculo.csv antes de gerar relatórios? (s/n): ").strip().lower()
+            resposta = input(f"Deseja aplicar as edições do JSON em {ATTR_FIN_ARQ_CALCULO} antes de gerar relatórios? (s/n): ").strip().lower()
             if resposta == 's':
                 df_calc = pd.read_csv(ATTR_FIN_ARQ_CALCULO, dtype=str)
                 for row_id, campos in edits_json.items():
@@ -883,7 +883,7 @@ def processar_incremental(force=False, entry=None):
                         if campo.upper() in df_calc.columns:
                             df_calc.at[idx, campo.upper()] = valor
                 df_calc.to_csv(ATTR_FIN_ARQ_CALCULO, index=False, quoting=1)
-                print("Edições aplicadas em calculo.csv.")
+                print(f"Edições aplicadas em {ATTR_FIN_ARQ_CALCULO}.")
     print("\n=== GERANDO RELATÓRIO HTML ===")
     gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
@@ -952,7 +952,7 @@ def processar_pdfs(force=False, entry=None):
         print(f"  - Descrição: {descricao}")
         print(f"  - Classificação: {classificacao}")
     
-    # Atualiza calculo.csv apenas com PDFs
+    # Atualiza {ATTR_FIN_ARQ_CALCULO} apenas com PDFs
     print("\n=== ATUALIZANDO CSV APENAS COM PDFs ===")
     txt_to_csv_anexos_only(filter='pdf', output_file=ATTR_FIN_ARQ_CALCULO)
     # Também atualizar o CSV de mensagens apenas com PDFs
@@ -1010,7 +1010,7 @@ def processar_imgs(force=False, entry=None):
         print(f"  - Descrição: {descricao}")
         print(f"  - Classificação: {classificacao}")
     
-    # Atualiza calculo.csv apenas com imagens
+    # Atualiza {ATTR_FIN_ARQ_CALCULO} apenas com imagens
     print("\n=== ATUALIZANDO CSV APENAS COM IMAGENS ===")
     txt_to_csv_anexos_only(filter='img', output_file=ATTR_FIN_ARQ_CALCULO)
     # Também atualizar o CSV de mensagens apenas com imagens
@@ -1282,7 +1282,7 @@ def testar_verificacao_totais():
         }
         
         df_teste = pd.DataFrame(dados_teste)
-        arquivo_teste = 'tmp/teste_calculo.csv'
+        arquivo_teste = f'{ATTR_FIN_DIR_TMP}/teste_calculo.csv'
         
         # Garante que o diretório tmp/ existe
         os.makedirs(ATTR_FIN_DIR_TMP, exist_ok=True)

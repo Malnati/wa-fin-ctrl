@@ -24,13 +24,13 @@ def cli():
     pass
 
 @cli.command()
-@click.option('--force', is_flag=True, help='Reprocessa todos os arquivos de input/')
+@click.option('--force', is_flag=True, help=f'Reprocessa todos os arquivos de {ATTR_FIN_DIR_INPUT}/')
 @click.option('--entry', type=str, help='Reprocessa apenas a linha correspondente (formato: DD/MM/AAAA HH:MM:SS)')
 def processar(force, entry):
     """Executa o processamento incremental dos comprovantes (PDFs + imagens)."""
     processar_incremental(force=force, entry=entry)
     
-    # Se foi modo forçado, move arquivos de volta para imgs/
+    # Se foi modo forçado, move arquivos de volta para {ATTR_FIN_DIR_IMGS}/
     if force:
         input_dir = ATTR_FIN_DIR_INPUT
         imgs_dir = ATTR_FIN_DIR_IMGS
@@ -43,25 +43,25 @@ def processar(force, entry):
             print(f"Arquivos reprocessados e movidos de volta para {ATTR_FIN_DIR_IMGS}/.")
 
 @cli.command('pdf')
-@click.option('--force', is_flag=True, help='Reprocessa todos os PDFs do diretório input/')
+@click.option('--force', is_flag=True, help=f'Reprocessa todos os PDFs do diretório {ATTR_FIN_DIR_INPUT}/')
 @click.option('--entry', type=str, help='Reprocessa apenas o PDF da entrada (formato: DD/MM/AAAA HH:MM:SS)')
 def processar_pdf(force, entry):
     """
     Processa apenas arquivos .pdf:
     - Extrai texto via OCR e registra em ocr-extract.xml
-    - Atualiza mensagens/calculo.csv (somente entradas PDF)
+    - Atualiza {ATTR_FIN_ARQ_CALCULO} (somente entradas PDF)
     """
     from app import processar_pdfs
     processar_pdfs(force=force, entry=entry)
 
 @cli.command('img')
-@click.option('--force', is_flag=True, help='Reprocessa todas as imagens do diretório input/')
+@click.option('--force', is_flag=True, help=f'Reprocessa todas as imagens do diretório {ATTR_FIN_DIR_INPUT}/')
 @click.option('--entry', type=str, help='Reprocessa apenas a imagem da entrada (formato: DD/MM/AAAA HH:MM:SS)')
 def processar_img(force, entry):
     """
     Processa apenas arquivos de imagem:
     - Extrai texto via OCR e registra em ocr-extract.xml
-    - Atualiza mensagens/calculo.csv (somente entradas IMG)
+    - Atualiza {ATTR_FIN_ARQ_CALCULO} (somente entradas IMG)
     """
     from app import processar_imgs
     processar_imgs(force=force, entry=entry)
