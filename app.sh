@@ -5,6 +5,7 @@
 # Atualizado para usar cli.py com click
 
 # Configuração de ambiente
+export ATTR_FIN_OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 export ATTR_FIN_DIR_INPUT="input"
 export ATTR_FIN_DIR_IMGS="imgs"
 export ATTR_FIN_DIR_MASSA="massa"

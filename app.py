@@ -27,17 +27,28 @@ except ImportError:
 
 from ocr import registrar_ocr_xml, process_image_ocr
 
+# ==== CONSTANTES DE AMBIENTE ====
+ATTR_FIN_OPENAI_API_KEY = os.getenv('ATTR_FIN_OPENAI_API_KEY', None)
+ATTR_FIN_DIR_INPUT       = os.getenv('ATTR_FIN_DIR_INPUT',       'input')
+ATTR_FIN_DIR_IMGS        = os.getenv('ATTR_FIN_DIR_IMGS',        'imgs')
+ATTR_FIN_DIR_MASSA       = os.getenv('ATTR_FIN_DIR_MASSA',       'massa')
+ATTR_FIN_DIR_TMP         = os.getenv('ATTR_FIN_DIR_TMP',         'tmp')
+ATTR_FIN_ARQ_CALCULO     = os.getenv('ATTR_FIN_ARQ_CALCULO',     'mensagens/calculo.csv')
+ATTR_FIN_ARQ_MENSAGENS   = os.getenv('ATTR_FIN_ARQ_MENSAGENS',   'mensagens/mensagens.csv')
+ATTR_FIN_ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'mensagens/diagnostico.csv')
+ATTR_FIN_ARQ_CHAT        = os.getenv('ATTR_FIN_ARQ_CHAT',        '_chat.txt')
+ATTR_FIN_ARQ_OCR_XML     = os.getenv('ATTR_FIN_ARQ_OCR_XML',     'ocr/extract.xml')
+
 # === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
-DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
-DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
-DIR_MASSA = os.getenv('ATTR_FIN_DIR_MASSA', 'massa')
-DIR_TMP = os.getenv('ATTR_FIN_DIR_TMP', 'tmp')
-ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'mensagens/calculo.csv')
-ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
-ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'mensagens/diagnostico.csv')
-ARQ_CHAT = os.getenv('ATTR_FIN_ARQ_CHAT', '_chat.txt')
-# Usar o caminho correto para o arquivo de extração OCR
-ARQ_OCR_XML = os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/extract.xml')
+DIR_INPUT = ATTR_FIN_DIR_INPUT
+DIR_IMGS = ATTR_FIN_DIR_IMGS
+DIR_MASSA = ATTR_FIN_DIR_MASSA
+DIR_TMP = ATTR_FIN_DIR_TMP
+ARQ_CALCULO = ATTR_FIN_ARQ_CALCULO
+ARQ_MENSAGENS = ATTR_FIN_ARQ_MENSAGENS
+ARQ_DIAGNOSTICO = ATTR_FIN_ARQ_DIAGNOSTICO
+ARQ_CHAT = ATTR_FIN_ARQ_CHAT
+ARQ_OCR_XML = ATTR_FIN_ARQ_OCR_XML
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""
@@ -81,7 +92,7 @@ def extract_total_value_with_chatgpt(ocr_text):
     """Usa a API do ChatGPT para identificar o valor total da compra no texto OCR"""
     try:
         # Verifica se a chave da API está disponível
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             return ""
         
@@ -141,7 +152,7 @@ def generate_payment_description_with_chatgpt(ocr_text):
     """Usa a API do ChatGPT para gerar uma descrição do pagamento baseado no texto OCR"""
     try:
         # Verifica se a chave da API está disponível
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             return ""
         
@@ -199,7 +210,7 @@ def classify_transaction_type_with_chatgpt(ocr_text):
     """Usa a API do ChatGPT para classificar o tipo de transação (Pagamento ou Transferência)"""
     try:
         # Verifica se a chave da API está disponível
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             return ""
         
@@ -242,24 +253,20 @@ def classify_transaction_type_with_chatgpt(ocr_text):
         # Remove aspas e caracteres especiais desnecessários
         classificacao = re.sub(r'["\']', '', classificacao)
         
-        # Valida se a resposta é uma das opções esperadas
+        # Normaliza a classificação
         if "transferência" in classificacao.lower():
             return "Transferência"
         elif "pagamento" in classificacao.lower():
             return "Pagamento"
         else:
-            # Se não conseguir classificar, analisa por palavras-chave no texto
+            # Fallback baseado no conteúdo do texto
             if any(palavra in ocr_text.lower() for palavra in ["pix", "transferência", "ted", "doc"]):
                 return "Transferência"
             else:
                 return "Pagamento"
         
     except Exception as e:
-        # Em caso de erro, tenta classificar por palavras-chave
-        if any(palavra in ocr_text.lower() for palavra in ["pix", "transferência", "ted", "doc"]):
-            return "Transferência"
-        else:
-            return "Pagamento"
+        return "Pagamento"
 
 def txt_to_csv(input_file, output_file):
     """Funcionalidade original - extrai todos os dados das mensagens"""
@@ -1363,7 +1370,7 @@ def testar_funcoes_chatgpt():
     
     try:
         # Verifica se API está disponível
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             print("⚠️  API Key do OpenAI não configurada")
             return False

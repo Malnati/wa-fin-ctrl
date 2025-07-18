@@ -6,11 +6,17 @@ import os
 import pandas as pd
 import shutil
 
+# ==== CONSTANTES DE AMBIENTE ====
+ATTR_FIN_DIR_INPUT     = os.getenv('ATTR_FIN_DIR_INPUT',     'input')
+ATTR_FIN_DIR_IMGS      = os.getenv('ATTR_FIN_DIR_IMGS',      'imgs')
+ATTR_FIN_ARQ_CALCULO   = os.getenv('ATTR_FIN_ARQ_CALCULO',   'mensagens/calculo.csv')
+ATTR_FIN_ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
+
 # === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
-DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
-DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
-ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'mensagens/calculo.csv')
-ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
+DIR_INPUT = ATTR_FIN_DIR_INPUT
+DIR_IMGS = ATTR_FIN_DIR_IMGS
+ARQ_CALCULO = ATTR_FIN_ARQ_CALCULO
+ARQ_MENSAGENS = ATTR_FIN_ARQ_MENSAGENS
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""

@@ -8,16 +8,23 @@ import pytesseract
 import numpy as np
 import xml.etree.ElementTree as ET
 from threading import Lock
-ocr_xml_lock = Lock()
 
-# === CONSTANTES DE DIRETÓRIOS ===
-DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
-DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
+# ==== CONSTANTES DE AMBIENTE ====
+ATTR_FIN_DIR_INPUT     = os.getenv('ATTR_FIN_DIR_INPUT',     'input')
+ATTR_FIN_DIR_IMGS      = os.getenv('ATTR_FIN_DIR_IMGS',      'imgs')
+ATTR_FIN_ARQ_OCR_XML   = os.getenv('ATTR_FIN_ARQ_OCR_XML',   'ocr/extract.xml')
+
+# === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
+DIR_INPUT = ATTR_FIN_DIR_INPUT
+DIR_IMGS = ATTR_FIN_DIR_IMGS
+ARQ_OCR_XML = ATTR_FIN_ARQ_OCR_XML
+
+ocr_xml_lock = Lock()
 
 def process_image_ocr(image_path):
     """Processa uma imagem ou PDF e extrai texto usando OCR, consultando o XML incremental antes."""
     try:
-        arq_xml = os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/extract.xml')
+        arq_xml = ARQ_OCR_XML
         # 1. Consulta o XML incremental
         if os.path.exists(arq_xml):
             try:
@@ -100,7 +107,7 @@ def process_image_ocr(image_path):
     except Exception as e:
         return f"Erro no OCR: {str(e)}"
 
-def registrar_ocr_xml(arquivo, texto, arq_xml=os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/extract.xml')):
+def registrar_ocr_xml(arquivo, texto, arq_xml=ARQ_OCR_XML):
     """Registra extração OCR no arquivo XML incrementalmente, sem sobrescrever entradas existentes."""
     with ocr_xml_lock:
         dir_ocr = os.path.dirname(arq_xml)
