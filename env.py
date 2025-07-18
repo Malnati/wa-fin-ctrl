@@ -1,7 +1,7 @@
 import os
 
 # ==== VARIÁVEIS DE AMBIENTE ====
-ATTR_FIN_OPENAI_API_KEY     = os.getenv('ATTR_FIN_OPENAI_API_KEY', None)
+ATTR_FIN_OPENAI_API_KEY     = os.getenv('OPENAI_API_KEY', None)
 ATTR_FIN_DIR_INPUT          = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
 ATTR_FIN_DIR_IMGS           = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
 ATTR_FIN_DIR_MASSA          = os.getenv('ATTR_FIN_DIR_MASSA', 'massa')
