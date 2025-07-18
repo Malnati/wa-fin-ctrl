@@ -144,7 +144,7 @@ def gerar_relatorio_html(csv_path):
         }
         
         TemplateRenderer.render(
-            template_name="report.html.j2",
+            template_name="unified_report.html.j2",
             context=context,
             output_path="report.html"
         )
@@ -219,13 +219,13 @@ def gerar_relatorios_mensais_html(csv_path):
                 }
             }
             
-            TemplateRenderer.render("monthly_report.html.j2", context, nome_arquivo)
+            TemplateRenderer.render("unified_report.html.j2", context, nome_arquivo)
             relatorios_gerados += 1
             print(f"✅ Relatório mensal gerado: {nome_arquivo}")
             
             # Relatório mensal editável
             nome_arquivo_edit = f"report-edit-{ano}-{mes:02d}-{nome_mes}.html"
-            TemplateRenderer.render("monthly_report_editable.html.j2", context, nome_arquivo_edit)
+            TemplateRenderer.render("unified_report.html.j2", context, nome_arquivo_edit)
             print(f"✅ Relatório mensal editável gerado: {nome_arquivo_edit}")
         
         print(f"📅 Total de relatórios mensais gerados: {relatorios_gerados}")
@@ -251,7 +251,8 @@ def gerar_html_impressao(df_mes, nome_arquivo, nome_mes, ano):
             "rows": rows
         }
         
-        TemplateRenderer.render("print_report.html.j2", context, nome_arquivo)
+        context["print_mode"] = True
+        TemplateRenderer.render("unified_report.html.j2", context, nome_arquivo)
         print(f"✅ HTML de impressão gerado: {nome_arquivo}")
     except Exception as e:
         print(f"❌ Erro ao gerar HTML de impressão: {str(e)}")

@@ -1,3540 +1,3589 @@
-<!-- templates/monthly_report.html.j2 -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Relatório de Prestação de Contas - Junho 2025</title>
+  <title>
+  
+    Relatório de Prestação de Contas - Junho 2025
+  
+</title>
+  <link rel="stylesheet" href="templates/static/styles.css">
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; line-height: 1.6; }
-    .container { max-width: 1200px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-    h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 28px; border-bottom: 3px solid #3498db; padding-bottom: 15px; }
-    .info { text-align: center; margin-bottom: 20px; color: #7f8c8d; font-style: italic; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 14px; }
-    th, td { border: 1px solid #ddd; padding: 12px 8px; text-align: center; vertical-align: middle; }
-    th { background-color: #3498db; color: white; font-weight: bold; text-transform: uppercase; font-size: 12px; }
-    tr:nth-child(even) { background-color: #f8f9fa; }
-    tr:hover { background-color: #e3f2fd; }
-    .total-row { background-color: #fff3cd !important; font-weight: bold; border-top: 3px solid #ffc107; }
-    .total-row:hover { background-color: #fff3cd !important; }
-    img.thumb { max-height: 50px; max-width: 80px; cursor: pointer; transition: transform 0.3s ease; border-radius: 5px; border: 1px solid #ddd; }
-    img.thumb:hover { transform: scale(3); z-index: 9999; position: relative; border: 2px solid #3498db; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-    .modal { display: none; position: fixed; z-index: 9999; padding-top: 0; left: 0; top: 0; width: 100vw; height: 100vh; overflow: auto; background-color: rgba(0,0,0,0.95); }
-    .modal-content { margin: auto; display: block; width: 100%; height: 100%; object-fit: contain; }
-    .modal.show { display: block; }
-    .valor { font-weight: bold; color: #27ae60; }
-    .data-hora { font-family: monospace; font-size: 12px; white-space: nowrap; }
-    .classificacao { padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-    .transferencia { background-color: #e8f5e8; color: #2e7d32; }
-    .pagamento { background-color: #fff3e0; color: #f57c00; }
-    @media (max-width: 768px) { .container { margin: 10px; padding: 15px; } table { font-size: 12px; } th, td { padding: 8px 4px; } h1 { font-size: 22px; } img.thumb { max-height: 40px; max-width: 60px; } img.thumb:hover { transform: scale(2.5); } table th:nth-child(1), table td:nth-child(1) { font-size: 10px; white-space: normal; word-break: break-word; } table th:nth-child(2), table td:nth-child(2) { font-size: 0; width: 30px; position: relative; } table th:nth-child(2) button { font-size: 0; border: none; background: none; padding: 4px; display: block; width: 100%; height: 100%; cursor: pointer; } table th:nth-child(2) { position: relative; z-index: 1; cursor: pointer; } table th:nth-child(2)::after { display: none; } span.classificacao.transferencia::before { content: "⇆"; } span.classificacao.pagamento::before { content: "💸"; } span.classificacao { font-size: 0; display: inline-block; width: 1em; height: 1em; } table th:nth-child(3)::after { content: "RI"; } table th:nth-child(4)::after { content: "RA"; } table th:nth-child(5)::after { content: "📎"; } table th:nth-child(6), table td:nth-child(6) { display: none; } }  </style>
+    
+  
+
+  </style>
+  
 </head>
 <body>
-  <!-- Mensagem de carregamento -->
-  <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;">
-    <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde por favor...</div>
+  <!-- Verificação de paths de imagens -->
+  
+  
+  <div id="loading-overlay">
+    <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde...</div>
   </div>
+  
   <div class="container">
-    <h1>Relatório de Prestação de Contas - Junho 2025</h1>
-    <div class="info">Gerado automaticamente em 18/07/2025 às 14:16:35</div>
+    <h1>
+  
+    Relatório de Prestação de Contas - Junho 2025
+  
+</h1>
+    <div class="info">Gerado automaticamente em 18/07/2025 às 15:14:06</div>
     
-    <div style="text-align: right; margin-bottom: 10px;">
-      <a href="report-edit-2025-06-Junho.html" target="_blank">
-        <button>Editar Relatório</button>
-      </a>
+    <div style="text-align:right; margin-bottom:10px;">
+      
+  
+    
+      <a href="report-edit-2025-06-Junho.html" target="_blank" class="btn-edit">Editar Relatório</a>
+    
+    
+  
+
     </div>
     
     <table>
       <thead>
-        <tr>
-          <th>Data-Hora</th>
-          <th><button id="toggle-payments" style="background:none;border:none;cursor:pointer;font-size:16px;" aria-label="Alternar pagamentos"></button></th>
-          <th>Ricardo (R$)</th>
-          <th>Rafael (R$)</th>
-          <th>Anexo</th>
-          <th>Descrição</th>
-          <th>OCR</th>
-          
-          <th>Motivo do Erro</th>
-          
-        </tr>
+        
+  
+    
+          <tr>
+            <th>Data-Hora</th>
+            <th>
+              <button id="toggle-payments" class="toggle-payments-btn" aria-label="Alternar pagamentos">
+                ⇄
+              </button>
+            </th>
+            <th>Ricardo (R$)</th>
+            <th>Rafael (R$)</th>
+            <th>Anexo</th>
+            <th>Descrição</th>
+            <th>OCR</th>
+            
+              <th>Motivo do Erro</th>
+            
+          </tr>
+        
+  
+
       </thead>
       <tbody>
         
-        <tr class="">
-          <td class="data-hora">02/06/2025 09:58:12</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000160-PHOTO-2025-06-02-09-58-11.jpg" class="thumb" alt="Comprovante 00000160-PHOTO-2025-06-02-09-58-11.jpg" title="00000160-PHOTO-2025-06-02-09-58-11.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              SUPERMERTS Ald VRRIAG ue 5 pies 00c- ve Inscr. Estad: aTE YS ogh, DAR IAL east 1a ty - wae 1 | Decl ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">02/06/2025 14:40:12</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000161-PHOTO-2025-06-02-14-40-12.jpg" class="thumb" alt="Comprovante 00000161-PHOTO-2025-06-02-14-40-12.jpg" title="00000161-PHOTO-2025-06-02-14-40-12.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 2 jun de 2025 R$ 112,08 dados da conta debitada nome RICA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">02/06/2025 14:45:58</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000162-PHOTO-2025-06-02-14-45-58.jpg" class="thumb" alt="Comprovante 00000162-PHOTO-2025-06-02-14-45-58.jpg" title="00000162-PHOTO-2025-06-02-14-45-58.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              SIPERAES abe JA Iga 128 Met Wt Ingo Fees Bb Ck. Sa, umn im WI ge y Wrdaw 3 LW Wgia riolan oF Don ELE...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">04/06/2025 09:51:40</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000163-PHOTO-2025-06-04-09-51-40.jpg" class="thumb" alt="Comprovante 00000163-PHOTO-2025-06-04-09-51-40.jpg" title="00000163-PHOTO-2025-06-04-09-51-40.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              agendamento realizado rs 86,90 valor pago via boleto para Vivo-Df de Ricardo Malnati Rosa Lima 341 I...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">04/06/2025 10:26:47</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000164-PHOTO-2025-06-04-10-26-46.jpg" class="thumb" alt="Comprovante 00000164-PHOTO-2025-06-04-10-26-46.jpg" title="00000164-PHOTO-2025-06-04-10-26-46.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              10:08 He S « 6 Ae ull 78% 8 € BOLETOCLA.TUDOANO Q : VIP IMOBILIARIA.COM FPESEAGRD &amp; apa oe manvess T...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">04/06/2025 10:26:54</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000165-PHOTO-2025-06-04-10-26-54.jpg" class="thumb" alt="Comprovante 00000165-PHOTO-2025-06-04-10-26-54.jpg" title="00000165-PHOTO-2025-06-04-10-26-54.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              pagamento realizado @ rs 1.721,95 valor pago via boleto para Pjbank Pagamentos S A 1 cnpj: 18.191.22...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">06/06/2025 18:05:36</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000166-PHOTO-2025-06-06-18-05-36.jpg" class="thumb" alt="Comprovante 00000166-PHOTO-2025-06-06-18-05-36.jpg" title="00000166-PHOTO-2025-06-06-18-05-36.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 6jun de 2025 R$ 30,00 dados da conta debitada nome RICARD...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">06/06/2025 18:06:01</td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000167-PHOTO-2025-06-06-18-06-01.jpg" class="thumb" alt="Comprovante 00000167-PHOTO-2025-06-06-18-06-01.jpg" title="00000167-PHOTO-2025-06-06-18-06-01.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">08/06/2025 21:38:59</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000171-PHOTO-2025-06-08-21-38-59.jpg" class="thumb" alt="Comprovante 00000171-PHOTO-2025-06-08-21-38-59.jpg" title="00000171-PHOTO-2025-06-08-21-38-59.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              ao, \ 4 agendamento realizado rs 1.505,01 valor pago via boleto para Pjbank Pagamentos S A 1 cnpj: 1...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">08/06/2025 21:38:46</td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">08/06/2025 18:00:09</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000169-PHOTO-2025-06-08-18-00-09.jpg" class="thumb" alt="Comprovante 00000169-PHOTO-2025-06-08-18-00-09.jpg" title="00000169-PHOTO-2025-06-08-18-00-09.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 8junde 2025 RS 143,55 dados da conta debitada nome RICARD...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">08/06/2025 16:51:06</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000168-PHOTO-2025-06-08-16-51-06.jpg" class="thumb" alt="Comprovante 00000168-PHOTO-2025-06-08-16-51-06.jpg" title="00000168-PHOTO-2025-06-08-16-51-06.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              sinter Pix enviado R$ 200,00 Sobre a transagao Data do pagamento Domingo, 08/06/2025 Horario 16h50 I...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">10/06/2025 18:53:18</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000177-PHOTO-2025-06-10-18-53-18.jpg" class="thumb" alt="Comprovante 00000177-PHOTO-2025-06-10-18-53-18.jpg" title="00000177-PHOTO-2025-06-10-18-53-18.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              fe Te cyngor fe Ge PRE RN - vey pe ane ERE CENTRAL PES GIIAS 0) EAD fui fe BRASILIA Ut fone: 6193440...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">10/06/2025 17:56:08</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000175-PHOTO-2025-06-10-17-56-08.jpg" class="thumb" alt="Comprovante 00000175-PHOTO-2025-06-10-17-56-08.jpg" title="00000175-PHOTO-2025-06-10-17-56-08.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 10 jun de 2025 R$ 307,10 dados da conta debitada nome RIC...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">10/06/2025 11:38:24</td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Telefonica Brasil S.A. Nº da Conta:00001369591771 A Isolada (Sai), 6.580 - CEP: 71219-900 - Brasília...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">10/06/2025 11:38:45</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000173-PHOTO-2025-06-10-11-38-45.jpg" class="thumb" alt="Comprovante 00000173-PHOTO-2025-06-10-11-38-45.jpg" title="00000173-PHOTO-2025-06-10-11-38-45.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              pagamento realizado S) rs 92,16 valor pago via boleto para Vivo-Df de Ricardo Malnati Rosa Lima 341 ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">11/06/2025 18:25:42</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000178-PHOTO-2025-06-11-18-25-42.jpg" class="thumb" alt="Comprovante 00000178-PHOTO-2025-06-11-18-25-42.jpg" title="00000178-PHOTO-2025-06-11-18-25-42.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave Tijun de 2025 R$ 1.971,56 dados da conta debitada nome RI...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">11/06/2025 18:55:04</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000179-PHOTO-2025-06-11-18-55-04.jpg" class="thumb" alt="Comprovante 00000179-PHOTO-2025-06-11-18-55-04.jpg" title="00000179-PHOTO-2025-06-11-18-55-04.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              La chRL ker Tua a bh Fiderrey ill te Peet ge PM tad ty LMP ttt bate fava ti Ces setae 1 Te sie betta...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">14/06/2025 09:37:35</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000180-PHOTO-2025-06-14-09-37-35.jpg" class="thumb" alt="Comprovante 00000180-PHOTO-2025-06-14-09-37-35.jpg" title="00000180-PHOTO-2025-06-14-09-37-35.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento OR Code Pix vajun de 2025 dados do pagamento nome: RICARDO MALNATI ROSA LIM...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">14/06/2025 15:14:47</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000181-PHOTO-2025-06-14-15-14-47.jpg" class="thumb" alt="Comprovante 00000181-PHOTO-2025-06-14-15-14-47.jpg" title="00000181-PHOTO-2025-06-14-15-14-47.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              sinter Pix enviado R$ 330,67 Sobre a transagado Data da transagao 14/06/2025 Horario 15h09 Identific...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">14/06/2025 15:15:11</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000182-PHOTO-2025-06-14-15-15-11.jpg" class="thumb" alt="Comprovante 00000182-PHOTO-2025-06-14-15-15-11.jpg" title="00000182-PHOTO-2025-06-14-15-15-11.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              ahie 5 bags ot veh rh Mie ae teeth iL ee Se ec cs, Wie POMEL ah ch Week te - Pretaralo ce full 1.20 ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">20/06/2025 20:02:33</td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000186-PHOTO-2025-06-20-20-02-33.jpg" class="thumb" alt="Comprovante 00000186-PHOTO-2025-06-20-20-02-33.jpg" title="00000186-PHOTO-2025-06-20-20-02-33.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">20/06/2025 17:56:05</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000185-PHOTO-2025-06-20-17-56-05.jpg" class="thumb" alt="Comprovante 00000185-PHOTO-2025-06-20-17-56-05.jpg" title="00000185-PHOTO-2025-06-20-17-56-05.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 20 jun de 2025 R$ 70,00 dados da conta debitada nome RICA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">20/06/2025 16:39:02</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000183-PHOTO-2025-06-20-16-39-02.jpg" class="thumb" alt="Comprovante 00000183-PHOTO-2025-06-20-16-39-02.jpg" title="00000183-PHOTO-2025-06-20-16-39-02.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 20 jun de 2025 RS 89,90 descrigo Chuveiro dados da conta ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">20/06/2025 16:42:15</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000184-PHOTO-2025-06-20-16-42-15.jpg" class="thumb" alt="Comprovante 00000184-PHOTO-2025-06-20-16-42-15.jpg" title="00000184-PHOTO-2025-06-20-16-42-15.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              CASA LINS CONSTRUCGAO ONE S115 FAO Lat aap | GREE DE Slee 05 CONJUNTO BLG:TE Ut LGua 02 VARIAG DO TO...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 17:57:04</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000193-PHOTO-2025-06-21-17-57-04.jpg" class="thumb" alt="Comprovante 00000193-PHOTO-2025-06-21-17-57-04.jpg" title="00000193-PHOTO-2025-06-21-17-57-04.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento QR Code Pix 2 jun de 2025, dados do pagamento nome: RICARDO MALNATI ROSA LI...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 13:21:10</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000187-PHOTO-2025-06-21-13-21-10.jpg" class="thumb" alt="Comprovante 00000187-PHOTO-2025-06-21-13-21-10.jpg" title="00000187-PHOTO-2025-06-21-13-21-10.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 21 jun de 2025 R$ 60,34 dados da conta debitada nome RICA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 13:27:40</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000188-PHOTO-2025-06-21-13-27-40.jpg" class="thumb" alt="Comprovante 00000188-PHOTO-2025-06-21-13-27-40.jpg" title="00000188-PHOTO-2025-06-21-13-27-40.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              . we ITENS aT el eS Consulte pela Chave de Acess« eit Fazenda df gov 2. vite . an +1722 5800 0176 65...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 13:31:27</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000190-PHOTO-2025-06-21-13-31-27.jpg" class="thumb" alt="Comprovante 00000190-PHOTO-2025-06-21-13-31-27.jpg" title="00000190-PHOTO-2025-06-21-13-31-27.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 21 jun de 2025 RS 8,60 dados da conta debitada nome RICAR...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 13:31:37</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000191-PHOTO-2025-06-21-13-31-37.jpg" class="thumb" alt="Comprovante 00000191-PHOTO-2025-06-21-13-31-37.jpg" title="00000191-PHOTO-2025-06-21-13-31-37.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              JQ WIS? Gamotgay MAL ££ DINIMWOES £06 Sy edrounyy 992 SH IPAPRAST £8 LF Sy leuapeg p 7) leaped 17 Fa...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 15:46:44</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000192-PHOTO-2025-06-21-15-46-44.jpg" class="thumb" alt="Comprovante 00000192-PHOTO-2025-06-21-15-46-44.jpg" title="00000192-PHOTO-2025-06-21-15-46-44.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento QR Code Pix 21jun de 2025 dados da pagamento ome: RICARDO MALNATI ROSA LIMA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 18:03:33</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000194-PHOTO-2025-06-21-18-03-33.jpg" class="thumb" alt="Comprovante 00000194-PHOTO-2025-06-21-18-03-33.jpg" title="00000194-PHOTO-2025-06-21-18-03-33.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              hath ‘ eo bat Peete aman Ht Pee ee 7 MOAT WE, ges PS SUGLI, SOME eT eels Re lerdal a a Pa AOR ET LE ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">25/06/2025 13:24:27</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000195-PHOTO-2025-06-25-13-24-27.jpg" class="thumb" alt="Comprovante 00000195-PHOTO-2025-06-25-13-24-27.jpg" title="00000195-PHOTO-2025-06-25-13-24-27.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de agendamento 25 jun de 2025 dados da transacéo nome: Dayane Dias das Santos CPF/CNPJ: ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">28/06/2025 17:06:21</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000200-PHOTO-2025-06-28-17-06-21.jpg" class="thumb" alt="Comprovante 00000200-PHOTO-2025-06-28-17-06-21.jpg" title="00000200-PHOTO-2025-06-28-17-06-21.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento QR Code Pix 28 junde 2025 dados da pagamento ome: RICARDO MALNATI ROSA LIMA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">28/06/2025 16:59:51</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000199-PHOTO-2025-06-28-16-59-51.jpg" class="thumb" alt="Comprovante 00000199-PHOTO-2025-06-28-16-59-51.jpg" title="00000199-PHOTO-2025-06-28-16-59-51.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              3 * * 3 a a £ 2 7 1 ? to dtc ME ORS Sie me Rm WQERSKMAKCE, Beane sae emg 1 &#39; &#39; vsenan ove q
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">28/06/2025 11:42:37</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000196-PHOTO-2025-06-28-11-42-37.jpg" class="thumb" alt="Comprovante 00000196-PHOTO-2025-06-28-11-42-37.jpg" title="00000196-PHOTO-2025-06-28-11-42-37.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento QR Code Pix 28junde 2025 dados de pagamento nome: RICARDO MALNATI ROSA LIMA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">28/06/2025 14:08:43</td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">28/06/2025 16:59:21</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000198-PHOTO-2025-06-28-16-59-21.jpg" class="thumb" alt="Comprovante 00000198-PHOTO-2025-06-28-16-59-21.jpg" title="00000198-PHOTO-2025-06-28-16-59-21.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento QR Code Pix 28 jun de 2025 dados do pagamento nome: RICARDO MALNATI ROSA LI...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">02/06/2025 09:58:12</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000160-PHOTO-2025-06-02-09-58-11.jpg" class="thumb" alt="Comprovante 00000160-PHOTO-2025-06-02-09-58-11.jpg" title="00000160-PHOTO-2025-06-02-09-58-11.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              SUPERMERTS Ald VRRIAG ue 5 pies 00c- ve Inscr. Estad: aTE YS ogh, DAR IAL east 1a ty - wae 1 | Decl ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">02/06/2025 14:40:12</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000161-PHOTO-2025-06-02-14-40-12.jpg" class="thumb" alt="Comprovante 00000161-PHOTO-2025-06-02-14-40-12.jpg" title="00000161-PHOTO-2025-06-02-14-40-12.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 2 jun de 2025 R$ 112,08 dados da conta debitada nome RICA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">02/06/2025 14:45:58</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000162-PHOTO-2025-06-02-14-45-58.jpg" class="thumb" alt="Comprovante 00000162-PHOTO-2025-06-02-14-45-58.jpg" title="00000162-PHOTO-2025-06-02-14-45-58.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              SIPERAES abe JA Iga 128 Met Wt Ingo Fees Bb Ck. Sa, umn im WI ge y Wrdaw 3 LW Wgia riolan oF Don ELE...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">04/06/2025 09:51:40</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000163-PHOTO-2025-06-04-09-51-40.jpg" class="thumb" alt="Comprovante 00000163-PHOTO-2025-06-04-09-51-40.jpg" title="00000163-PHOTO-2025-06-04-09-51-40.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              agendamento realizado rs 86,90 valor pago via boleto para Vivo-Df de Ricardo Malnati Rosa Lima 341 I...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">04/06/2025 10:26:47</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000164-PHOTO-2025-06-04-10-26-46.jpg" class="thumb" alt="Comprovante 00000164-PHOTO-2025-06-04-10-26-46.jpg" title="00000164-PHOTO-2025-06-04-10-26-46.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              10:08 He S « 6 Ae ull 78% 8 € BOLETOCLA.TUDOANO Q : VIP IMOBILIARIA.COM FPESEAGRD &amp; apa oe manvess T...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">04/06/2025 10:26:54</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000165-PHOTO-2025-06-04-10-26-54.jpg" class="thumb" alt="Comprovante 00000165-PHOTO-2025-06-04-10-26-54.jpg" title="00000165-PHOTO-2025-06-04-10-26-54.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              pagamento realizado @ rs 1.721,95 valor pago via boleto para Pjbank Pagamentos S A 1 cnpj: 18.191.22...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">06/06/2025 18:05:36</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000166-PHOTO-2025-06-06-18-05-36.jpg" class="thumb" alt="Comprovante 00000166-PHOTO-2025-06-06-18-05-36.jpg" title="00000166-PHOTO-2025-06-06-18-05-36.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 6jun de 2025 R$ 30,00 dados da conta debitada nome RICARD...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">06/06/2025 18:06:01</td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000167-PHOTO-2025-06-06-18-06-01.jpg" class="thumb" alt="Comprovante 00000167-PHOTO-2025-06-06-18-06-01.jpg" title="00000167-PHOTO-2025-06-06-18-06-01.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">08/06/2025 21:38:59</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000171-PHOTO-2025-06-08-21-38-59.jpg" class="thumb" alt="Comprovante 00000171-PHOTO-2025-06-08-21-38-59.jpg" title="00000171-PHOTO-2025-06-08-21-38-59.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              ao, \ 4 agendamento realizado rs 1.505,01 valor pago via boleto para Pjbank Pagamentos S A 1 cnpj: 1...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">08/06/2025 21:38:46</td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">08/06/2025 18:00:09</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000169-PHOTO-2025-06-08-18-00-09.jpg" class="thumb" alt="Comprovante 00000169-PHOTO-2025-06-08-18-00-09.jpg" title="00000169-PHOTO-2025-06-08-18-00-09.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 8junde 2025 RS 143,55 dados da conta debitada nome RICARD...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">08/06/2025 16:51:06</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000168-PHOTO-2025-06-08-16-51-06.jpg" class="thumb" alt="Comprovante 00000168-PHOTO-2025-06-08-16-51-06.jpg" title="00000168-PHOTO-2025-06-08-16-51-06.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              sinter Pix enviado R$ 200,00 Sobre a transagao Data do pagamento Domingo, 08/06/2025 Horario 16h50 I...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">10/06/2025 18:53:18</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000177-PHOTO-2025-06-10-18-53-18.jpg" class="thumb" alt="Comprovante 00000177-PHOTO-2025-06-10-18-53-18.jpg" title="00000177-PHOTO-2025-06-10-18-53-18.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              fe Te cyngor fe Ge PRE RN - vey pe ane ERE CENTRAL PES GIIAS 0) EAD fui fe BRASILIA Ut fone: 6193440...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">10/06/2025 17:56:08</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000175-PHOTO-2025-06-10-17-56-08.jpg" class="thumb" alt="Comprovante 00000175-PHOTO-2025-06-10-17-56-08.jpg" title="00000175-PHOTO-2025-06-10-17-56-08.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 10 jun de 2025 R$ 307,10 dados da conta debitada nome RIC...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">10/06/2025 11:38:24</td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Telefonica Brasil S.A. Nº da Conta:00001369591771 A Isolada (Sai), 6.580 - CEP: 71219-900 - Brasília...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">10/06/2025 11:38:45</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000173-PHOTO-2025-06-10-11-38-45.jpg" class="thumb" alt="Comprovante 00000173-PHOTO-2025-06-10-11-38-45.jpg" title="00000173-PHOTO-2025-06-10-11-38-45.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              pagamento realizado S) rs 92,16 valor pago via boleto para Vivo-Df de Ricardo Malnati Rosa Lima 341 ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">11/06/2025 18:25:42</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000178-PHOTO-2025-06-11-18-25-42.jpg" class="thumb" alt="Comprovante 00000178-PHOTO-2025-06-11-18-25-42.jpg" title="00000178-PHOTO-2025-06-11-18-25-42.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave Tijun de 2025 R$ 1.971,56 dados da conta debitada nome RI...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">11/06/2025 18:55:04</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000179-PHOTO-2025-06-11-18-55-04.jpg" class="thumb" alt="Comprovante 00000179-PHOTO-2025-06-11-18-55-04.jpg" title="00000179-PHOTO-2025-06-11-18-55-04.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              La chRL ker Tua a bh Fiderrey ill te Peet ge PM tad ty LMP ttt bate fava ti Ces setae 1 Te sie betta...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">14/06/2025 09:37:35</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000180-PHOTO-2025-06-14-09-37-35.jpg" class="thumb" alt="Comprovante 00000180-PHOTO-2025-06-14-09-37-35.jpg" title="00000180-PHOTO-2025-06-14-09-37-35.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento OR Code Pix vajun de 2025 dados do pagamento nome: RICARDO MALNATI ROSA LIM...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">14/06/2025 15:14:47</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000181-PHOTO-2025-06-14-15-14-47.jpg" class="thumb" alt="Comprovante 00000181-PHOTO-2025-06-14-15-14-47.jpg" title="00000181-PHOTO-2025-06-14-15-14-47.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              sinter Pix enviado R$ 330,67 Sobre a transagado Data da transagao 14/06/2025 Horario 15h09 Identific...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">14/06/2025 15:15:11</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000182-PHOTO-2025-06-14-15-15-11.jpg" class="thumb" alt="Comprovante 00000182-PHOTO-2025-06-14-15-15-11.jpg" title="00000182-PHOTO-2025-06-14-15-15-11.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              ahie 5 bags ot veh rh Mie ae teeth iL ee Se ec cs, Wie POMEL ah ch Week te - Pretaralo ce full 1.20 ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">20/06/2025 20:02:33</td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000186-PHOTO-2025-06-20-20-02-33.jpg" class="thumb" alt="Comprovante 00000186-PHOTO-2025-06-20-20-02-33.jpg" title="00000186-PHOTO-2025-06-20-20-02-33.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">20/06/2025 17:56:05</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000185-PHOTO-2025-06-20-17-56-05.jpg" class="thumb" alt="Comprovante 00000185-PHOTO-2025-06-20-17-56-05.jpg" title="00000185-PHOTO-2025-06-20-17-56-05.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 20 jun de 2025 R$ 70,00 dados da conta debitada nome RICA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">20/06/2025 16:39:02</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000183-PHOTO-2025-06-20-16-39-02.jpg" class="thumb" alt="Comprovante 00000183-PHOTO-2025-06-20-16-39-02.jpg" title="00000183-PHOTO-2025-06-20-16-39-02.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 20 jun de 2025 RS 89,90 descrigo Chuveiro dados da conta ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">20/06/2025 16:42:15</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000184-PHOTO-2025-06-20-16-42-15.jpg" class="thumb" alt="Comprovante 00000184-PHOTO-2025-06-20-16-42-15.jpg" title="00000184-PHOTO-2025-06-20-16-42-15.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              CASA LINS CONSTRUCGAO ONE S115 FAO Lat aap | GREE DE Slee 05 CONJUNTO BLG:TE Ut LGua 02 VARIAG DO TO...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 17:57:04</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000193-PHOTO-2025-06-21-17-57-04.jpg" class="thumb" alt="Comprovante 00000193-PHOTO-2025-06-21-17-57-04.jpg" title="00000193-PHOTO-2025-06-21-17-57-04.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento QR Code Pix 2 jun de 2025, dados do pagamento nome: RICARDO MALNATI ROSA LI...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 13:21:10</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000187-PHOTO-2025-06-21-13-21-10.jpg" class="thumb" alt="Comprovante 00000187-PHOTO-2025-06-21-13-21-10.jpg" title="00000187-PHOTO-2025-06-21-13-21-10.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 21 jun de 2025 R$ 60,34 dados da conta debitada nome RICA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 13:27:40</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000188-PHOTO-2025-06-21-13-27-40.jpg" class="thumb" alt="Comprovante 00000188-PHOTO-2025-06-21-13-27-40.jpg" title="00000188-PHOTO-2025-06-21-13-27-40.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              . we ITENS aT el eS Consulte pela Chave de Acess« eit Fazenda df gov 2. vite . an +1722 5800 0176 65...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 13:31:27</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000190-PHOTO-2025-06-21-13-31-27.jpg" class="thumb" alt="Comprovante 00000190-PHOTO-2025-06-21-13-31-27.jpg" title="00000190-PHOTO-2025-06-21-13-31-27.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              Comprovante de transferéncia Pix por chave 21 jun de 2025 RS 8,60 dados da conta debitada nome RICAR...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 13:31:37</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000191-PHOTO-2025-06-21-13-31-37.jpg" class="thumb" alt="Comprovante 00000191-PHOTO-2025-06-21-13-31-37.jpg" title="00000191-PHOTO-2025-06-21-13-31-37.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              JQ WIS? Gamotgay MAL ££ DINIMWOES £06 Sy edrounyy 992 SH IPAPRAST £8 LF Sy leuapeg p 7) leaped 17 Fa...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 15:46:44</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000192-PHOTO-2025-06-21-15-46-44.jpg" class="thumb" alt="Comprovante 00000192-PHOTO-2025-06-21-15-46-44.jpg" title="00000192-PHOTO-2025-06-21-15-46-44.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento QR Code Pix 21jun de 2025 dados da pagamento ome: RICARDO MALNATI ROSA LIMA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">21/06/2025 18:03:33</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000194-PHOTO-2025-06-21-18-03-33.jpg" class="thumb" alt="Comprovante 00000194-PHOTO-2025-06-21-18-03-33.jpg" title="00000194-PHOTO-2025-06-21-18-03-33.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              hath ‘ eo bat Peete aman Ht Pee ee 7 MOAT WE, ges PS SUGLI, SOME eT eels Re lerdal a a Pa AOR ET LE ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">25/06/2025 13:24:27</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000195-PHOTO-2025-06-25-13-24-27.jpg" class="thumb" alt="Comprovante 00000195-PHOTO-2025-06-25-13-24-27.jpg" title="00000195-PHOTO-2025-06-25-13-24-27.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de agendamento 25 jun de 2025 dados da transacéo nome: Dayane Dias das Santos CPF/CNPJ: ...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">28/06/2025 17:06:21</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000200-PHOTO-2025-06-28-17-06-21.jpg" class="thumb" alt="Comprovante 00000200-PHOTO-2025-06-28-17-06-21.jpg" title="00000200-PHOTO-2025-06-28-17-06-21.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento QR Code Pix 28 junde 2025 dados da pagamento ome: RICARDO MALNATI ROSA LIMA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">28/06/2025 16:59:51</td>
-          <td>
-            
-              
-                <span class="classificacao pagamento">Pagamento</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000199-PHOTO-2025-06-28-16-59-51.jpg" class="thumb" alt="Comprovante 00000199-PHOTO-2025-06-28-16-59-51.jpg" title="00000199-PHOTO-2025-06-28-16-59-51.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              3 * * 3 a a £ 2 7 1 ? to dtc ME ORS Sie me Rm WQERSKMAKCE, Beane sae emg 1 &#39; &#39; vsenan ove q
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">28/06/2025 11:42:37</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000196-PHOTO-2025-06-28-11-42-37.jpg" class="thumb" alt="Comprovante 00000196-PHOTO-2025-06-28-11-42-37.jpg" title="00000196-PHOTO-2025-06-28-11-42-37.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento QR Code Pix 28junde 2025 dados de pagamento nome: RICARDO MALNATI ROSA LIMA...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">28/06/2025 14:08:43</td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
-        <tr class="">
-          <td class="data-hora">28/06/2025 16:59:21</td>
-          <td>
-            
-              
-                <span class="classificacao transferencia">Transferência</span>
-              
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-          </td>
-          <td>
-            
-              
-                
-                  
-                  
-                    <img src="imgs/00000198-PHOTO-2025-06-28-16-59-21.jpg" class="thumb" alt="Comprovante 00000198-PHOTO-2025-06-28-16-59-21.jpg" title="00000198-PHOTO-2025-06-28-16-59-21.jpg" onclick="showModal(this.src)">
-                    
-                  
-                  
-                  
-                
-              
-            
-          </td>
-          <td style="text-align: left; font-size: 12px;">
-            
-              Pagamento
-            
-          </td>
-          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-            
-              comprovante de pagamento QR Code Pix 28 jun de 2025 dados do pagamento nome: RICARDO MALNATI ROSA LI...
-            
-          </td>
-          
-          <td style="color:#e67e22;font-size:12px;">
-            
-          </td>
-          
-        </tr>
-        
+  
+    
+      
+<tr class="" data-row-id="0"  data-motivo="nan">
+  <td class="data-hora">02/06/2025 09:58:12</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000160-PHOTO-2025-06-02-09-58-11.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000160-PHOTO-2025-06-02-09-58-11.jpg" 
+                 title="00000160-PHOTO-2025-06-02-09-58-11.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      SUPERMERTS Ald VRRIAG ue 5 pies 00c- ve Inscr. Estad: aTE YS ogh, DAR IAL east 1a ty - wae 1 | Decl ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="1"  data-motivo="nan">
+  <td class="data-hora">02/06/2025 14:40:12</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000161-PHOTO-2025-06-02-14-40-12.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000161-PHOTO-2025-06-02-14-40-12.jpg" 
+                 title="00000161-PHOTO-2025-06-02-14-40-12.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 2 jun de 2025 R$ 112,08 dados da conta debitada nome RICA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="2"  data-motivo="nan">
+  <td class="data-hora">02/06/2025 14:45:58</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000162-PHOTO-2025-06-02-14-45-58.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000162-PHOTO-2025-06-02-14-45-58.jpg" 
+                 title="00000162-PHOTO-2025-06-02-14-45-58.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      SIPERAES abe JA Iga 128 Met Wt Ingo Fees Bb Ck. Sa, umn im WI ge y Wrdaw 3 LW Wgia riolan oF Don ELE...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="3"  data-motivo="nan">
+  <td class="data-hora">04/06/2025 09:51:40</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000163-PHOTO-2025-06-04-09-51-40.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000163-PHOTO-2025-06-04-09-51-40.jpg" 
+                 title="00000163-PHOTO-2025-06-04-09-51-40.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      agendamento realizado rs 86,90 valor pago via boleto para Vivo-Df de Ricardo Malnati Rosa Lima 341 I...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="4"  data-motivo="nan">
+  <td class="data-hora">04/06/2025 10:26:47</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000164-PHOTO-2025-06-04-10-26-46.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000164-PHOTO-2025-06-04-10-26-46.jpg" 
+                 title="00000164-PHOTO-2025-06-04-10-26-46.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      10:08 He S « 6 Ae ull 78% 8 € BOLETOCLA.TUDOANO Q : VIP IMOBILIARIA.COM FPESEAGRD &amp; apa oe manvess T...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="5"  data-motivo="nan">
+  <td class="data-hora">04/06/2025 10:26:54</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000165-PHOTO-2025-06-04-10-26-54.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000165-PHOTO-2025-06-04-10-26-54.jpg" 
+                 title="00000165-PHOTO-2025-06-04-10-26-54.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      pagamento realizado @ rs 1.721,95 valor pago via boleto para Pjbank Pagamentos S A 1 cnpj: 18.191.22...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="6"  data-motivo="nan">
+  <td class="data-hora">06/06/2025 18:05:36</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000166-PHOTO-2025-06-06-18-05-36.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000166-PHOTO-2025-06-06-18-05-36.jpg" 
+                 title="00000166-PHOTO-2025-06-06-18-05-36.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 6jun de 2025 R$ 30,00 dados da conta debitada nome RICARD...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="7"  data-motivo="nan">
+  <td class="data-hora">06/06/2025 18:06:01</td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000167-PHOTO-2025-06-06-18-06-01.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000167-PHOTO-2025-06-06-18-06-01.jpg" 
+                 title="00000167-PHOTO-2025-06-06-18-06-01.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="8"  data-motivo="nan">
+  <td class="data-hora">08/06/2025 21:38:59</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000171-PHOTO-2025-06-08-21-38-59.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000171-PHOTO-2025-06-08-21-38-59.jpg" 
+                 title="00000171-PHOTO-2025-06-08-21-38-59.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      ao, \ 4 agendamento realizado rs 1.505,01 valor pago via boleto para Pjbank Pagamentos S A 1 cnpj: 1...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="9"  data-motivo="nan">
+  <td class="data-hora">08/06/2025 21:38:46</td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="10"  data-motivo="nan">
+  <td class="data-hora">08/06/2025 18:00:09</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000169-PHOTO-2025-06-08-18-00-09.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000169-PHOTO-2025-06-08-18-00-09.jpg" 
+                 title="00000169-PHOTO-2025-06-08-18-00-09.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 8junde 2025 RS 143,55 dados da conta debitada nome RICARD...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="11"  data-motivo="nan">
+  <td class="data-hora">08/06/2025 16:51:06</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000168-PHOTO-2025-06-08-16-51-06.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000168-PHOTO-2025-06-08-16-51-06.jpg" 
+                 title="00000168-PHOTO-2025-06-08-16-51-06.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      sinter Pix enviado R$ 200,00 Sobre a transagao Data do pagamento Domingo, 08/06/2025 Horario 16h50 I...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="12"  data-motivo="nan">
+  <td class="data-hora">10/06/2025 18:53:18</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000177-PHOTO-2025-06-10-18-53-18.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000177-PHOTO-2025-06-10-18-53-18.jpg" 
+                 title="00000177-PHOTO-2025-06-10-18-53-18.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      fe Te cyngor fe Ge PRE RN - vey pe ane ERE CENTRAL PES GIIAS 0) EAD fui fe BRASILIA Ut fone: 6193440...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="13"  data-motivo="nan">
+  <td class="data-hora">10/06/2025 17:56:08</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000175-PHOTO-2025-06-10-17-56-08.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000175-PHOTO-2025-06-10-17-56-08.jpg" 
+                 title="00000175-PHOTO-2025-06-10-17-56-08.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 10 jun de 2025 R$ 307,10 dados da conta debitada nome RIC...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="14"  data-motivo="nan">
+  <td class="data-hora">10/06/2025 11:38:24</td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Telefonica Brasil S.A. Nº da Conta:00001369591771 A Isolada (Sai), 6.580 - CEP: 71219-900 - Brasília...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="15"  data-motivo="nan">
+  <td class="data-hora">10/06/2025 11:38:45</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000173-PHOTO-2025-06-10-11-38-45.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000173-PHOTO-2025-06-10-11-38-45.jpg" 
+                 title="00000173-PHOTO-2025-06-10-11-38-45.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      pagamento realizado S) rs 92,16 valor pago via boleto para Vivo-Df de Ricardo Malnati Rosa Lima 341 ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="16"  data-motivo="nan">
+  <td class="data-hora">11/06/2025 18:25:42</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000178-PHOTO-2025-06-11-18-25-42.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000178-PHOTO-2025-06-11-18-25-42.jpg" 
+                 title="00000178-PHOTO-2025-06-11-18-25-42.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave Tijun de 2025 R$ 1.971,56 dados da conta debitada nome RI...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="17"  data-motivo="nan">
+  <td class="data-hora">11/06/2025 18:55:04</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000179-PHOTO-2025-06-11-18-55-04.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000179-PHOTO-2025-06-11-18-55-04.jpg" 
+                 title="00000179-PHOTO-2025-06-11-18-55-04.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      La chRL ker Tua a bh Fiderrey ill te Peet ge PM tad ty LMP ttt bate fava ti Ces setae 1 Te sie betta...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="18"  data-motivo="nan">
+  <td class="data-hora">14/06/2025 09:37:35</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000180-PHOTO-2025-06-14-09-37-35.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000180-PHOTO-2025-06-14-09-37-35.jpg" 
+                 title="00000180-PHOTO-2025-06-14-09-37-35.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento OR Code Pix vajun de 2025 dados do pagamento nome: RICARDO MALNATI ROSA LIM...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="19"  data-motivo="nan">
+  <td class="data-hora">14/06/2025 15:14:47</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000181-PHOTO-2025-06-14-15-14-47.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000181-PHOTO-2025-06-14-15-14-47.jpg" 
+                 title="00000181-PHOTO-2025-06-14-15-14-47.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      sinter Pix enviado R$ 330,67 Sobre a transagado Data da transagao 14/06/2025 Horario 15h09 Identific...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="20"  data-motivo="nan">
+  <td class="data-hora">14/06/2025 15:15:11</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000182-PHOTO-2025-06-14-15-15-11.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000182-PHOTO-2025-06-14-15-15-11.jpg" 
+                 title="00000182-PHOTO-2025-06-14-15-15-11.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      ahie 5 bags ot veh rh Mie ae teeth iL ee Se ec cs, Wie POMEL ah ch Week te - Pretaralo ce full 1.20 ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="21"  data-motivo="nan">
+  <td class="data-hora">20/06/2025 20:02:33</td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000186-PHOTO-2025-06-20-20-02-33.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000186-PHOTO-2025-06-20-20-02-33.jpg" 
+                 title="00000186-PHOTO-2025-06-20-20-02-33.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="22"  data-motivo="nan">
+  <td class="data-hora">20/06/2025 17:56:05</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000185-PHOTO-2025-06-20-17-56-05.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000185-PHOTO-2025-06-20-17-56-05.jpg" 
+                 title="00000185-PHOTO-2025-06-20-17-56-05.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 20 jun de 2025 R$ 70,00 dados da conta debitada nome RICA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="23"  data-motivo="nan">
+  <td class="data-hora">20/06/2025 16:39:02</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000183-PHOTO-2025-06-20-16-39-02.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000183-PHOTO-2025-06-20-16-39-02.jpg" 
+                 title="00000183-PHOTO-2025-06-20-16-39-02.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 20 jun de 2025 RS 89,90 descrigo Chuveiro dados da conta ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="24"  data-motivo="nan">
+  <td class="data-hora">20/06/2025 16:42:15</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000184-PHOTO-2025-06-20-16-42-15.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000184-PHOTO-2025-06-20-16-42-15.jpg" 
+                 title="00000184-PHOTO-2025-06-20-16-42-15.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      CASA LINS CONSTRUCGAO ONE S115 FAO Lat aap | GREE DE Slee 05 CONJUNTO BLG:TE Ut LGua 02 VARIAG DO TO...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="25"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 17:57:04</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000193-PHOTO-2025-06-21-17-57-04.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000193-PHOTO-2025-06-21-17-57-04.jpg" 
+                 title="00000193-PHOTO-2025-06-21-17-57-04.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento QR Code Pix 2 jun de 2025, dados do pagamento nome: RICARDO MALNATI ROSA LI...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="26"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 13:21:10</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000187-PHOTO-2025-06-21-13-21-10.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000187-PHOTO-2025-06-21-13-21-10.jpg" 
+                 title="00000187-PHOTO-2025-06-21-13-21-10.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 21 jun de 2025 R$ 60,34 dados da conta debitada nome RICA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="27"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 13:27:40</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000188-PHOTO-2025-06-21-13-27-40.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000188-PHOTO-2025-06-21-13-27-40.jpg" 
+                 title="00000188-PHOTO-2025-06-21-13-27-40.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      . we ITENS aT el eS Consulte pela Chave de Acess« eit Fazenda df gov 2. vite . an +1722 5800 0176 65...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="28"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 13:31:27</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000190-PHOTO-2025-06-21-13-31-27.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000190-PHOTO-2025-06-21-13-31-27.jpg" 
+                 title="00000190-PHOTO-2025-06-21-13-31-27.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 21 jun de 2025 RS 8,60 dados da conta debitada nome RICAR...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="29"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 13:31:37</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000191-PHOTO-2025-06-21-13-31-37.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000191-PHOTO-2025-06-21-13-31-37.jpg" 
+                 title="00000191-PHOTO-2025-06-21-13-31-37.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      JQ WIS? Gamotgay MAL ££ DINIMWOES £06 Sy edrounyy 992 SH IPAPRAST £8 LF Sy leuapeg p 7) leaped 17 Fa...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="30"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 15:46:44</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000192-PHOTO-2025-06-21-15-46-44.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000192-PHOTO-2025-06-21-15-46-44.jpg" 
+                 title="00000192-PHOTO-2025-06-21-15-46-44.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento QR Code Pix 21jun de 2025 dados da pagamento ome: RICARDO MALNATI ROSA LIMA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="31"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 18:03:33</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000194-PHOTO-2025-06-21-18-03-33.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000194-PHOTO-2025-06-21-18-03-33.jpg" 
+                 title="00000194-PHOTO-2025-06-21-18-03-33.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      hath ‘ eo bat Peete aman Ht Pee ee 7 MOAT WE, ges PS SUGLI, SOME eT eels Re lerdal a a Pa AOR ET LE ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="32"  data-motivo="nan">
+  <td class="data-hora">25/06/2025 13:24:27</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000195-PHOTO-2025-06-25-13-24-27.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000195-PHOTO-2025-06-25-13-24-27.jpg" 
+                 title="00000195-PHOTO-2025-06-25-13-24-27.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de agendamento 25 jun de 2025 dados da transacéo nome: Dayane Dias das Santos CPF/CNPJ: ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="33"  data-motivo="nan">
+  <td class="data-hora">28/06/2025 17:06:21</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000200-PHOTO-2025-06-28-17-06-21.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000200-PHOTO-2025-06-28-17-06-21.jpg" 
+                 title="00000200-PHOTO-2025-06-28-17-06-21.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento QR Code Pix 28 junde 2025 dados da pagamento ome: RICARDO MALNATI ROSA LIMA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="34"  data-motivo="nan">
+  <td class="data-hora">28/06/2025 16:59:51</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000199-PHOTO-2025-06-28-16-59-51.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000199-PHOTO-2025-06-28-16-59-51.jpg" 
+                 title="00000199-PHOTO-2025-06-28-16-59-51.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      3 * * 3 a a £ 2 7 1 ? to dtc ME ORS Sie me Rm WQERSKMAKCE, Beane sae emg 1 &#39; &#39; vsenan ove q
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="35"  data-motivo="nan">
+  <td class="data-hora">28/06/2025 11:42:37</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000196-PHOTO-2025-06-28-11-42-37.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000196-PHOTO-2025-06-28-11-42-37.jpg" 
+                 title="00000196-PHOTO-2025-06-28-11-42-37.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento QR Code Pix 28junde 2025 dados de pagamento nome: RICARDO MALNATI ROSA LIMA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="36"  data-motivo="nan">
+  <td class="data-hora">28/06/2025 14:08:43</td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="37"  data-motivo="nan">
+  <td class="data-hora">28/06/2025 16:59:21</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000198-PHOTO-2025-06-28-16-59-21.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000198-PHOTO-2025-06-28-16-59-21.jpg" 
+                 title="00000198-PHOTO-2025-06-28-16-59-21.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento QR Code Pix 28 jun de 2025 dados do pagamento nome: RICARDO MALNATI ROSA LI...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="38"  data-motivo="nan">
+  <td class="data-hora">02/06/2025 09:58:12</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000160-PHOTO-2025-06-02-09-58-11.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000160-PHOTO-2025-06-02-09-58-11.jpg" 
+                 title="00000160-PHOTO-2025-06-02-09-58-11.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      SUPERMERTS Ald VRRIAG ue 5 pies 00c- ve Inscr. Estad: aTE YS ogh, DAR IAL east 1a ty - wae 1 | Decl ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="39"  data-motivo="nan">
+  <td class="data-hora">02/06/2025 14:40:12</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000161-PHOTO-2025-06-02-14-40-12.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000161-PHOTO-2025-06-02-14-40-12.jpg" 
+                 title="00000161-PHOTO-2025-06-02-14-40-12.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 2 jun de 2025 R$ 112,08 dados da conta debitada nome RICA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="40"  data-motivo="nan">
+  <td class="data-hora">02/06/2025 14:45:58</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000162-PHOTO-2025-06-02-14-45-58.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000162-PHOTO-2025-06-02-14-45-58.jpg" 
+                 title="00000162-PHOTO-2025-06-02-14-45-58.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      SIPERAES abe JA Iga 128 Met Wt Ingo Fees Bb Ck. Sa, umn im WI ge y Wrdaw 3 LW Wgia riolan oF Don ELE...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="41"  data-motivo="nan">
+  <td class="data-hora">04/06/2025 09:51:40</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000163-PHOTO-2025-06-04-09-51-40.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000163-PHOTO-2025-06-04-09-51-40.jpg" 
+                 title="00000163-PHOTO-2025-06-04-09-51-40.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      agendamento realizado rs 86,90 valor pago via boleto para Vivo-Df de Ricardo Malnati Rosa Lima 341 I...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="42"  data-motivo="nan">
+  <td class="data-hora">04/06/2025 10:26:47</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000164-PHOTO-2025-06-04-10-26-46.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000164-PHOTO-2025-06-04-10-26-46.jpg" 
+                 title="00000164-PHOTO-2025-06-04-10-26-46.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      10:08 He S « 6 Ae ull 78% 8 € BOLETOCLA.TUDOANO Q : VIP IMOBILIARIA.COM FPESEAGRD &amp; apa oe manvess T...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="43"  data-motivo="nan">
+  <td class="data-hora">04/06/2025 10:26:54</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000165-PHOTO-2025-06-04-10-26-54.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000165-PHOTO-2025-06-04-10-26-54.jpg" 
+                 title="00000165-PHOTO-2025-06-04-10-26-54.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      pagamento realizado @ rs 1.721,95 valor pago via boleto para Pjbank Pagamentos S A 1 cnpj: 18.191.22...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="44"  data-motivo="nan">
+  <td class="data-hora">06/06/2025 18:05:36</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000166-PHOTO-2025-06-06-18-05-36.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000166-PHOTO-2025-06-06-18-05-36.jpg" 
+                 title="00000166-PHOTO-2025-06-06-18-05-36.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 6jun de 2025 R$ 30,00 dados da conta debitada nome RICARD...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="45"  data-motivo="nan">
+  <td class="data-hora">06/06/2025 18:06:01</td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000167-PHOTO-2025-06-06-18-06-01.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000167-PHOTO-2025-06-06-18-06-01.jpg" 
+                 title="00000167-PHOTO-2025-06-06-18-06-01.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="46"  data-motivo="nan">
+  <td class="data-hora">08/06/2025 21:38:59</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000171-PHOTO-2025-06-08-21-38-59.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000171-PHOTO-2025-06-08-21-38-59.jpg" 
+                 title="00000171-PHOTO-2025-06-08-21-38-59.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      ao, \ 4 agendamento realizado rs 1.505,01 valor pago via boleto para Pjbank Pagamentos S A 1 cnpj: 1...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="47"  data-motivo="nan">
+  <td class="data-hora">08/06/2025 21:38:46</td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="48"  data-motivo="nan">
+  <td class="data-hora">08/06/2025 18:00:09</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000169-PHOTO-2025-06-08-18-00-09.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000169-PHOTO-2025-06-08-18-00-09.jpg" 
+                 title="00000169-PHOTO-2025-06-08-18-00-09.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 8junde 2025 RS 143,55 dados da conta debitada nome RICARD...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="49"  data-motivo="nan">
+  <td class="data-hora">08/06/2025 16:51:06</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000168-PHOTO-2025-06-08-16-51-06.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000168-PHOTO-2025-06-08-16-51-06.jpg" 
+                 title="00000168-PHOTO-2025-06-08-16-51-06.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      sinter Pix enviado R$ 200,00 Sobre a transagao Data do pagamento Domingo, 08/06/2025 Horario 16h50 I...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="50"  data-motivo="nan">
+  <td class="data-hora">10/06/2025 18:53:18</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000177-PHOTO-2025-06-10-18-53-18.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000177-PHOTO-2025-06-10-18-53-18.jpg" 
+                 title="00000177-PHOTO-2025-06-10-18-53-18.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      fe Te cyngor fe Ge PRE RN - vey pe ane ERE CENTRAL PES GIIAS 0) EAD fui fe BRASILIA Ut fone: 6193440...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="51"  data-motivo="nan">
+  <td class="data-hora">10/06/2025 17:56:08</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000175-PHOTO-2025-06-10-17-56-08.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000175-PHOTO-2025-06-10-17-56-08.jpg" 
+                 title="00000175-PHOTO-2025-06-10-17-56-08.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 10 jun de 2025 R$ 307,10 dados da conta debitada nome RIC...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="52"  data-motivo="nan">
+  <td class="data-hora">10/06/2025 11:38:24</td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Telefonica Brasil S.A. Nº da Conta:00001369591771 A Isolada (Sai), 6.580 - CEP: 71219-900 - Brasília...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="53"  data-motivo="nan">
+  <td class="data-hora">10/06/2025 11:38:45</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000173-PHOTO-2025-06-10-11-38-45.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000173-PHOTO-2025-06-10-11-38-45.jpg" 
+                 title="00000173-PHOTO-2025-06-10-11-38-45.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      pagamento realizado S) rs 92,16 valor pago via boleto para Vivo-Df de Ricardo Malnati Rosa Lima 341 ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="54"  data-motivo="nan">
+  <td class="data-hora">11/06/2025 18:25:42</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000178-PHOTO-2025-06-11-18-25-42.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000178-PHOTO-2025-06-11-18-25-42.jpg" 
+                 title="00000178-PHOTO-2025-06-11-18-25-42.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave Tijun de 2025 R$ 1.971,56 dados da conta debitada nome RI...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="55"  data-motivo="nan">
+  <td class="data-hora">11/06/2025 18:55:04</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000179-PHOTO-2025-06-11-18-55-04.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000179-PHOTO-2025-06-11-18-55-04.jpg" 
+                 title="00000179-PHOTO-2025-06-11-18-55-04.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      La chRL ker Tua a bh Fiderrey ill te Peet ge PM tad ty LMP ttt bate fava ti Ces setae 1 Te sie betta...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="56"  data-motivo="nan">
+  <td class="data-hora">14/06/2025 09:37:35</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000180-PHOTO-2025-06-14-09-37-35.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000180-PHOTO-2025-06-14-09-37-35.jpg" 
+                 title="00000180-PHOTO-2025-06-14-09-37-35.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento OR Code Pix vajun de 2025 dados do pagamento nome: RICARDO MALNATI ROSA LIM...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="57"  data-motivo="nan">
+  <td class="data-hora">14/06/2025 15:14:47</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000181-PHOTO-2025-06-14-15-14-47.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000181-PHOTO-2025-06-14-15-14-47.jpg" 
+                 title="00000181-PHOTO-2025-06-14-15-14-47.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      sinter Pix enviado R$ 330,67 Sobre a transagado Data da transagao 14/06/2025 Horario 15h09 Identific...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="58"  data-motivo="nan">
+  <td class="data-hora">14/06/2025 15:15:11</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000182-PHOTO-2025-06-14-15-15-11.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000182-PHOTO-2025-06-14-15-15-11.jpg" 
+                 title="00000182-PHOTO-2025-06-14-15-15-11.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      ahie 5 bags ot veh rh Mie ae teeth iL ee Se ec cs, Wie POMEL ah ch Week te - Pretaralo ce full 1.20 ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="59"  data-motivo="nan">
+  <td class="data-hora">20/06/2025 20:02:33</td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000186-PHOTO-2025-06-20-20-02-33.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000186-PHOTO-2025-06-20-20-02-33.jpg" 
+                 title="00000186-PHOTO-2025-06-20-20-02-33.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="60"  data-motivo="nan">
+  <td class="data-hora">20/06/2025 17:56:05</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000185-PHOTO-2025-06-20-17-56-05.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000185-PHOTO-2025-06-20-17-56-05.jpg" 
+                 title="00000185-PHOTO-2025-06-20-17-56-05.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 20 jun de 2025 R$ 70,00 dados da conta debitada nome RICA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="61"  data-motivo="nan">
+  <td class="data-hora">20/06/2025 16:39:02</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000183-PHOTO-2025-06-20-16-39-02.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000183-PHOTO-2025-06-20-16-39-02.jpg" 
+                 title="00000183-PHOTO-2025-06-20-16-39-02.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 20 jun de 2025 RS 89,90 descrigo Chuveiro dados da conta ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="62"  data-motivo="nan">
+  <td class="data-hora">20/06/2025 16:42:15</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000184-PHOTO-2025-06-20-16-42-15.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000184-PHOTO-2025-06-20-16-42-15.jpg" 
+                 title="00000184-PHOTO-2025-06-20-16-42-15.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      CASA LINS CONSTRUCGAO ONE S115 FAO Lat aap | GREE DE Slee 05 CONJUNTO BLG:TE Ut LGua 02 VARIAG DO TO...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="63"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 17:57:04</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000193-PHOTO-2025-06-21-17-57-04.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000193-PHOTO-2025-06-21-17-57-04.jpg" 
+                 title="00000193-PHOTO-2025-06-21-17-57-04.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento QR Code Pix 2 jun de 2025, dados do pagamento nome: RICARDO MALNATI ROSA LI...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="64"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 13:21:10</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000187-PHOTO-2025-06-21-13-21-10.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000187-PHOTO-2025-06-21-13-21-10.jpg" 
+                 title="00000187-PHOTO-2025-06-21-13-21-10.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 21 jun de 2025 R$ 60,34 dados da conta debitada nome RICA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="65"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 13:27:40</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000188-PHOTO-2025-06-21-13-27-40.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000188-PHOTO-2025-06-21-13-27-40.jpg" 
+                 title="00000188-PHOTO-2025-06-21-13-27-40.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      . we ITENS aT el eS Consulte pela Chave de Acess« eit Fazenda df gov 2. vite . an +1722 5800 0176 65...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="66"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 13:31:27</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000190-PHOTO-2025-06-21-13-31-27.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000190-PHOTO-2025-06-21-13-31-27.jpg" 
+                 title="00000190-PHOTO-2025-06-21-13-31-27.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      Comprovante de transferéncia Pix por chave 21 jun de 2025 RS 8,60 dados da conta debitada nome RICAR...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="67"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 13:31:37</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000191-PHOTO-2025-06-21-13-31-37.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000191-PHOTO-2025-06-21-13-31-37.jpg" 
+                 title="00000191-PHOTO-2025-06-21-13-31-37.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      JQ WIS? Gamotgay MAL ££ DINIMWOES £06 Sy edrounyy 992 SH IPAPRAST £8 LF Sy leuapeg p 7) leaped 17 Fa...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="68"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 15:46:44</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000192-PHOTO-2025-06-21-15-46-44.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000192-PHOTO-2025-06-21-15-46-44.jpg" 
+                 title="00000192-PHOTO-2025-06-21-15-46-44.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento QR Code Pix 21jun de 2025 dados da pagamento ome: RICARDO MALNATI ROSA LIMA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="69"  data-motivo="nan">
+  <td class="data-hora">21/06/2025 18:03:33</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000194-PHOTO-2025-06-21-18-03-33.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000194-PHOTO-2025-06-21-18-03-33.jpg" 
+                 title="00000194-PHOTO-2025-06-21-18-03-33.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      hath ‘ eo bat Peete aman Ht Pee ee 7 MOAT WE, ges PS SUGLI, SOME eT eels Re lerdal a a Pa AOR ET LE ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="70"  data-motivo="nan">
+  <td class="data-hora">25/06/2025 13:24:27</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000195-PHOTO-2025-06-25-13-24-27.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000195-PHOTO-2025-06-25-13-24-27.jpg" 
+                 title="00000195-PHOTO-2025-06-25-13-24-27.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de agendamento 25 jun de 2025 dados da transacéo nome: Dayane Dias das Santos CPF/CNPJ: ...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="71"  data-motivo="nan">
+  <td class="data-hora">28/06/2025 17:06:21</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000200-PHOTO-2025-06-28-17-06-21.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000200-PHOTO-2025-06-28-17-06-21.jpg" 
+                 title="00000200-PHOTO-2025-06-28-17-06-21.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento QR Code Pix 28 junde 2025 dados da pagamento ome: RICARDO MALNATI ROSA LIMA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="72"  data-motivo="nan">
+  <td class="data-hora">28/06/2025 16:59:51</td>
+  <td>
+    
+      
+        <span class="classificacao pagamento">Pagamento</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000199-PHOTO-2025-06-28-16-59-51.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000199-PHOTO-2025-06-28-16-59-51.jpg" 
+                 title="00000199-PHOTO-2025-06-28-16-59-51.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      3 * * 3 a a £ 2 7 1 ? to dtc ME ORS Sie me Rm WQERSKMAKCE, Beane sae emg 1 &#39; &#39; vsenan ove q
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="73"  data-motivo="nan">
+  <td class="data-hora">28/06/2025 11:42:37</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000196-PHOTO-2025-06-28-11-42-37.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000196-PHOTO-2025-06-28-11-42-37.jpg" 
+                 title="00000196-PHOTO-2025-06-28-11-42-37.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento QR Code Pix 28junde 2025 dados de pagamento nome: RICARDO MALNATI ROSA LIMA...
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="74"  data-motivo="nan">
+  <td class="data-hora">28/06/2025 14:08:43</td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+  </td>
+  
+</tr>
+
+    
+      
+<tr class="" data-row-id="75"  data-motivo="nan">
+  <td class="data-hora">28/06/2025 16:59:21</td>
+  <td>
+    
+      
+        <span class="classificacao transferencia">Transferência</span>
+      
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+  </td>
+  <td>
+    
+      
+        
+          
+          
+            <img src="imgs/00000198-PHOTO-2025-06-28-16-59-21.jpg" 
+                 class="thumb" 
+                 alt="Comprovante 00000198-PHOTO-2025-06-28-16-59-21.jpg" 
+                 title="00000198-PHOTO-2025-06-28-16-59-21.jpg">
+            
+          
+          
+          
+        
+      
+    
+  </td>
+  <td style="text-align: left; font-size: 12px;">
+    
+      Pagamento
+    
+  </td>
+  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+    
+      comprovante de pagamento QR Code Pix 28 jun de 2025 dados do pagamento nome: RICARDO MALNATI ROSA LI...
+    
+  </td>
+  
+</tr>
+
+    
+  
+
       </tbody>
     </table>
+    
+    
+  
+
   </div>
+  
   <div id="modal" class="modal" onclick="hideModal()">
-    <img class="modal-content" id="modal-img">
+    <img id="modal-img" class="modal-content">
   </div>
-  <script>
-    function showModal(imgSrc) {
-      const modal = document.getElementById('modal');
-      const modalImg = document.getElementById('modal-img');
-      modalImg.src = imgSrc;
-      modal.classList.add('show');
-    }
-    function hideModal() {
-      const modal = document.getElementById('modal');
-      modal.classList.remove('show');
-    }
-    let showPayments = false;
-    document.addEventListener('DOMContentLoaded', () => {
-      const toggleBtn = document.getElementById('toggle-payments');
-      toggleBtn.addEventListener('click', () => {
-        showPayments = !showPayments;
-        document.querySelectorAll('tbody tr').forEach(row => {
-          const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
-          row.style.display = isPayment ? (showPayments ? '' : 'none') : '';
-        });
-      });
-      document.querySelectorAll('tbody tr').forEach(row => {
-        const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');
-        if (isPayment) row.style.display = 'none';
-      });
-    });
-    document.addEventListener('DOMContentLoaded', () => {
-      const overlay = document.getElementById('loading-overlay');
-      if (overlay) {
-        overlay.style.display = 'none';
-      }
-    });
-  </script>
+  
+  <script src="templates/static/scripts.js"></script>
+  
+  
+  
+
 </body>
 </html> 
