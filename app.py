@@ -1470,6 +1470,9 @@ def dismiss_entry(data_hora):
                     df['VALIDADE'] = ''
                     print(f"➕ Coluna VALIDADE adicionada ao arquivo {arquivo_csv}")
                 
+                # Converte coluna VALIDADE para string para evitar warnings
+                df['VALIDADE'] = df['VALIDADE'].astype(str)
+                
                 # Procura pela entrada específica
                 mask = (df['DATA'] == data) & (df['HORA'] == hora)
                 linhas_encontradas = df[mask]

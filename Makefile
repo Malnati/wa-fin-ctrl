@@ -73,6 +73,10 @@ help:
 	@echo "  help: Exibe esta mensagem de ajuda"
 	@echo "  install: Instala as dependências do projeto"
 	@echo "  run: Executa o script principal"
+	@echo "  process: Processa arquivos incrementalmente"
+	@echo "  force: Processa todos os arquivos (força reprocessamento)"
+	@echo "  dismiss: Marca uma entrada como desconsiderada"
+	@echo "    Exemplo: make dismiss arg=\"21/04/2025 18:33:54\""
 	@echo "  server: Inicia o servidor HTTP local"
 	@echo "  copy: Copia a estrutura do projeto para a área de transferência"
 
@@ -87,6 +91,9 @@ process:
 
 force:
 	poetry run python cli.py processar --force
+	
+dismiss:
+	poetry run python cli.py dismiss "$(dismiss)"
 
 server:
 	poetry run python -m http.server 8000
