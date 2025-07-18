@@ -103,17 +103,17 @@ def gerar_relatorio_html(csv_path):
                 img_html = ""
                 if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
                     img_path = None
-                    for diretorio in ['imgs', 'input']:
+                    for diretorio in [ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT]:
                         caminho_completo = Path(diretorio) / anexo
                         if caminho_completo.is_file():
                             img_path = caminho_completo
                             break
                     if img_path:
                         # Referenciar imagem por caminho relativo em vez de base64
-                        if img_path.parent.name == 'imgs':
-                            img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                        elif img_path.parent.name == 'input':
-                            img_html = f'<img src="input/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                        if img_path.parent.name == ATTR_FIN_DIR_IMGS:
+                            img_html = f'<img src="{ATTR_FIN_DIR_IMGS}/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                        elif img_path.parent.name == ATTR_FIN_DIR_INPUT:
+                            img_html = f'<img src="{ATTR_FIN_DIR_INPUT}/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
                         else:
                             img_html = f'<img src="{img_path}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
                     else:
@@ -312,17 +312,17 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
                 img_html = ""
                 if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
                     img_path = None
-                    for diretorio in ['imgs', 'input']:
+                    for diretorio in [ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT]:
                         caminho_completo = Path(diretorio) / anexo
                         if caminho_completo.is_file():
                             img_path = caminho_completo
                             break
                     if img_path:
                         # Referenciar imagem por caminho relativo em vez de base64
-                        if img_path.parent.name == 'imgs':
-                            img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                        elif img_path.parent.name == 'input':
-                            img_html = f'<img src="input/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                        if img_path.parent.name == ATTR_FIN_DIR_IMGS:
+                            img_html = f'<img src="{ATTR_FIN_DIR_IMGS}/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                        elif img_path.parent.name == ATTR_FIN_DIR_INPUT:
+                            img_html = f'<img src="{ATTR_FIN_DIR_INPUT}/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
                         else:
                             img_html = f'<img src="{img_path}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
                     else:
@@ -480,7 +480,7 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
                 img_html = ""
                 if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
                     img_path = None
-                    for diretorio in ['imgs', 'input']:
+                    for diretorio in [ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT]:
                         caminho_completo = Path(diretorio) / anexo
                         if caminho_completo.is_file():
                             img_path = caminho_completo
@@ -492,7 +492,7 @@ def gerar_html_mensal_editavel(df_mes, nome_arquivo, nome_mes, ano):
                                 ext = img_path.suffix.replace(".", "").lower()
                                 if ext == 'jpg':
                                     ext = 'jpeg'
-                                img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
+                                img_html = f'<img src="{ATTR_FIN_DIR_IMGS}/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
                         except Exception as e:
                                 print(f"Erro ao processar imagem {anexo}: {e}")
                                 img_html = f'<span style="color: #e74c3c; font-size: 11px;">Erro: {anexo}</span>'

@@ -10,6 +10,7 @@ Utiliza o pacote click para gerenciar argumentos e subcomandos.
 import click
 import os
 import shutil
+from env import *
 from app import (
     processar_incremental, 
     verificar_totais, 
@@ -31,8 +32,8 @@ def processar(force, entry):
     
     # Se foi modo forçado, move arquivos de volta para imgs/
     if force:
-        input_dir = 'input'
-        imgs_dir = 'imgs'
+        input_dir = ATTR_FIN_DIR_INPUT
+        imgs_dir = ATTR_FIN_DIR_IMGS
         
         if os.path.exists(input_dir):
             for f in os.listdir(input_dir):

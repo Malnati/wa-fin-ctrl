@@ -265,7 +265,7 @@ def txt_to_csv(input_file, output_file):
     df['OCR'] = ''
     
     # Processa OCR apenas para anexos que existem no diretório input/
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     print("Processando OCR das imagens novas...")
     for idx, row in df.iterrows():
         if row['anexo'] and (row['anexo'].endswith('.jpg') or row['anexo'].endswith('.jpeg') or row['anexo'].endswith('.png')):
@@ -277,7 +277,7 @@ def txt_to_csv(input_file, output_file):
                 df.at[idx, 'OCR'] = ocr_result
             else:
                 # Se não está em input/, verifica se está em imgs/ (já processado)
-                caminho_imgs = os.path.join("imgs", row['anexo'])
+                caminho_imgs = os.path.join(ATTR_FIN_DIR_IMGS, row['anexo'])
                 if os.path.exists(caminho_imgs):
                     print(f"Imagem já processada anteriormente: {row['anexo']}")
                     # Não processa OCR novamente para economizar tempo
@@ -293,8 +293,8 @@ def txt_to_csv(input_file, output_file):
 
 def gerenciar_arquivos_incrementais():
     """Gerencia arquivos de input, remove duplicatas e prepara para processamento incremental"""
-    input_dir = "input"
-    imgs_dir = "imgs"
+    input_dir = ATTR_FIN_DIR_INPUT
+    imgs_dir = ATTR_FIN_DIR_IMGS
     
     # Verifica se o diretório input existe
     if not os.path.exists(input_dir):
@@ -309,7 +309,7 @@ def gerenciar_arquivos_incrementais():
     if not arquivos_input:
         print("Nenhuma imagem encontrada no diretório input/")
         # Verifica se há arquivo _chat.txt
-        chat_file = os.path.join(input_dir, "_chat.txt")
+        chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
         if os.path.exists(chat_file):
             print("Arquivo _chat.txt encontrado, mas sem imagens para processar")
             return True, chat_file
@@ -338,7 +338,7 @@ def gerenciar_arquivos_incrementais():
     if not arquivos_input:
         print("Todos os arquivos de input/ já foram processados anteriormente")
         # Verifica se há arquivo _chat.txt
-        chat_file = os.path.join(input_dir, "_chat.txt")
+        chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
         if os.path.exists(chat_file):
             return True, chat_file
         return False, None
@@ -346,7 +346,7 @@ def gerenciar_arquivos_incrementais():
     print(f"Encontrados {len(arquivos_input)} arquivos novos para processar em input/")
     
     # Verifica se há arquivo _chat.txt
-    chat_file = os.path.join(input_dir, "_chat.txt")
+    chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
     if not os.path.exists(chat_file):
         print("Arquivo input/_chat.txt não encontrado!")
         return False, None
@@ -355,8 +355,8 @@ def gerenciar_arquivos_incrementais():
 
 def mover_arquivos_processados():
     """Move arquivos processados de input/ para imgs/"""
-    input_dir = "input"
-    imgs_dir = "imgs"
+    input_dir = ATTR_FIN_DIR_INPUT
+    imgs_dir = ATTR_FIN_DIR_IMGS
     
     # Garante que o diretório imgs/ existe
     os.makedirs(imgs_dir, exist_ok=True)
@@ -588,7 +588,7 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
         processed = set()
     
     # Processa OCR e extração de valor apenas para anexos que são imagens novas
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     print("Processando OCR das imagens novas (apenas anexos)...")
     for idx, row in df_anexos.iterrows():
         # 2) se já processado antes, recupera valores e pula chamadas de API
@@ -628,7 +628,7 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
                         df_anexos.at[idx, 'RICARDO'] = valor_total
                     elif row['REMETENTE'] == 'Rafael':
                         df_anexos.at[idx, 'RAFAEL'] = valor_total
-            elif os.path.exists(os.path.join("imgs", row['ANEXO'])):
+            elif os.path.exists(os.path.join(ATTR_FIN_DIR_IMGS, row['ANEXO'])):
                 # Se está em imgs/, não processa novamente (será tratado pela recuperação de dados)
                 continue
             else:
@@ -723,8 +723,8 @@ def verificar_totais(csv_file):
         print(f"Erro ao verificar totais: {str(e)}")
 
 def carregar_edits_json():
-    """Verifica diretório 'input' por todos os arquivos .json e retorna um dict unificado"""
-    import_dir = 'input'
+    """Verifica diretório input/ por todos os arquivos .json e retorna um dict unificado"""
+    import_dir = ATTR_FIN_DIR_INPUT
     edits = {}
     # Verifica se o diretório existe
     if not os.path.exists(import_dir):
@@ -778,7 +778,7 @@ def processar_incremental(force=False, entry=None):
         return
     print("\n=== VERIFICANDO SUBDIRETÓRIOS ===")
     organizar_subdiretorios_se_necessario()
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     if force:
         arquivos = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f)) and f.lower().endswith((".jpg", ".jpeg", ".png", ".pdf"))]
         if not arquivos:
@@ -850,7 +850,7 @@ def processar_incremental(force=False, entry=None):
                 if (not row.get('VALOR')) and (not row.get('DESCRICAO')) and (not row.get('CLASSIFICACAO')):
                     anexo = row.get('ANEXO')
                     if anexo:
-                        caminho = os.path.join('imgs', anexo) if os.path.exists(os.path.join('imgs', anexo)) else os.path.join('input', anexo)
+                        caminho = os.path.join(ATTR_FIN_DIR_IMGS, anexo) if os.path.exists(os.path.join(ATTR_FIN_DIR_IMGS, anexo)) else os.path.join(ATTR_FIN_DIR_INPUT, anexo)
                         ocr_result = row.get('OCR', '')
                         motivo = diagnostico_erro_ocr(caminho, ocr_result)
                         motivos.append(motivo)
@@ -1020,7 +1020,7 @@ def processar_imgs(force=False, entry=None):
 
 def descomprimir_zip_se_existir():
     """Verifica se existe apenas um arquivo ZIP em input/ e o descomprime"""
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     
     # Verifica se o diretório input existe
     if not os.path.exists(input_dir):
@@ -1081,7 +1081,7 @@ def descomprimir_zip_se_existir():
 
 def organizar_arquivos_extraidos():
     """Move arquivos de subdiretórios para input/ diretamente e remove diretórios desnecessários"""
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     extensoes_validas = ('.jpg', '.jpeg', '.png', '.pdf', '.txt')
     
     arquivos_movidos = 0
@@ -1136,7 +1136,7 @@ def organizar_arquivos_extraidos():
 
 def organizar_subdiretorios_se_necessario():
     """Verifica se há subdiretórios em input/ e organiza arquivos se necessário"""
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     
     if not os.path.exists(input_dir):
         return
@@ -1222,12 +1222,12 @@ def testar_processamento_incremental():
     
     try:
         # Verifica se há arquivos em input/
-        if not os.path.exists('input') or not os.listdir('input'):
+        if not os.path.exists(ATTR_FIN_DIR_INPUT) or not os.listdir(ATTR_FIN_DIR_INPUT):
             print("⚠️  Sem arquivos em input/ para testar processamento")
             return True  # Não é falha, apenas não há dados para testar
         
         # Conta arquivos antes do processamento
-        arquivos_antes = len([f for f in os.listdir('input') 
+        arquivos_antes = len([f for f in os.listdir(ATTR_FIN_DIR_INPUT) 
                              if f.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf'))])
         
         if arquivos_antes == 0:
@@ -1240,8 +1240,8 @@ def testar_processamento_incremental():
         processar_incremental()
         
         # Verifica se arquivos foram movidos para imgs/
-        if os.path.exists('imgs'):
-            arquivos_imgs = len([f for f in os.listdir('imgs') 
+        if os.path.exists(ATTR_FIN_DIR_IMGS):
+            arquivos_imgs = len([f for f in os.listdir(ATTR_FIN_DIR_IMGS) 
                                if f.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf'))])
             print(f"Arquivos movidos para imgs/: {arquivos_imgs}")
         
@@ -1285,7 +1285,7 @@ def testar_verificacao_totais():
         arquivo_teste = 'tmp/teste_calculo.csv'
         
         # Garante que o diretório tmp/ existe
-        os.makedirs('tmp', exist_ok=True)
+        os.makedirs(ATTR_FIN_DIR_TMP, exist_ok=True)
         
         df_teste.to_csv(arquivo_teste, index=False)
         print(f"Arquivo de teste criado: {arquivo_teste}")
@@ -1309,7 +1309,7 @@ def testar_ocr_individual():
     
     try:
         # Procura por imagens de teste
-        diretorios_busca = ['imgs', 'input', 'massa']
+        diretorios_busca = [ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_MASSA]
         imagem_teste = None
         
         for diretorio in diretorios_busca:
@@ -1472,10 +1472,10 @@ def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
         # Referenciar imagem por caminho relativo
         img_html = ''
         if anexo:
-            if os.path.exists(os.path.join('imgs', anexo)):
-                img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
-            elif os.path.exists(os.path.join('input', anexo)):
-                img_html = f'<img src="input/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
+            if os.path.exists(os.path.join(ATTR_FIN_DIR_IMGS, anexo)):
+                img_html = f'<img src="{ATTR_FIN_DIR_IMGS}/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
+            elif os.path.exists(os.path.join(ATTR_FIN_DIR_INPUT, anexo)):
+                img_html = f'<img src="{ATTR_FIN_DIR_INPUT}/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
             else:
                 img_html = f'<span style="color:#e67e22;font-size:12px;">Sem anexo</span>'
         html += f'''        <tr class="{row_class}">\n          <td class="data-hora">{data_hora}</td>\n          <td>{classificacao_html}</td>\n          <td>{ricardo_html}</td>\n          <td>{rafael_html}</td>\n          <td>{img_html}</td>\n          <td style="text-align: left; font-size: 12px;">{descricao_html}</td>\n        </tr>\n'''

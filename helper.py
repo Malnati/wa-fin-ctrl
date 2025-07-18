@@ -121,8 +121,8 @@ def incrementar_csv(novo_df, arquivo_csv):
     return df_combinado
 
 def mover_arquivos_processados():
-    input_dir = "input"
-    imgs_dir = "imgs"
+    input_dir = ATTR_FIN_DIR_INPUT
+    imgs_dir = ATTR_FIN_DIR_IMGS
     os.makedirs(imgs_dir, exist_ok=True)
     extensoes_imagem = ('.jpg', '.jpeg', '.png', '.pdf')
     arquivos_input = [f for f in os.listdir(input_dir) if f.lower().endswith(extensoes_imagem)]
