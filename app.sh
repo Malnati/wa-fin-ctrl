@@ -13,7 +13,7 @@ export ATTR_FIN_ARQ_CALCULO="mensagens/calculo.csv"
 export ATTR_FIN_ARQ_MENSAGENS="mensagens/mensagens.csv"
 export ATTR_FIN_ARQ_DIAGNOSTICO="diagnostico.csv"
 export ATTR_FIN_ARQ_CHAT="_chat.txt"
-export ATTR_FIN_OCR="ocr/extract.xml"
+export ATTR_FIN_ARQ_OCR_XML="ocr/extract.xml"
 
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"

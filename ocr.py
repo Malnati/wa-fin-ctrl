@@ -17,7 +17,7 @@ DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
 def process_image_ocr(image_path):
     """Processa uma imagem ou PDF e extrai texto usando OCR, consultando o XML incremental antes."""
     try:
-        arq_xml = os.getenv('ATTR_FIN_OCR', 'ocr/extract.xml')
+        arq_xml = os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/extract.xml')
         # 1. Consulta o XML incremental
         if os.path.exists(arq_xml):
             try:
@@ -100,7 +100,7 @@ def process_image_ocr(image_path):
     except Exception as e:
         return f"Erro no OCR: {str(e)}"
 
-def registrar_ocr_xml(arquivo, texto, arq_xml=os.getenv('ATTR_FIN_OCR', 'ocr/extract.xml')):
+def registrar_ocr_xml(arquivo, texto, arq_xml=os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/extract.xml')):
     """Registra extração OCR no arquivo XML incrementalmente, sem sobrescrever entradas existentes."""
     with ocr_xml_lock:
         dir_ocr = os.path.dirname(arq_xml)
