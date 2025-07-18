@@ -93,7 +93,7 @@ force:
 	poetry run python cli.py processar --force
 	
 dismiss:
-	poetry run python cli.py dismiss "$(dismiss)"
+	poetry run python cli.py dismiss "$(arg)"
 
 server:
 	poetry run python -m http.server 8000

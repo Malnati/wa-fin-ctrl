@@ -209,12 +209,12 @@ def gerar_relatorio_html(csv_path):
     print(f"DEBUG: Iniciando gerar_relatorio_html com csv_path: {csv_path}")
     try:
         if not os.path.exists(csv_path):
-            print(f"❌ O relatório index.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
+            print(f"❌ O relatório report.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
             return
-        if os.path.exists("index.html"):
+        if os.path.exists("report.html"):
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-            arquivo_backup = f"index-{timestamp}.bak"
-            os.rename("index.html", arquivo_backup)
+            arquivo_backup = f"report-{timestamp}.bak"
+            os.rename("report.html", arquivo_backup)
             print(f"📁 Relatório anterior renomeado para: {arquivo_backup}")
         print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
         
@@ -239,13 +239,53 @@ def gerar_relatorio_html(csv_path):
             }
         }
         
-        print(f"DEBUG: Chamando TemplateRenderer.render com output_path: index.html")
+        print(f"DEBUG: Chamando TemplateRenderer.render com output_path: report.html")
         TemplateRenderer.render(
             template_name="unified_report.html.j2",
             context=context,
-            output_path="index.html"
+            output_path="report.html"
         )
-        print("✅ Relatório HTML gerado: index.html")
+        print("✅ Relatório HTML gerado: report.html")
+        
+        # Garante que o index.html existe (página de entrada)
+        if not os.path.exists("index.html"):
+            print("📄 Criando página de entrada: index.html")
+            # Cria um index.html básico se não existir
+            index_content = '''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gastos Tia Claudia - Relatórios</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
+    .reports { list-style: none; padding: 0; }
+    .reports li { margin: 10px 0; }
+    .reports a { display: block; padding: 15px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; transition: background 0.3s; }
+    .reports a:hover { background: #2980b9; }
+    .info { background: #ecf0f1; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Relatórios de Gastos</h1>
+    <div class="info">
+      <strong>Sistema de Prestação de Contas</strong><br>
+      Relatórios gerados automaticamente a partir dos comprovantes processados.
+    </div>
+    <ul class="reports">
+      <li><a href="report.html">📊 Relatório Geral</a></li>
+    </ul>
+  </div>
+</body>
+</html>'''
+            with open("index.html", "w", encoding="utf-8") as f:
+                f.write(index_content)
+            print("✅ Página de entrada criada: index.html")
+        else:
+            print("✅ Página de entrada mantida: index.html")
         
         # Validação OCR
         print("🔍 Validando conformidade OCR...")
