@@ -126,7 +126,7 @@ def gerar_relatorio_html(csv_path):
         ocr_map = _carregar_ocr_map()
         
         df = pd.read_csv(csv_path)
-        tem_motivo = 'MOTIVO_ERRO' in df.columns
+        tem_motivo = False  # Removendo a coluna "Motivo do Erro" de todos os relatórios
         
         # Preparar dados para o template
         rows = []
@@ -202,7 +202,7 @@ def gerar_relatorios_mensais_html(csv_path):
                 os.rename(nome_arquivo, arquivo_backup)
                 print(f"📁 Relatório mensal anterior renomeado para: {arquivo_backup}")
             
-            tem_motivo = 'MOTIVO_ERRO' in dados_mes.columns
+            tem_motivo = False  # Removendo a coluna "Motivo do Erro" de todos os relatórios
             rows = []
             for _, row in dados_mes.iterrows():
                 rows.append(_preparar_linha(row, ocr_map, tem_motivo))
