@@ -1,9 +1,10 @@
-# html.py
-# Caminho relativo ao projeto: html.py
+# report_generator.py
+# Caminho relativo ao projeto: report_generator.py
 # Módulo de geração de relatórios HTML para prestação de contas
 import os
 import pandas as pd
 import base64
+import subprocess
 from pathlib import Path
 from env import *
 from template import TemplateRenderer
@@ -31,6 +32,7 @@ def _preparar_linha(row, tem_motivo=False):
         'rafael': rafael,
         'anexo': anexo,
         'descricao': descricao,
+        'ocr': str(row.get('OCR', '')),  # NOVO: campo OCR - convertido para string
         'row_class': row_class
     }
     
@@ -114,6 +116,16 @@ def gerar_relatorio_html(csv_path):
             output_path="report.html"
         )
         print("✅ Relatório HTML gerado: report.html")
+        
+        # Validação OCR
+        print("🔍 Validando conformidade OCR...")
+        try:
+            subprocess.run(['python', 'check.py', csv_path], check=True)
+            print("✅ Validação OCR concluída com sucesso")
+        except subprocess.CalledProcessError:
+            print("❌ Falha na validação OCR - verifique as linhas sem OCR")
+        except Exception as e:
+            print(f"⚠️  Erro na validação OCR: {str(e)}")
     except Exception as e:
         print(f"❌ Erro ao gerar relatório HTML: {str(e)}")
 
@@ -181,6 +193,16 @@ def gerar_relatorios_mensais_html(csv_path):
             print(f"✅ Relatório mensal editável gerado: {nome_arquivo_edit}")
         
         print(f"📅 Total de relatórios mensais gerados: {relatorios_gerados}")
+        
+        # Validação OCR
+        print("🔍 Validando conformidade OCR...")
+        try:
+            subprocess.run(['python', 'check.py', csv_path], check=True)
+            print("✅ Validação OCR concluída com sucesso")
+        except subprocess.CalledProcessError:
+            print("❌ Falha na validação OCR - verifique as linhas sem OCR")
+        except Exception as e:
+            print(f"⚠️  Erro na validação OCR: {str(e)}")
     except Exception as e:
         print(f"❌ Erro ao gerar relatórios mensais: {str(e)}")
 

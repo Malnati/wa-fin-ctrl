@@ -52,6 +52,7 @@
           <th>Rafael (R$)</th>
           <th>Anexo</th>
           <th>Descrição</th>
+          <th>OCR</th>
           {% if tem_motivo %}
           <th>Motivo do Erro</th>
           {% endif %}
@@ -107,6 +108,11 @@
           <td style="text-align: left; font-size: 12px;">
             {% if row.descricao and row.descricao != 'nan' %}
               {{ row.descricao }}
+            {% endif %}
+          </td>
+          <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+            {% if row.ocr and row.ocr != 'nan' %}
+              {{ row.ocr[:100] }}{% if row.ocr|length > 100 %}...{% endif %}
             {% endif %}
           </td>
           {% if tem_motivo %}
