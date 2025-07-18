@@ -26,29 +26,7 @@ except ImportError:
     convert_from_path = None
 
 from ocr import registrar_ocr_xml, process_image_ocr
-
-# ==== CONSTANTES DE AMBIENTE ====
-ATTR_FIN_OPENAI_API_KEY = os.getenv('ATTR_FIN_OPENAI_API_KEY', None)
-ATTR_FIN_DIR_INPUT       = os.getenv('ATTR_FIN_DIR_INPUT',       'input')
-ATTR_FIN_DIR_IMGS        = os.getenv('ATTR_FIN_DIR_IMGS',        'imgs')
-ATTR_FIN_DIR_MASSA       = os.getenv('ATTR_FIN_DIR_MASSA',       'massa')
-ATTR_FIN_DIR_TMP         = os.getenv('ATTR_FIN_DIR_TMP',         'tmp')
-ATTR_FIN_ARQ_CALCULO     = os.getenv('ATTR_FIN_ARQ_CALCULO',     'mensagens/calculo.csv')
-ATTR_FIN_ARQ_MENSAGENS   = os.getenv('ATTR_FIN_ARQ_MENSAGENS',   'mensagens/mensagens.csv')
-ATTR_FIN_ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'mensagens/diagnostico.csv')
-ATTR_FIN_ARQ_CHAT        = os.getenv('ATTR_FIN_ARQ_CHAT',        '_chat.txt')
-ATTR_FIN_ARQ_OCR_XML     = os.getenv('ATTR_FIN_ARQ_OCR_XML',     'ocr/extract.xml')
-
-# === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
-DIR_INPUT = ATTR_FIN_DIR_INPUT
-DIR_IMGS = ATTR_FIN_DIR_IMGS
-DIR_MASSA = ATTR_FIN_DIR_MASSA
-DIR_TMP = ATTR_FIN_DIR_TMP
-ARQ_CALCULO = ATTR_FIN_ARQ_CALCULO
-ARQ_MENSAGENS = ATTR_FIN_ARQ_MENSAGENS
-ARQ_DIAGNOSTICO = ATTR_FIN_ARQ_DIAGNOSTICO
-ARQ_CHAT = ATTR_FIN_ARQ_CHAT
-ARQ_OCR_XML = ATTR_FIN_ARQ_OCR_XML
+from env import *
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""
@@ -542,7 +520,7 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
     # Se não foi fornecido input_file, usa o arquivo de chat padrão
     if input_file is None:
         # Busca arquivo de chat no diretório input/
-        input_dir = Path(DIR_INPUT)
+        input_dir = Path(ATTR_FIN_DIR_INPUT)
         chat_files = list(input_dir.glob('*_chat.txt'))
         if not chat_files:
             print("Nenhum arquivo de chat encontrado em input/")
@@ -551,7 +529,7 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
     
     # Se não foi fornecido output_file, usa o padrão
     if output_file is None:
-        output_file = ARQ_CALCULO
+        output_file = ATTR_FIN_ARQ_CALCULO
     
     # Lê cada linha completa do arquivo de chat
     with open(input_file, 'r', encoding='utf-8') as f:
@@ -838,21 +816,21 @@ def processar_incremental(force=False, entry=None):
                 else:
                     print("Colunas DATA/HORA não encontradas para filtro --entry.")
                     return
-            df_diag.to_csv(ARQ_DIAGNOSTICO, index=False)
+            df_diag.to_csv(ATTR_FIN_ARQ_DIAGNOSTICO, index=False)
             print("Reprocessamento forçado concluído. Diagnóstico salvo em mensagens/diagnostico.csv.")
     else:
         tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
         if not tem_arquivos:
             print("Nenhum arquivo novo para processar.")
             print("\n=== GERANDO RELATÓRIO HTML ===")
-            gerar_relatorio_html(ARQ_CALCULO)
-            gerar_relatorios_mensais_html(ARQ_CALCULO)
+            gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+            gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
             return
         print(f"\n=== PROCESSANDO DADOS DE {chat_file} ===")
         print("=== PROCESSANDO DADOS COMPLETOS ===")
-        df_completo = txt_to_csv(chat_file, ARQ_MENSAGENS)
+        df_completo = txt_to_csv(chat_file, ATTR_FIN_ARQ_MENSAGENS)
         print("\n=== PROCESSANDO APENAS ANEXOS ===")
-        df_anexos = txt_to_csv_anexos_only(chat_file, ARQ_CALCULO)
+        df_anexos = txt_to_csv_anexos_only(chat_file, ATTR_FIN_ARQ_CALCULO)
         if entry:
             # Filtra apenas a linha correspondente
             if 'DATA' in df_anexos.columns and 'HORA' in df_anexos.columns:
@@ -861,7 +839,7 @@ def processar_incremental(force=False, entry=None):
                 if df_anexos.empty:
                     print(f"Nenhuma linha encontrada para --entry {entry}.")
                     return
-                df_anexos.to_csv(ARQ_CALCULO, index=False)
+                df_anexos.to_csv(ATTR_FIN_ARQ_CALCULO, index=False)
             else:
                 print("Colunas DATA/HORA não encontradas para filtro --entry.")
                 return
@@ -881,7 +859,7 @@ def processar_incremental(force=False, entry=None):
                 else:
                     motivos.append("")
             df_anexos['MOTIVO_ERRO'] = motivos
-            df_anexos.to_csv(ARQ_CALCULO, index=False)
+            df_anexos.to_csv(ATTR_FIN_ARQ_CALCULO, index=False)
         print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
         arquivos_movidos = mover_arquivos_processados()
         try:
@@ -898,19 +876,19 @@ def processar_incremental(force=False, entry=None):
         if edits_json:
             resposta = input("Deseja aplicar as edições do JSON em calculo.csv antes de gerar relatórios? (s/n): ").strip().lower()
             if resposta == 's':
-                df_calc = pd.read_csv(ARQ_CALCULO, dtype=str)
+                df_calc = pd.read_csv(ATTR_FIN_ARQ_CALCULO, dtype=str)
                 for row_id, campos in edits_json.items():
                     idx = int(row_id.split('_')[1])
                     for campo, valor in campos.items():
                         if campo.upper() in df_calc.columns:
                             df_calc.at[idx, campo.upper()] = valor
-                df_calc.to_csv(ARQ_CALCULO, index=False, quoting=1)
+                df_calc.to_csv(ATTR_FIN_ARQ_CALCULO, index=False, quoting=1)
                 print("Edições aplicadas em calculo.csv.")
     print("\n=== GERANDO RELATÓRIO HTML ===")
-    gerar_relatorio_html(ARQ_CALCULO)
+    gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
-    gerar_relatorios_mensais_html(ARQ_CALCULO)
-    df_all = pd.read_csv(ARQ_CALCULO)
+    gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+    df_all = pd.read_csv(ATTR_FIN_ARQ_CALCULO)
     df_all['DATA_DT'] = pd.to_datetime(df_all['DATA'], format='%d/%m/%Y', errors='coerce')
     df_all['ANO_MES'] = df_all['DATA_DT'].dt.to_period('M')
     nomes_meses = {
@@ -936,10 +914,10 @@ def processar_pdfs(force=False, entry=None):
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
     
-    input_dir = Path(DIR_INPUT)
+    input_dir = Path(ATTR_FIN_DIR_INPUT)
     
     if not input_dir.exists():
-        print(f"Diretório {DIR_INPUT}/ não encontrado!")
+        print(f"Diretório {ATTR_FIN_DIR_INPUT}/ não encontrado!")
         return
     
     # Busca apenas arquivos PDF
@@ -976,9 +954,9 @@ def processar_pdfs(force=False, entry=None):
     
     # Atualiza mensagens/calculo.csv apenas com PDFs
     print("\n=== ATUALIZANDO CSV APENAS COM PDFs ===")
-    txt_to_csv_anexos_only(filter='pdf', output_file=ARQ_CALCULO)
+    txt_to_csv_anexos_only(filter='pdf', output_file=ATTR_FIN_ARQ_CALCULO)
     # Também atualizar o CSV de mensagens apenas com PDFs
-    txt_to_csv_anexos_only(filter='pdf', output_file=ARQ_MENSAGENS)
+    txt_to_csv_anexos_only(filter='pdf', output_file=ATTR_FIN_ARQ_MENSAGENS)
     
     print("✅ Processamento de PDFs concluído!")
 
@@ -993,10 +971,10 @@ def processar_imgs(force=False, entry=None):
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
     
-    input_dir = Path(DIR_INPUT)
+    input_dir = Path(ATTR_FIN_DIR_INPUT)
     
     if not input_dir.exists():
-        print(f"Diretório {DIR_INPUT}/ não encontrado!")
+        print(f"Diretório {ATTR_FIN_DIR_INPUT}/ não encontrado!")
         return
     
     # Busca apenas arquivos de imagem
@@ -1034,9 +1012,9 @@ def processar_imgs(force=False, entry=None):
     
     # Atualiza mensagens/calculo.csv apenas com imagens
     print("\n=== ATUALIZANDO CSV APENAS COM IMAGENS ===")
-    txt_to_csv_anexos_only(filter='img', output_file=ARQ_CALCULO)
+    txt_to_csv_anexos_only(filter='img', output_file=ATTR_FIN_ARQ_CALCULO)
     # Também atualizar o CSV de mensagens apenas com imagens
-    txt_to_csv_anexos_only(filter='img', output_file=ARQ_MENSAGENS)
+    txt_to_csv_anexos_only(filter='img', output_file=ATTR_FIN_ARQ_MENSAGENS)
     
     print("✅ Processamento de imagens concluído!")
 
@@ -1218,7 +1196,7 @@ def executar_testes_e2e():
 
 def backup_arquivos_existentes():
     """Faz backup de arquivos existentes antes dos testes"""
-    arquivos_backup = [ARQ_MENSAGENS, ARQ_CALCULO]
+    arquivos_backup = [ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_CALCULO]
     
     for arquivo in arquivos_backup:
         if os.path.exists(arquivo):
@@ -1228,7 +1206,7 @@ def backup_arquivos_existentes():
 
 def restaurar_arquivos_backup():
     """Restaura arquivos do backup após os testes"""
-    arquivos_backup = [ARQ_MENSAGENS, ARQ_CALCULO]
+    arquivos_backup = [ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_CALCULO]
     
     for arquivo in arquivos_backup:
         backup_nome = f"{arquivo}.backup_teste"
@@ -1269,10 +1247,10 @@ def testar_processamento_incremental():
         
         # Verifica se CSVs foram criados
         csvs_criados = []
-        if os.path.exists(ARQ_MENSAGENS):
-            csvs_criados.append(ARQ_MENSAGENS)
-        if os.path.exists(ARQ_CALCULO):
-            csvs_criados.append(ARQ_CALCULO)
+        if os.path.exists(ATTR_FIN_ARQ_MENSAGENS):
+            csvs_criados.append(ATTR_FIN_ARQ_MENSAGENS)
+        if os.path.exists(ATTR_FIN_ARQ_CALCULO):
+            csvs_criados.append(ATTR_FIN_ARQ_CALCULO)
         
         print(f"CSVs criados: {csvs_criados}")
         

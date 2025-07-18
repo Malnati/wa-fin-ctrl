@@ -23,7 +23,7 @@ server:
 
 copy:
 	@mkdir -p tmp
-	cat app.py cli.py helper.py ia.py ocr.py app.sh Makefile > tmp/copy2chatgpt.txt
+	cat app.py cli.py helper.py ia.py ocr.py app.sh env.py Makefile > tmp/copy2chatgpt.txt
 	pbcopy < tmp/copy2chatgpt.txt
 
 .PHONY: help install run server copy

@@ -5,18 +5,7 @@ import re
 import os
 import pandas as pd
 import shutil
-
-# ==== CONSTANTES DE AMBIENTE ====
-ATTR_FIN_DIR_INPUT     = os.getenv('ATTR_FIN_DIR_INPUT',     'input')
-ATTR_FIN_DIR_IMGS      = os.getenv('ATTR_FIN_DIR_IMGS',      'imgs')
-ATTR_FIN_ARQ_CALCULO   = os.getenv('ATTR_FIN_ARQ_CALCULO',   'mensagens/calculo.csv')
-ATTR_FIN_ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
-
-# === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
-DIR_INPUT = ATTR_FIN_DIR_INPUT
-DIR_IMGS = ATTR_FIN_DIR_IMGS
-ARQ_CALCULO = ATTR_FIN_ARQ_CALCULO
-ARQ_MENSAGENS = ATTR_FIN_ARQ_MENSAGENS
+from env import *
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""
@@ -143,7 +132,7 @@ def mover_arquivos_processados():
         destino = os.path.join(imgs_dir, arquivo)
         shutil.move(origem, destino)
         arquivos_movidos += 1
-        print(f"Movido: {arquivo} -> {DIR_IMGS}/")
+        print(f"Movido: {arquivo} -> {ATTR_FIN_DIR_IMGS}/")
     if arquivos_movidos > 0:
-        print(f"Total de {arquivos_movidos} arquivos movidos para {DIR_IMGS}/")
+        print(f"Total de {arquivos_movidos} arquivos movidos para {ATTR_FIN_DIR_IMGS}/")
     return arquivos_movidos

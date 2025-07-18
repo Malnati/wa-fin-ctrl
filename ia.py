@@ -5,9 +5,7 @@ import os
 import re
 from openai import OpenAI
 from helper import convert_to_brazilian_format
-
-# ==== CONSTANTES DE AMBIENTE ====
-ATTR_FIN_OPENAI_API_KEY = os.getenv('ATTR_FIN_OPENAI_API_KEY', None)
+from env import *
 
 def extract_total_value_with_chatgpt(ocr_text):
     try:

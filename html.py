@@ -5,16 +5,7 @@ import os
 import pandas as pd
 import base64
 from pathlib import Path
-
-# ==== CONSTANTES DE AMBIENTE ====
-ATTR_FIN_DIR_INPUT   = os.getenv('ATTR_FIN_DIR_INPUT',   'input')
-ATTR_FIN_DIR_IMGS    = os.getenv('ATTR_FIN_DIR_IMGS',    'imgs')
-ATTR_FIN_ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'mensagens/calculo.csv')
-
-# === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
-DIR_INPUT = ATTR_FIN_DIR_INPUT
-DIR_IMGS = ATTR_FIN_DIR_IMGS
-ARQ_CALCULO = ATTR_FIN_ARQ_CALCULO
+from env import *
 
 def gerar_relatorio_html(csv_path):
     try:
