@@ -133,11 +133,15 @@ remove-mensagens:
 remove-imgs:
 	@rm -rf imgs/*
 
+remove-tmp:
+	@rm -rf tmp/*
+
 remove-all:
 	@$(MAKE) remove-reports
 	@$(MAKE) remove-baks
 	@$(MAKE) remove-ocr
 	@$(MAKE) remove-mensagens
 	@$(MAKE) remove-imgs
+	@$(MAKE) remove-tmp
 
-.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-all
+.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-all
