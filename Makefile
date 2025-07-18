@@ -23,16 +23,14 @@ server:
 
 copy:
 	@mkdir -p tmp
-	@echo "Copiando os arquivos ocr.py, app.py, env.py, template.py, reporter.py, check.py, templates/monthly_report_editable.html.j2, templates/monthly_report.html.j2 para analise. " > tmp/copy2chatgpt.txt
+	@echo "Copiando os arquivos ocr.py, app.py, env.py, template.py, reporter.py, check.py para analise. " > tmp/copy2chatgpt.txt
 	@cat app.py cli.py helper.py ia.py \
 	ocr.py \
 	app.sh \
 	env.py \
 	template.py \
 	reporter.py \
-	check.py \
-	templates/monthly_report_editable.html.j2 \
-	templates/monthly_report.html.j2 >> tmp/copy2chatgpt.txt
+	check.py >> tmp/copy2chatgpt.txt
 	@pbcopy < tmp/copy2chatgpt.txt
 	@echo "✅ Conteúdo copiado para a área de transferência"
 
@@ -40,8 +38,22 @@ copy-report:
 	@mkdir -p tmp
 	@echo "Copiando o relatório..." > tmp/copy2chatgpt.txt
 	@cat report-2025-07-Julho.html >> tmp/copy2chatgpt.txt
+	@echo "Copiando o relatório editavel..." >> tmp/copy2chatgpt.txt
+	@cat report-edit-2025-07-Julho.html >> tmp/copy2chatgpt.txt
+	@echo "Copiando o relatório geral..." >> tmp/copy2chatgpt.txt
+	@cat report.html >> tmp/copy2chatgpt.txt
 	@pbcopy < tmp/copy2chatgpt.txt
 	@echo "✅ Conteúdo do relatório copiado para a área de transferência"
+
+copy-templates:
+	@mkdir -p tmp
+	@echo "Copiando os templates dos relatórios para analise. " > tmp/copy2chatgpt.txt
+	@cat templates/monthly_report_editable.html.j2 >> tmp/copy2chatgpt.txt
+	@cat templates/monthly_report.html.j2 >> tmp/copy2chatgpt.txt
+	@cat templates/print_report.html.j2 >> tmp/copy2chatgpt.txt
+	@cat templates/report.html.j2 >> tmp/copy2chatgpt.txt
+	@pbcopy < tmp/copy2chatgpt.txt
+	@echo "✅ Conteúdo dos templates copiado para a área de transferência"
 
 copy-ocr:
 	@mkdir -p ocr
