@@ -1,3 +1,6 @@
+# html.py
+# Caminho relativo ao projeto: html.py
+# Módulo de geração de relatórios HTML para prestação de contas
 import os
 import pandas as pd
 import base64

@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# app.sh
+# Caminho relativo ao projeto: app.sh
 # Script principal para execução do processador de comprovantes
 # Atualizado para usar cli.py com click
 
@@ -29,6 +30,12 @@ fi
 log "Verificando e instalando dependências do projeto via Poetry..."
 poetry install --no-interaction --no-root
 
-# Executar o comando via cli.py
-log "Executando comando via CLI..."
-poetry run python cli.py "$@"
+if [ "$1" = "server" ]; then
+    echo "Iniciando servidor HTTP local na porta 8000..."
+    poetry run python -m http.server 8000
+    exit 0
+else
+    log "Executando comando via CLI..."
+    poetry run python cli.py "$@"
+    exit 0
+fi

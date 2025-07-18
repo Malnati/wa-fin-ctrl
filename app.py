@@ -1,3 +1,6 @@
+# app.py
+# Caminho relativo ao projeto: app.py
+# Módulo principal de processamento de comprovantes financeiros com suporte a OCR e IA
 import pandas as pd
 from openpyxl import load_workbook
 import sys

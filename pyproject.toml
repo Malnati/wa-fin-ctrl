@@ -1,3 +1,6 @@
+# pyproject.toml
+# Caminho relativo ao projeto: pyproject.toml
+# Configuração do Poetry para gerenciamento de dependências do projeto
 [tool.poetry]
 name = "gastos-tia-claudia"
 version = "0.1.0"

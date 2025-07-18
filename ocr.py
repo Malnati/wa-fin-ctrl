@@ -1,4 +1,6 @@
 # ocr.py
+# Caminho relativo ao projeto: ocr.py
+# Módulo de processamento OCR para imagens e PDFs com suporte a extração incremental
 import os
 import re
 import cv2

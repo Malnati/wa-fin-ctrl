@@ -1,3 +1,6 @@
+# ia.py
+# Caminho relativo ao projeto: ia.py
+# Módulo de funções de inteligência artificial para análise de comprovantes
 import os
 import re
 from openai import OpenAI

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # dev/pdf.py
+# Caminho relativo ao projeto: dev/pdf.py
+# Script de teste para extração de texto de PDFs usando pdfplumber e pdf2image
 """
 Script de teste para extração de texto de PDFs usando pdfplumber e pdf2image.
 Testa especificamente o arquivo input/00000061-2025-05-02_110443.pdf
