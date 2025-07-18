@@ -40,6 +40,7 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     rafael = str(row.get('RAFAEL', ''))
     anexo = str(row.get('ANEXO', ''))
     descricao = str(row.get('DESCRICAO', ''))
+    valor = str(row.get('VALOR', ''))
     
     # Buscar texto OCR pelo nome do arquivo (campo ANEXO)
     anexo = str(row.get('ANEXO', ''))
@@ -51,8 +52,94 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         # 2) fallback: puxa do XML carregado em ocr_map
         texto_ocr = ocr_map.get(anexo, '') if anexo and anexo.lower() != 'nan' else ''
     
+    # Identificar origem da mensagem e direcionar valor para coluna correta
+    remetente = str(row.get('REMETENTE', '')).strip().lower()
+    print(f"DEBUG: Remetente: '{remetente}'")
+    print(f"DEBUG: Ricardo original: '{ricardo}'")
+    print(f"DEBUG: Rafael original: '{rafael}'")
+    print(f"DEBUG: Valor original: '{valor}'")
+    
+    # Se o valor não está nas colunas RICARDO ou RAFAEL, extrair do texto OCR
+    if (not ricardo or ricardo.lower() in ['nan', '']) and (not rafael or rafael.lower() in ['nan', '']):
+        print(f"DEBUG: Campos RICARDO e RAFAEL estão vazios, tentando extrair do OCR")
+        # Tentar extrair valor do texto OCR
+        import re
+        valor_ocr = None
+        
+        # Padrões para encontrar valores no texto OCR
+        padroes_valor = [
+            r'R\$\s*([0-9.,]+)',  # R$ 123,45
+            r'valor\s*R\$\s*([0-9.,]+)',  # valor R$ 123,45
+            r'([0-9.,]+)\s*reais',  # 123,45 reais
+            r'total\s*R\$\s*([0-9.,]+)',  # total R$ 123,45
+            r'pago\s*R\$\s*([0-9.,]+)',  # pago R$ 123,45
+        ]
+        
+        for padrao in padroes_valor:
+            match = re.search(padrao, texto_ocr, re.IGNORECASE)
+            if match:
+                valor_encontrado = match.group(1).replace('.', '').replace(',', '.')
+                try:
+                    float(valor_encontrado)
+                    valor_ocr = valor_encontrado
+                    print(f"DEBUG: Valor extraído '{valor_ocr}' do texto OCR para remetente '{remetente}'")
+                    break
+                except ValueError:
+                    continue
+        
+        if valor_ocr:
+            # Direcionar valor para coluna correta baseado no remetente
+            if remetente == 'ricardo':
+                ricardo = valor_ocr
+                print(f"DEBUG: Valor {valor_ocr} atribuído à coluna RICARDO")
+            elif remetente == 'rafael':
+                rafael = valor_ocr
+                print(f"DEBUG: Valor {valor_ocr} atribuído à coluna RAFAEL")
+            else:
+                # Se não conseguiu identificar remetente, tentar identificar pelo texto OCR
+                if 'ricardo' in texto_ocr.lower() or 'itau' in texto_ocr.lower():
+                    ricardo = valor_ocr
+                    print(f"DEBUG: Valor {valor_ocr} atribuído à coluna RICARDO (identificado pelo texto)")
+                elif 'rafael' in texto_ocr.lower() or 'nubank' in texto_ocr.lower() or 'nu pagamentos' in texto_ocr.lower():
+                    rafael = valor_ocr
+                    print(f"DEBUG: Valor {valor_ocr} atribuído à coluna RAFAEL (identificado pelo texto)")
+                else:
+                    # Fallback: usar o valor original se existir
+                    if valor and valor.lower() not in ['nan', '']:
+                        if remetente == 'ricardo':
+                            ricardo = valor
+                        elif remetente == 'rafael':
+                            rafael = valor
+        else:
+            print(f"DEBUG: Nenhum valor encontrado no texto OCR")
+    else:
+        print(f"DEBUG: Campos RICARDO ou RAFAEL já têm valores")
+    
+    # Após toda a lógica de atribuição, garantir que ricardo/rafael recebam o valor extraído
+    # Se o remetente for Ricardo e ricardo está vazio, mas valor foi extraído, atribuir
+    if remetente == 'ricardo' and (not ricardo or ricardo.lower() in ['nan', '']):
+        if valor and valor.lower() not in ['nan', '']:
+            ricardo = valor
+    # Se o remetente for Rafael e rafael está vazio, mas valor foi extraído, atribuir
+    if remetente == 'rafael' and (not rafael or rafael.lower() in ['nan', '']):
+        if valor and valor.lower() not in ['nan', '']:
+            rafael = valor
+    
+    # Função utilitária para limpar valores monetários
+    def limpar_valor(valor):
+        if not valor:
+            return ''
+        valor = str(valor).replace('R$', '').replace(' ', '').replace('.', '').replace(',', '.')
+        try:
+            return f"{float(valor):.2f}"
+        except Exception:
+            return valor
+
+    ricardo = limpar_valor(ricardo)
+    rafael = limpar_valor(rafael)
+    valor = limpar_valor(valor)
+
     # Flag para linha de total
-    remetente = str(row.get('REMETENTE', ''))
     row_class = 'total-row' if 'TOTAL' in remetente.upper() else ''
     
     linha = {
@@ -63,8 +150,10 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         'anexo': anexo,
         'descricao': descricao,
         'ocr': texto_ocr,  # Texto OCR carregado do XML
-        'row_class': row_class
+        'row_class': row_class,
+        'valor': valor
     }
+    print(f"DEBUG LINHA: {linha}")
     
     if tem_motivo:
         motivo = str(row.get('MOTIVO_ERRO', ''))

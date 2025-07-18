@@ -3,6 +3,36 @@
 
 .PHONY: help
 
+# Configuração de ambiente
+export ATTR_FIN_OPENAI_API_KEY="${OPENAI_API_KEY:-}"
+export ATTR_FIN_DIR_INPUT="input"
+export ATTR_FIN_DIR_IMGS="imgs"
+export ATTR_FIN_DIR_MASSA="massa"
+export ATTR_FIN_DIR_TMP="tmp"
+export ATTR_FIN_ARQ_CALCULO="mensagens/calculo.csv"
+export ATTR_FIN_ARQ_MENSAGENS="mensagens/mensagens.csv"
+export ATTR_FIN_ARQ_DIAGNOSTICO="diagnostico.csv"
+export ATTR_FIN_ARQ_CHAT="_chat.txt"
+export ATTR_FIN_ARQ_OCR_XML="ocr/extract.xml"
+
+# Verificar se Poetry está disponível
+check_poetry_installed:
+	@if ! command -v poetry &> /dev/null; then \
+		echo "❌ Poetry não está instalado. Instale o Poetry primeiro:"; \
+		echo "   curl -sSL https://install.python-poetry.org | python3 -"; \
+		exit 1; \
+	fi
+
+# Adicionando a verificação de Poetry como dependência para todos os alvos
+install: check_poetry_installed
+run: check_poetry_installed
+process: check_poetry_installed
+force: check_poetry_installed
+server: check_poetry_installed
+copy: check_poetry_installed
+copy-july-report: check_poetry_installed
+copy-report: check_poetry_installed
+
 help:
 	@echo "Uso: make <target>"
 	@echo "Targets disponíveis:"
@@ -19,10 +49,10 @@ run:
 	poetry run python cli.py
 
 process:
-	@bash app.sh process
+	poetry run python cli.py processar
 
 force:
-	@bash app.sh process --force
+	poetry run python cli.py processar --force
 
 server:
 	poetry run python -m http.server 8000
