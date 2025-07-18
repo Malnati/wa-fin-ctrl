@@ -311,7 +311,7 @@ def gerenciar_arquivos_incrementais():
         # Verifica se há arquivo _chat.txt
         chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
         if os.path.exists(chat_file):
-            print("Arquivo _chat.txt encontrado, mas sem imagens para processar")
+            print(f"Arquivo {ATTR_FIN_ARQ_CHAT} encontrado, mas sem imagens para processar")
             return True, chat_file
         return False, None
     
@@ -332,7 +332,7 @@ def gerenciar_arquivos_incrementais():
             print(f"Removida duplicata: {arquivo}")
     
     if duplicatas_removidas > 0:
-        print(f"Total de {duplicatas_removidas} duplicatas removidas de input/")
+        print(f"Total de {duplicatas_removidas} duplicatas removidas de {ATTR_FIN_DIR_INPUT}/")
     
     # Verifica se ainda há arquivos para processar
     if not arquivos_input:
@@ -771,7 +771,7 @@ def processar_incremental(force=False, entry=None):
             return
     edits_json = carregar_edits_json()
     if edits_json:
-        print(f"Edições encontradas em arquivos JSON de input/: aplicando após confirmação.")
+        print(f"Edições encontradas em arquivos JSON de {ATTR_FIN_DIR_INPUT}/: aplicando após confirmação.")
     print("\n=== VERIFICANDO ARQUIVOS ZIP ===")
     if not descomprimir_zip_se_existir():
         print("❌ Erro na descompressão de arquivo ZIP. Processamento interrompido.")
@@ -817,7 +817,7 @@ def processar_incremental(force=False, entry=None):
                     print("Colunas DATA/HORA não encontradas para filtro --entry.")
                     return
             df_diag.to_csv(ATTR_FIN_ARQ_DIAGNOSTICO, index=False)
-            print("Reprocessamento forçado concluído. Diagnóstico salvo em mensagens/diagnostico.csv.")
+            print(f"Reprocessamento forçado concluído. Diagnóstico salvo em {ATTR_FIN_ARQ_DIAGNOSTICO}.")
     else:
         tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
         if not tem_arquivos:
