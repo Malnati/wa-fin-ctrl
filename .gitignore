@@ -1,8 +1,11 @@
 __pycache__
 *.bak
 *.html
-split/
-tmp/
+*.zip
+split/*
+tmp/*
+imgs/
+input/*
 ocr/extract.xml
 report.html
 report-2025-04-Abril.html
