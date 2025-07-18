@@ -9,62 +9,28 @@ from env import *
 from template import TemplateRenderer
 
 def _preparar_linha(row, tem_motivo=False):
-    """Prepara os dados de uma linha para o template."""
+    """Prepara os dados de uma linha para o template - apenas dados puros, sem HTML."""
     data = str(row.get('DATA', ''))
     hora = str(row.get('HORA', ''))
     data_hora = f"{data} {hora}" if data != 'nan' and hora != 'nan' else ''
     
     classificacao = str(row.get('CLASSIFICACAO', ''))
-    if classificacao.lower() == 'transferência':
-        class_css = 'transferencia'
-    elif classificacao.lower() == 'pagamento':
-        class_css = 'pagamento'
-    else:
-        class_css = ''
-    classificacao_html = f'<span class="classificacao {class_css}">{classificacao}</span>' if classificacao != 'nan' else ''
-    
     ricardo = str(row.get('RICARDO', ''))
     rafael = str(row.get('RAFAEL', ''))
-    ricardo_html = f'<span class="valor">{ricardo}</span>' if ricardo != 'nan' and ricardo != '' else ''
-    rafael_html = f'<span class="valor">{rafael}</span>' if rafael != 'nan' and rafael != '' else ''
+    anexo = str(row.get('ANEXO', ''))
+    descricao = str(row.get('DESCRICAO', ''))
     
+    # Flag para linha de total
     remetente = str(row.get('REMETENTE', ''))
     row_class = 'total-row' if 'TOTAL' in remetente.upper() else ''
     
-    if row_class == 'total-row':
-        img_html = ''
-    else:
-        anexo = str(row.get('ANEXO', ''))
-        img_html = ""
-        if anexo != 'nan' and anexo != '' and anexo.lower().endswith(('.jpg', '.jpeg', '.png')):
-            img_path = None
-            for diretorio in [ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT]:
-                if diretorio:  # Verifica se o diretório não está vazio
-                    caminho_completo = Path(diretorio) / anexo
-                    if caminho_completo.is_file():
-                        img_path = caminho_completo
-                        break
-            if img_path:
-                # Referenciar imagem por caminho relativo em vez de base64
-                if img_path.parent.name == ATTR_FIN_DIR_IMGS:
-                    img_html = f'<img src="{ATTR_FIN_DIR_IMGS}/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                elif img_path.parent.name == ATTR_FIN_DIR_INPUT:
-                    img_html = f'<img src="{ATTR_FIN_DIR_INPUT}/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-                else:
-                    img_html = f'<img src="{img_path}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">'
-            else:
-                img_html = f'<span style="color: #f39c12; font-size: 11px;">Não encontrado: {anexo}</span>'
-    
-    descricao = str(row.get('DESCRICAO', ''))
-    descricao_html = descricao if descricao != 'nan' else ''
-    
     linha = {
         'data_hora': data_hora,
-        'classificacao_html': classificacao_html,
-        'ricardo_html': ricardo_html,
-        'rafael_html': rafael_html,
-        'img_html': img_html,
-        'descricao_html': descricao_html,
+        'classificacao': classificacao,
+        'ricardo': ricardo,
+        'rafael': rafael,
+        'anexo': anexo,
+        'descricao': descricao,
         'row_class': row_class
     }
     
@@ -134,7 +100,11 @@ def gerar_relatorio_html(csv_path):
         context = {
             "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
             "rows": rows,
-            "tem_motivo": tem_motivo
+            "tem_motivo": tem_motivo,
+            "attrs": {
+                "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
+                "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
+            }
         }
         
         TemplateRenderer.render(
@@ -193,7 +163,11 @@ def gerar_relatorios_mensais_html(csv_path):
                 "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
                 "rows": rows,
                 "tem_motivo": tem_motivo,
-                "edit_link": f"report-edit-{ano}-{mes:02d}-{nome_mes}.html"
+                "edit_link": f"report-edit-{ano}-{mes:02d}-{nome_mes}.html",
+                "attrs": {
+                    "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
+                    "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
+                }
             }
             
             TemplateRenderer.render("monthly_report.html.j2", context, nome_arquivo)
