@@ -1,11 +1,15 @@
+# ia.py
+# Caminho relativo ao projeto: ia.py
+# Módulo de funções de inteligência artificial para análise de comprovantes
 import os
 import re
 from openai import OpenAI
 from helper import convert_to_brazilian_format
+from env import *
 
 def extract_total_value_with_chatgpt(ocr_text):
     try:
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             return ""
         if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
@@ -42,7 +46,7 @@ def extract_total_value_with_chatgpt(ocr_text):
 
 def generate_payment_description_with_chatgpt(ocr_text):
     try:
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             return ""
         if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
@@ -79,7 +83,7 @@ def generate_payment_description_with_chatgpt(ocr_text):
 
 def classify_transaction_type_with_chatgpt(ocr_text):
     try:
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             return ""
         if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:

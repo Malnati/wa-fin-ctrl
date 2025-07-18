@@ -1,3 +1,6 @@
+# app.py
+# Caminho relativo ao projeto: app.py
+# Módulo principal de processamento de comprovantes financeiros com suporte a OCR e IA
 import pandas as pd
 from openpyxl import load_workbook
 import sys
@@ -13,7 +16,7 @@ from openai import OpenAI
 import base64
 from pathlib import Path
 import json
-from html import gerar_relatorio_html, gerar_relatorios_mensais_html, gerar_html_mensal, gerar_html_mensal_editavel, gerar_html_impressao
+from html import gerar_relatorio_html, gerar_relatorios_mensais_html, gerar_html_impressao
 # Adiciona imports para PDF
 try:
     import pdfplumber
@@ -22,37 +25,8 @@ except ImportError:
     pdfplumber = None
     convert_from_path = None
 
-def process_image_ocr(image_path):
-    """Processa uma imagem ou PDF e extrai texto usando OCR. Para PDF, converte a primeira página em imagem antes do OCR."""
-    try:
-        # Se for PDF, converte para imagem antes do OCR
-        if image_path.lower().endswith('.pdf'):
-            try:
-                imagens = convert_from_path(image_path, first_page=1, last_page=1)
-                if imagens:
-                    # Salva a imagem convertida em imgs/ com nome derivado do PDF
-                    from pathlib import Path
-                    img_name = Path(image_path).stem + '_page1.jpg'
-                    img_path = os.path.join('imgs', img_name)
-                    imagens[0].save(img_path, 'JPEG')
-                    # Agora processa o OCR na imagem convertida
-                    return process_image_ocr(img_path)
-                else:
-                    return "Erro: PDF convertido, mas nenhuma imagem gerada"
-            except Exception as e:
-                return f"Erro ao converter PDF para imagem: {str(e)}"
-        # Caso contrário, processa como imagem
-        img = cv2.imread(image_path)
-        if img is None:
-            return "Erro ao carregar imagem"
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        text = pytesseract.image_to_string(thresh, lang='eng')
-        text = re.sub(r'\n+', ' ', text).strip()
-        text = re.sub(r'\s+', ' ', text)
-        return text if text else "Nenhum texto detectado"
-    except Exception as e:
-        return f"Erro no OCR: {str(e)}"
+from ocr import registrar_ocr_xml, process_image_ocr
+from env import *
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""
@@ -96,7 +70,7 @@ def extract_total_value_with_chatgpt(ocr_text):
     """Usa a API do ChatGPT para identificar o valor total da compra no texto OCR"""
     try:
         # Verifica se a chave da API está disponível
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             return ""
         
@@ -156,7 +130,7 @@ def generate_payment_description_with_chatgpt(ocr_text):
     """Usa a API do ChatGPT para gerar uma descrição do pagamento baseado no texto OCR"""
     try:
         # Verifica se a chave da API está disponível
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             return ""
         
@@ -214,7 +188,7 @@ def classify_transaction_type_with_chatgpt(ocr_text):
     """Usa a API do ChatGPT para classificar o tipo de transação (Pagamento ou Transferência)"""
     try:
         # Verifica se a chave da API está disponível
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             return ""
         
@@ -257,24 +231,20 @@ def classify_transaction_type_with_chatgpt(ocr_text):
         # Remove aspas e caracteres especiais desnecessários
         classificacao = re.sub(r'["\']', '', classificacao)
         
-        # Valida se a resposta é uma das opções esperadas
+        # Normaliza a classificação
         if "transferência" in classificacao.lower():
             return "Transferência"
         elif "pagamento" in classificacao.lower():
             return "Pagamento"
         else:
-            # Se não conseguir classificar, analisa por palavras-chave no texto
+            # Fallback baseado no conteúdo do texto
             if any(palavra in ocr_text.lower() for palavra in ["pix", "transferência", "ted", "doc"]):
                 return "Transferência"
             else:
                 return "Pagamento"
         
     except Exception as e:
-        # Em caso de erro, tenta classificar por palavras-chave
-        if any(palavra in ocr_text.lower() for palavra in ["pix", "transferência", "ted", "doc"]):
-            return "Transferência"
-        else:
-            return "Pagamento"
+        return "Pagamento"
 
 def txt_to_csv(input_file, output_file):
     """Funcionalidade original - extrai todos os dados das mensagens"""
@@ -295,7 +265,7 @@ def txt_to_csv(input_file, output_file):
     df['OCR'] = ''
     
     # Processa OCR apenas para anexos que existem no diretório input/
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     print("Processando OCR das imagens novas...")
     for idx, row in df.iterrows():
         if row['anexo'] and (row['anexo'].endswith('.jpg') or row['anexo'].endswith('.jpeg') or row['anexo'].endswith('.png')):
@@ -307,7 +277,7 @@ def txt_to_csv(input_file, output_file):
                 df.at[idx, 'OCR'] = ocr_result
             else:
                 # Se não está em input/, verifica se está em imgs/ (já processado)
-                caminho_imgs = os.path.join("imgs", row['anexo'])
+                caminho_imgs = os.path.join(ATTR_FIN_DIR_IMGS, row['anexo'])
                 if os.path.exists(caminho_imgs):
                     print(f"Imagem já processada anteriormente: {row['anexo']}")
                     # Não processa OCR novamente para economizar tempo
@@ -323,8 +293,8 @@ def txt_to_csv(input_file, output_file):
 
 def gerenciar_arquivos_incrementais():
     """Gerencia arquivos de input, remove duplicatas e prepara para processamento incremental"""
-    input_dir = "input"
-    imgs_dir = "imgs"
+    input_dir = ATTR_FIN_DIR_INPUT
+    imgs_dir = ATTR_FIN_DIR_IMGS
     
     # Verifica se o diretório input existe
     if not os.path.exists(input_dir):
@@ -337,11 +307,11 @@ def gerenciar_arquivos_incrementais():
                       if f.lower().endswith(extensoes_imagem)]
     
     if not arquivos_input:
-        print("Nenhuma imagem encontrada no diretório input/")
+        print(f"Nenhuma imagem encontrada no diretório {ATTR_FIN_DIR_INPUT}/")
         # Verifica se há arquivo _chat.txt
-        chat_file = os.path.join(input_dir, "_chat.txt")
+        chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
         if os.path.exists(chat_file):
-            print("Arquivo _chat.txt encontrado, mas sem imagens para processar")
+            print(f"Arquivo {ATTR_FIN_ARQ_CHAT} encontrado, mas sem imagens para processar")
             return True, chat_file
         return False, None
     
@@ -362,31 +332,31 @@ def gerenciar_arquivos_incrementais():
             print(f"Removida duplicata: {arquivo}")
     
     if duplicatas_removidas > 0:
-        print(f"Total de {duplicatas_removidas} duplicatas removidas de input/")
+        print(f"Total de {duplicatas_removidas} duplicatas removidas de {ATTR_FIN_DIR_INPUT}/")
     
     # Verifica se ainda há arquivos para processar
     if not arquivos_input:
-        print("Todos os arquivos de input/ já foram processados anteriormente")
+        print(f"Todos os arquivos de {ATTR_FIN_DIR_INPUT}/ já foram processados anteriormente")
         # Verifica se há arquivo _chat.txt
-        chat_file = os.path.join(input_dir, "_chat.txt")
+        chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
         if os.path.exists(chat_file):
             return True, chat_file
         return False, None
     
-    print(f"Encontrados {len(arquivos_input)} arquivos novos para processar em input/")
+    print(f"Encontrados {len(arquivos_input)} arquivos novos para processar em {ATTR_FIN_DIR_INPUT}/")
     
     # Verifica se há arquivo _chat.txt
-    chat_file = os.path.join(input_dir, "_chat.txt")
+    chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
     if not os.path.exists(chat_file):
-        print("Arquivo input/_chat.txt não encontrado!")
+        print(f"Arquivo {ATTR_FIN_DIR_INPUT}/{ATTR_FIN_ARQ_CHAT} não encontrado!")
         return False, None
     
     return True, chat_file
 
 def mover_arquivos_processados():
     """Move arquivos processados de input/ para imgs/"""
-    input_dir = "input"
-    imgs_dir = "imgs"
+    input_dir = ATTR_FIN_DIR_INPUT
+    imgs_dir = ATTR_FIN_DIR_IMGS
     
     # Garante que o diretório imgs/ existe
     os.makedirs(imgs_dir, exist_ok=True)
@@ -402,10 +372,10 @@ def mover_arquivos_processados():
         destino = os.path.join(imgs_dir, arquivo)
         shutil.move(origem, destino)
         arquivos_movidos += 1
-        print(f"Movido: {arquivo} -> imgs/")
+        print(f"Movido: {arquivo} -> {ATTR_FIN_DIR_IMGS}/")
     
     if arquivos_movidos > 0:
-        print(f"Total de {arquivos_movidos} arquivos movidos para imgs/")
+        print(f"Total de {arquivos_movidos} arquivos movidos para {ATTR_FIN_DIR_IMGS}/")
     
     return arquivos_movidos
 
@@ -544,8 +514,23 @@ def adicionar_totalizacao_mensal(df):
     
     return df_combinado
 
-def txt_to_csv_anexos_only(input_file, output_file):
+def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
     """Nova funcionalidade - extrai apenas dados de anexos (DATA/HORA, remetente, anexos e OCR) com valor total via ChatGPT"""
+    
+    # Se não foi fornecido input_file, usa o arquivo de chat padrão
+    if input_file is None:
+        # Busca arquivo de chat no diretório input/
+        input_dir = Path(ATTR_FIN_DIR_INPUT)
+        chat_files = list(input_dir.glob('*_chat.txt'))
+        if not chat_files:
+            print(f"Nenhum arquivo de chat encontrado em {ATTR_FIN_DIR_INPUT}/")
+            return pd.DataFrame()
+        input_file = str(chat_files[0])
+    
+    # Se não foi fornecido output_file, usa o padrão
+    if output_file is None:
+        output_file = ATTR_FIN_ARQ_CALCULO
+    
     # Lê cada linha completa do arquivo de chat
     with open(input_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
@@ -561,6 +546,16 @@ def txt_to_csv_anexos_only(input_file, output_file):
     
     # Filtra apenas linhas que têm anexos (remove mensagens de texto)
     df_anexos = df[df['anexo'] != ''].copy()
+    
+    # Aplica filtro por tipo de arquivo se especificado
+    if filter == 'pdf':
+        df_anexos = df_anexos[df_anexos['anexo'].str.lower().endswith('.pdf')].copy()
+        print(f"Filtro aplicado: apenas PDFs ({len(df_anexos)} arquivos)")
+    elif filter == 'img':
+        df_anexos = df_anexos[df_anexos['anexo'].str.lower().endswith(('.jpg','.jpeg','.png'))].copy()
+        print(f"Filtro aplicado: apenas imagens ({len(df_anexos)} arquivos)")
+    else:
+        print(f"Processando todos os anexos ({len(df_anexos)} arquivos)")
     
     # Remove a coluna mensagem pois não precisamos dela
     df_anexos.drop(columns=['mensagem'], inplace=True)
@@ -593,7 +588,7 @@ def txt_to_csv_anexos_only(input_file, output_file):
         processed = set()
     
     # Processa OCR e extração de valor apenas para anexos que são imagens novas
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     print("Processando OCR das imagens novas (apenas anexos)...")
     for idx, row in df_anexos.iterrows():
         # 2) se já processado antes, recupera valores e pula chamadas de API
@@ -633,7 +628,7 @@ def txt_to_csv_anexos_only(input_file, output_file):
                         df_anexos.at[idx, 'RICARDO'] = valor_total
                     elif row['REMETENTE'] == 'Rafael':
                         df_anexos.at[idx, 'RAFAEL'] = valor_total
-            elif os.path.exists(os.path.join("imgs", row['ANEXO'])):
+            elif os.path.exists(os.path.join(ATTR_FIN_DIR_IMGS, row['ANEXO'])):
                 # Se está em imgs/, não processa novamente (será tratado pela recuperação de dados)
                 continue
             else:
@@ -728,8 +723,8 @@ def verificar_totais(csv_file):
         print(f"Erro ao verificar totais: {str(e)}")
 
 def carregar_edits_json():
-    """Verifica diretório 'input' por todos os arquivos .json e retorna um dict unificado"""
-    import_dir = 'input'
+    """Verifica diretório input/ por todos os arquivos .json e retorna um dict unificado"""
+    import_dir = ATTR_FIN_DIR_INPUT
     edits = {}
     # Verifica se o diretório existe
     if not os.path.exists(import_dir):
@@ -776,14 +771,14 @@ def processar_incremental(force=False, entry=None):
             return
     edits_json = carregar_edits_json()
     if edits_json:
-        print(f"Edições encontradas em arquivos JSON de input/: aplicando após confirmação.")
+        print(f"Edições encontradas em arquivos JSON de {ATTR_FIN_DIR_INPUT}/: aplicando após confirmação.")
     print("\n=== VERIFICANDO ARQUIVOS ZIP ===")
     if not descomprimir_zip_se_existir():
         print("❌ Erro na descompressão de arquivo ZIP. Processamento interrompido.")
         return
     print("\n=== VERIFICANDO SUBDIRETÓRIOS ===")
     organizar_subdiretorios_se_necessario()
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     if force:
         arquivos = [f for f in os.listdir(input_dir) if os.path.isfile(os.path.join(input_dir, f)) and f.lower().endswith((".jpg", ".jpeg", ".png", ".pdf"))]
         if not arquivos:
@@ -821,21 +816,21 @@ def processar_incremental(force=False, entry=None):
                 else:
                     print("Colunas DATA/HORA não encontradas para filtro --entry.")
                     return
-            df_diag.to_csv('diagnostico_processamento.csv', index=False)
-            print("Reprocessamento forçado concluído. Diagnóstico salvo em diagnostico_processamento.csv.")
+            df_diag.to_csv(ATTR_FIN_ARQ_DIAGNOSTICO, index=False)
+            print(f"Reprocessamento forçado concluído. Diagnóstico salvo em {ATTR_FIN_ARQ_DIAGNOSTICO}.")
     else:
         tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
         if not tem_arquivos:
             print("Nenhum arquivo novo para processar.")
             print("\n=== GERANDO RELATÓRIO HTML ===")
-            gerar_relatorio_html("calculo.csv")
-            gerar_relatorios_mensais_html("calculo.csv")
+            gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+            gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
             return
         print(f"\n=== PROCESSANDO DADOS DE {chat_file} ===")
         print("=== PROCESSANDO DADOS COMPLETOS ===")
-        df_completo = txt_to_csv(chat_file, "mensagens.csv")
+        df_completo = txt_to_csv(chat_file, ATTR_FIN_ARQ_MENSAGENS)
         print("\n=== PROCESSANDO APENAS ANEXOS ===")
-        df_anexos = txt_to_csv_anexos_only(chat_file, "calculo.csv")
+        df_anexos = txt_to_csv_anexos_only(chat_file, ATTR_FIN_ARQ_CALCULO)
         if entry:
             # Filtra apenas a linha correspondente
             if 'DATA' in df_anexos.columns and 'HORA' in df_anexos.columns:
@@ -844,7 +839,7 @@ def processar_incremental(force=False, entry=None):
                 if df_anexos.empty:
                     print(f"Nenhuma linha encontrada para --entry {entry}.")
                     return
-                df_anexos.to_csv('calculo.csv', index=False)
+                df_anexos.to_csv(ATTR_FIN_ARQ_CALCULO, index=False)
             else:
                 print("Colunas DATA/HORA não encontradas para filtro --entry.")
                 return
@@ -855,7 +850,7 @@ def processar_incremental(force=False, entry=None):
                 if (not row.get('VALOR')) and (not row.get('DESCRICAO')) and (not row.get('CLASSIFICACAO')):
                     anexo = row.get('ANEXO')
                     if anexo:
-                        caminho = os.path.join('imgs', anexo) if os.path.exists(os.path.join('imgs', anexo)) else os.path.join('input', anexo)
+                        caminho = os.path.join(ATTR_FIN_DIR_IMGS, anexo) if os.path.exists(os.path.join(ATTR_FIN_DIR_IMGS, anexo)) else os.path.join(ATTR_FIN_DIR_INPUT, anexo)
                         ocr_result = row.get('OCR', '')
                         motivo = diagnostico_erro_ocr(caminho, ocr_result)
                         motivos.append(motivo)
@@ -864,7 +859,7 @@ def processar_incremental(force=False, entry=None):
                 else:
                     motivos.append("")
             df_anexos['MOTIVO_ERRO'] = motivos
-            df_anexos.to_csv('calculo.csv', index=False)
+            df_anexos.to_csv(ATTR_FIN_ARQ_CALCULO, index=False)
         print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
         arquivos_movidos = mover_arquivos_processados()
         try:
@@ -879,21 +874,21 @@ def processar_incremental(force=False, entry=None):
             print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
         print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
         if edits_json:
-            resposta = input("Deseja aplicar as edições do JSON em calculo.csv antes de gerar relatórios? (s/n): ").strip().lower()
+            resposta = input(f"Deseja aplicar as edições do JSON em {ATTR_FIN_ARQ_CALCULO} antes de gerar relatórios? (s/n): ").strip().lower()
             if resposta == 's':
-                df_calc = pd.read_csv('calculo.csv', dtype=str)
+                df_calc = pd.read_csv(ATTR_FIN_ARQ_CALCULO, dtype=str)
                 for row_id, campos in edits_json.items():
                     idx = int(row_id.split('_')[1])
                     for campo, valor in campos.items():
                         if campo.upper() in df_calc.columns:
                             df_calc.at[idx, campo.upper()] = valor
-                df_calc.to_csv('calculo.csv', index=False, quoting=1)
-                print("Edições aplicadas em calculo.csv.")
+                df_calc.to_csv(ATTR_FIN_ARQ_CALCULO, index=False, quoting=1)
+                print(f"Edições aplicadas em {ATTR_FIN_ARQ_CALCULO}.")
     print("\n=== GERANDO RELATÓRIO HTML ===")
-    gerar_relatorio_html("calculo.csv")
+    gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
-    gerar_relatorios_mensais_html("calculo.csv")
-    df_all = pd.read_csv("calculo.csv")
+    gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+    df_all = pd.read_csv(ATTR_FIN_ARQ_CALCULO)
     df_all['DATA_DT'] = pd.to_datetime(df_all['DATA'], format='%d/%m/%Y', errors='coerce')
     df_all['ANO_MES'] = df_all['DATA_DT'].dt.to_period('M')
     nomes_meses = {
@@ -908,13 +903,128 @@ def processar_incremental(force=False, entry=None):
         nome_arquivo_impressao = f"impressao-{ano}-{mes:02d}-{nome_mes}.html"
         print(f"✅ HTML de impressão gerado: {nome_arquivo_impressao}")
 
+def processar_pdfs(force=False, entry=None):
+    """Processa apenas arquivos .pdf no diretório input/."""
+    print("=== INICIANDO PROCESSAMENTO DE PDFs {} ===".format("FORÇADO" if force else "INCREMENTAL"))
+    if entry:
+        print(f"Filtro de entrada ativado: {entry}")
+        try:
+            data_entry, hora_entry = entry.strip().split()
+        except Exception:
+            print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
+            return
+    
+    input_dir = Path(ATTR_FIN_DIR_INPUT)
+    
+    if not input_dir.exists():
+        print(f"Diretório {ATTR_FIN_DIR_INPUT}/ não encontrado!")
+        return
+    
+    # Busca apenas arquivos PDF
+    arquivos_pdf = list(input_dir.glob('*.pdf'))
+    
+    if not arquivos_pdf:
+        print(f"Nenhum arquivo PDF encontrado em {ATTR_FIN_DIR_INPUT}/")
+        return
+    
+    print(f"Encontrados {len(arquivos_pdf)} arquivos PDF para processar")
+    
+    # Processa cada PDF
+    for pdf_path in arquivos_pdf:
+        print(f"Processando PDF: {pdf_path.name}")
+        
+        # Extrai texto via OCR
+        ocr_text = process_image_ocr(str(pdf_path))
+        
+        # Registra no XML (usar só o nome do arquivo)
+        registrar_ocr_xml(os.path.basename(str(pdf_path)), ocr_text)
+        
+        # Extrai valor total usando ChatGPT
+        valor_total = extract_total_value_with_chatgpt(ocr_text)
+        
+        # Gera descrição do pagamento usando ChatGPT
+        descricao = generate_payment_description_with_chatgpt(ocr_text)
+        
+        # Classifica o tipo de transação usando ChatGPT
+        classificacao = classify_transaction_type_with_chatgpt(ocr_text)
+        
+        print(f"  - Valor: {valor_total}")
+        print(f"  - Descrição: {descricao}")
+        print(f"  - Classificação: {classificacao}")
+    
+    # Atualiza {ATTR_FIN_ARQ_CALCULO} apenas com PDFs
+    print("\n=== ATUALIZANDO CSV APENAS COM PDFs ===")
+    txt_to_csv_anexos_only(filter='pdf', output_file=ATTR_FIN_ARQ_CALCULO)
+    # Também atualizar o CSV de mensagens apenas com PDFs
+    txt_to_csv_anexos_only(filter='pdf', output_file=ATTR_FIN_ARQ_MENSAGENS)
+    
+    print("✅ Processamento de PDFs concluído!")
+
+def processar_imgs(force=False, entry=None):
+    """Processa apenas arquivos de imagem (.jpg, .png, .jpeg) no diretório input/."""
+    print("=== INICIANDO PROCESSAMENTO DE IMAGENS {} ===".format("FORÇADO" if force else "INCREMENTAL"))
+    if entry:
+        print(f"Filtro de entrada ativado: {entry}")
+        try:
+            data_entry, hora_entry = entry.strip().split()
+        except Exception:
+            print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
+            return
+    
+    input_dir = Path(ATTR_FIN_DIR_INPUT)
+    
+    if not input_dir.exists():
+        print(f"Diretório {ATTR_FIN_DIR_INPUT}/ não encontrado!")
+        return
+    
+    # Busca apenas arquivos de imagem
+    extensoes_img = ('.jpg', '.jpeg', '.png')
+    imagens = [p for p in input_dir.iterdir() if p.is_file() and p.suffix.lower() in extensoes_img]
+    
+    if not imagens:
+        print(f"Nenhum arquivo de imagem encontrado em {ATTR_FIN_DIR_INPUT}/")
+        return
+    
+    print(f"Encontradas {len(imagens)} imagens para processar")
+    
+    # Processa cada imagem
+    for img_path in imagens:
+        print(f"Processando imagem: {img_path.name}")
+        
+        # Extrai texto via OCR
+        ocr_text = process_image_ocr(str(img_path))
+        
+        # Registra no XML (usar só o nome do arquivo)
+        registrar_ocr_xml(os.path.basename(str(img_path)), ocr_text)
+        
+        # Extrai valor total usando ChatGPT
+        valor_total = extract_total_value_with_chatgpt(ocr_text)
+        
+        # Gera descrição do pagamento usando ChatGPT
+        descricao = generate_payment_description_with_chatgpt(ocr_text)
+        
+        # Classifica o tipo de transação usando ChatGPT
+        classificacao = classify_transaction_type_with_chatgpt(ocr_text)
+        
+        print(f"  - Valor: {valor_total}")
+        print(f"  - Descrição: {descricao}")
+        print(f"  - Classificação: {classificacao}")
+    
+    # Atualiza {ATTR_FIN_ARQ_CALCULO} apenas com imagens
+    print("\n=== ATUALIZANDO CSV APENAS COM IMAGENS ===")
+    txt_to_csv_anexos_only(filter='img', output_file=ATTR_FIN_ARQ_CALCULO)
+    # Também atualizar o CSV de mensagens apenas com imagens
+    txt_to_csv_anexos_only(filter='img', output_file=ATTR_FIN_ARQ_MENSAGENS)
+    
+    print("✅ Processamento de imagens concluído!")
+
 def descomprimir_zip_se_existir():
     """Verifica se existe apenas um arquivo ZIP em input/ e o descomprime"""
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     
     # Verifica se o diretório input existe
     if not os.path.exists(input_dir):
-        print(f"Diretório {input_dir}/ não encontrado!")
+        print(f"Diretório {ATTR_FIN_DIR_INPUT}/ não encontrado!")
         return False
     
     # Lista todos os arquivos no diretório input/
@@ -925,11 +1035,11 @@ def descomprimir_zip_se_existir():
     
     # Verifica se existe apenas um arquivo ZIP
     if len(arquivos_zip) == 0:
-        print("Nenhum arquivo ZIP encontrado em input/")
+        print(f"Nenhum arquivo ZIP encontrado em {ATTR_FIN_DIR_INPUT}/")
         return True  # Não é erro, apenas não há ZIP para processar
     
     if len(arquivos_zip) > 1:
-        print(f"Encontrados {len(arquivos_zip)} arquivos ZIP em input/. Deve haver apenas um.")
+        print(f"Encontrados {len(arquivos_zip)} arquivos ZIP em {ATTR_FIN_DIR_INPUT}/. Deve haver apenas um.")
         print(f"Arquivos ZIP encontrados: {arquivos_zip}")
         return False
     
@@ -971,7 +1081,7 @@ def descomprimir_zip_se_existir():
 
 def organizar_arquivos_extraidos():
     """Move arquivos de subdiretórios para input/ diretamente e remove diretórios desnecessários"""
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     extensoes_validas = ('.jpg', '.jpeg', '.png', '.pdf', '.txt')
     
     arquivos_movidos = 0
@@ -1026,7 +1136,7 @@ def organizar_arquivos_extraidos():
 
 def organizar_subdiretorios_se_necessario():
     """Verifica se há subdiretórios em input/ e organiza arquivos se necessário"""
-    input_dir = "input"
+    input_dir = ATTR_FIN_DIR_INPUT
     
     if not os.path.exists(input_dir):
         return
@@ -1036,7 +1146,7 @@ def organizar_subdiretorios_se_necessario():
                     if os.path.isdir(os.path.join(input_dir, item))]
     
     if not subdiretorios:
-        print("Nenhum subdiretório encontrado em input/")
+        print(f"Nenhum subdiretório encontrado em {ATTR_FIN_DIR_INPUT}/")
         return
     
     print(f"Subdiretórios encontrados: {subdiretorios}")
@@ -1074,7 +1184,7 @@ def executar_testes_e2e():
         todos_passaram = resultado_processamento and resultado_verificacao and resultado_ocr
         
         if todos_passaram:
-            print("\n🎉 TODOS OS TESTES E2E PASSARAM!")
+            print("\n�� TODOS OS TESTES E2E PASSARAM!")
             return True
         else:
             print("\n❌ ALGUNS TESTES FALHARAM!")
@@ -1086,7 +1196,7 @@ def executar_testes_e2e():
 
 def backup_arquivos_existentes():
     """Faz backup de arquivos existentes antes dos testes"""
-    arquivos_backup = ['mensagens.csv', 'calculo.csv']
+    arquivos_backup = [ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_CALCULO]
     
     for arquivo in arquivos_backup:
         if os.path.exists(arquivo):
@@ -1096,7 +1206,7 @@ def backup_arquivos_existentes():
 
 def restaurar_arquivos_backup():
     """Restaura arquivos do backup após os testes"""
-    arquivos_backup = ['mensagens.csv', 'calculo.csv']
+    arquivos_backup = [ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_CALCULO]
     
     for arquivo in arquivos_backup:
         backup_nome = f"{arquivo}.backup_teste"
@@ -1112,16 +1222,16 @@ def testar_processamento_incremental():
     
     try:
         # Verifica se há arquivos em input/
-        if not os.path.exists('input') or not os.listdir('input'):
-            print("⚠️  Sem arquivos em input/ para testar processamento")
+        if not os.path.exists(ATTR_FIN_DIR_INPUT) or not os.listdir(ATTR_FIN_DIR_INPUT):
+            print(f"⚠️  Sem arquivos em {ATTR_FIN_DIR_INPUT}/ para testar processamento")
             return True  # Não é falha, apenas não há dados para testar
         
         # Conta arquivos antes do processamento
-        arquivos_antes = len([f for f in os.listdir('input') 
+        arquivos_antes = len([f for f in os.listdir(ATTR_FIN_DIR_INPUT) 
                              if f.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf'))])
         
         if arquivos_antes == 0:
-            print("⚠️  Sem imagens em input/ para testar processamento")
+            print(f"⚠️  Sem imagens em {ATTR_FIN_DIR_INPUT}/ para testar processamento")
             return True
         
         print(f"Arquivos de imagem encontrados: {arquivos_antes}")
@@ -1130,17 +1240,17 @@ def testar_processamento_incremental():
         processar_incremental()
         
         # Verifica se arquivos foram movidos para imgs/
-        if os.path.exists('imgs'):
-            arquivos_imgs = len([f for f in os.listdir('imgs') 
+        if os.path.exists(ATTR_FIN_DIR_IMGS):
+            arquivos_imgs = len([f for f in os.listdir(ATTR_FIN_DIR_IMGS) 
                                if f.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf'))])
-            print(f"Arquivos movidos para imgs/: {arquivos_imgs}")
+            print(f"Arquivos movidos para {ATTR_FIN_DIR_IMGS}/: {arquivos_imgs}")
         
         # Verifica se CSVs foram criados
         csvs_criados = []
-        if os.path.exists('mensagens.csv'):
-            csvs_criados.append('mensagens.csv')
-        if os.path.exists('calculo.csv'):
-            csvs_criados.append('calculo.csv')
+        if os.path.exists(ATTR_FIN_ARQ_MENSAGENS):
+            csvs_criados.append(ATTR_FIN_ARQ_MENSAGENS)
+        if os.path.exists(ATTR_FIN_ARQ_CALCULO):
+            csvs_criados.append(ATTR_FIN_ARQ_CALCULO)
         
         print(f"CSVs criados: {csvs_criados}")
         
@@ -1172,10 +1282,10 @@ def testar_verificacao_totais():
         }
         
         df_teste = pd.DataFrame(dados_teste)
-        arquivo_teste = 'tmp/teste_calculo.csv'
+        arquivo_teste = f'{ATTR_FIN_DIR_TMP}/teste_calculo.csv'
         
         # Garante que o diretório tmp/ existe
-        os.makedirs('tmp', exist_ok=True)
+        os.makedirs(ATTR_FIN_DIR_TMP, exist_ok=True)
         
         df_teste.to_csv(arquivo_teste, index=False)
         print(f"Arquivo de teste criado: {arquivo_teste}")
@@ -1199,7 +1309,7 @@ def testar_ocr_individual():
     
     try:
         # Procura por imagens de teste
-        diretorios_busca = ['imgs', 'input', 'massa']
+        diretorios_busca = [ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_MASSA]
         imagem_teste = None
         
         for diretorio in diretorios_busca:
@@ -1238,7 +1348,7 @@ def testar_funcoes_chatgpt():
     
     try:
         # Verifica se API está disponível
-        api_key = os.getenv('OPENAI_API_KEY')
+        api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
             print("⚠️  API Key do OpenAI não configurada")
             return False
@@ -1296,152 +1406,7 @@ def corrigir_totalizadores_duplicados(csv_file):
         print(f"❌ Erro ao corrigir totalizadores: {str(e)}")
         return False
 
-def gerar_html_mensal(df_mes, nome_arquivo, nome_mes, ano):
-    """Gera o HTML para um mês específico, referenciando imagens por caminho relativo em vez de base64"""
-    print(f"DEBUG gerar_html_mensal: Processando {len(df_mes)} linhas para {nome_mes} {ano}")
-    if len(df_mes) > 0:
-        print(f"DEBUG: Primeiras 3 linhas de DESCRICAO: {df_mes['DESCRICAO'].head(3).tolist()}")
-        print(f"DEBUG: Primeiras 3 linhas de CLASSIFICACAO: {df_mes['CLASSIFICACAO'].head(3).tolist()}")
-    meses_num = {
-        'Janeiro': '01', 'Fevereiro': '02', 'Marco': '03', 'Abril': '04',
-        'Maio': '05', 'Junho': '06', 'Julho': '07', 'Agosto': '08',
-        'Setembro': '09', 'Outubro': '10', 'Novembro': '11', 'Dezembro': '12'
-    }
-    mes_num = meses_num.get(nome_mes, '01')
-    html = '''<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + '''</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f9f9f9; line-height: 1.6; }
-    .container { max-width: 1200px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-    h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 28px; border-bottom: 3px solid #3498db; padding-bottom: 15px; }
-    .info { text-align: center; margin-bottom: 20px; color: #7f8c8d; font-style: italic; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; font-size: 14px; }
-    th, td { border: 1px solid #ddd; padding: 12px 8px; text-align: center; vertical-align: middle; }
-    th { background-color: #3498db; color: white; font-weight: bold; text-transform: uppercase; font-size: 12px; }
-    tr:nth-child(even) { background-color: #f8f9fa; }
-    tr:hover { background-color: #e3f2fd; }
-    .total-row { background-color: #fff3cd !important; font-weight: bold; border-top: 3px solid #ffc107; }
-    .total-row:hover { background-color: #fff3cd !important; }
-    img.thumb { max-height: 50px; max-width: 80px; cursor: pointer; transition: transform 0.3s ease; border-radius: 5px; border: 1px solid #ddd; }
-    img.thumb:hover { transform: scale(3); z-index: 9999; position: relative; border: 2px solid #3498db; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-    .modal { display: none; position: fixed; z-index: 9999; padding-top: 0; left: 0; top: 0; width: 100vw; height: 100vh; overflow: auto; background-color: rgba(0,0,0,0.95); }
-    .modal-content { margin: auto; display: block; width: 100%; height: 100%; object-fit: contain; }
-    .modal.show { display: block; }
-    .valor { font-weight: bold; color: #27ae60; }
-    .data-hora { font-family: monospace; font-size: 12px; white-space: nowrap; }
-    .classificacao { padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-    .transferencia { background-color: #e8f5e8; color: #2e7d32; }
-    .pagamento { background-color: #fff3e0; color: #f57c00; }
-    @media (max-width: 768px) { .container { margin: 10px; padding: 15px; } table { font-size: 12px; } th, td { padding: 8px 4px; } h1 { font-size: 22px; } img.thumb { max-height: 40px; max-width: 60px; } img.thumb:hover { transform: scale(2.5); } table th:nth-child(1), table td:nth-child(1) { font-size: 10px; white-space: normal; word-break: break-word; } table th:nth-child(2), table td:nth-child(2) { font-size: 0; width: 30px; position: relative; } table th:nth-child(2) button { font-size: 0; border: none; background: none; padding: 4px; display: block; width: 100%; height: 100%; cursor: pointer; } table th:nth-child(2) { position: relative; z-index: 1; cursor: pointer; } table th:nth-child(2)::after { display: none; } span.classificacao.transferencia::before { content: "⇆"; } span.classificacao.pagamento::before { content: "💸"; } span.classificacao { font-size: 0; display: inline-block; width: 1em; height: 1em; } table th:nth-child(3)::after { content: "RI"; } table th:nth-child(4)::after { content: "RA"; } table th:nth-child(5)::after { content: "📎"; } table th:nth-child(6), table td:nth-child(6) { display: none; } }  </style>\n</head>\n<body>\n  <!-- Mensagem de carregamento -->\n  <div id=\"loading-overlay\" style=\"position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;z-index:9999;\">\n    <div style=\"font-size:18px;color:#333;font-family:sans-serif;\">Carregando relatório, aguarde por favor...</div>\n  </div>\n  <div class=\"container\">\n    <h1>Relatório de Prestação de Contas - ''' + f"{nome_mes} {ano}" + '''</h1>\n    <div class=\"info\">Gerado automaticamente em ''' + pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S') + '''</div>\n    <div style=\"text-align: right; margin-bottom: 10px;\">\n      <a href=\"report-edit-''' + f"{ano}-{mes_num}-{nome_mes}" + '''.html\" target=\"_blank\">\n        <button>Editar Relatório</button>\n      </a>\n    </div>\n    <table>\n      <thead>\n        <tr>\n          <th>Data-Hora</th>\n          <th><button id=\"toggle-payments\" style=\"background:none;border:none;cursor:pointer;font-size:16px;\" aria-label=\"Alternar pagamentos\"></button></th>\n          <th>Ricardo (R$)</th>\n          <th>Rafael (R$)</th>\n          <th>Anexo</th>\n          <th>Descrição</th>\n        </tr>\n      </thead>\n      <tbody>\n'''
-    for idx, row in df_mes.iterrows():
-        data = str(row.get('DATA', ''))
-        hora = str(row.get('HORA', ''))
-        data_hora = f"{data} {hora}".strip()
-        classificacao = str(row.get('CLASSIFICACAO', ''))
-        ricardo = str(row.get('RICARDO', ''))
-        rafael = str(row.get('RAFAEL', ''))
-        descricao = str(row.get('DESCRICAO', ''))
-        anexo = str(row.get('ANEXO', ''))
-        row_class = ''
-        classificacao_html = ''
-        if classificacao.lower() == 'transferência':
-            row_class = 'transferencia'
-            classificacao_html = '<span class="classificacao transferencia">Transferência</span>'
-        elif classificacao.lower() == 'pagamento':
-            row_class = 'pagamento'
-            classificacao_html = '<span class="classificacao pagamento">Pagamento</span>'
-        else:
-            classificacao_html = f'<span class="classificacao">{classificacao}</span>'
-        ricardo_html = ricardo
-        rafael_html = rafael
-        descricao_html = descricao
-        # Referenciar imagem por caminho relativo
-        img_html = ''
-        if anexo:
-            if os.path.exists(os.path.join('imgs', anexo)):
-                img_html = f'<img src="imgs/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
-            elif os.path.exists(os.path.join('input', anexo)):
-                img_html = f'<img src="input/{anexo}" class="thumb" alt="Comprovante {anexo}" title="{anexo}" onclick="showModal(this.src)">' 
-            else:
-                img_html = f'<span style="color:#e67e22;font-size:12px;">Sem anexo</span>'
-        html += f'''        <tr class="{row_class}">\n          <td class="data-hora">{data_hora}</td>\n          <td>{classificacao_html}</td>\n          <td>{ricardo_html}</td>\n          <td>{rafael_html}</td>\n          <td>{img_html}</td>\n          <td style="text-align: left; font-size: 12px;">{descricao_html}</td>\n        </tr>\n'''
-    html += '''      </tbody>\n    </table>\n  </div>\n  <div id="modal" class="modal" onclick="hideModal()">\n    <img class="modal-content" id="modal-img">\n  </div>\n  <script>\n    function showModal(imgSrc) {\n      const modal = document.getElementById('modal');\n      const modalImg = document.getElementById('modal-img');\n      modalImg.src = imgSrc;\n      modal.classList.add('show');\n    }\n    function hideModal() {\n      const modal = document.getElementById('modal');\n      modal.classList.remove('show');\n    }\n    let showPayments = false;\n    document.addEventListener('DOMContentLoaded', () => {\n      const toggleBtn = document.getElementById('toggle-payments');\n      toggleBtn.addEventListener('click', () => {\n        showPayments = !showPayments;\n        document.querySelectorAll('tbody tr').forEach(row => {\n          const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');\n          row.style.display = isPayment ? (showPayments ? '' : 'none') : '';\n        });\n      });\n      document.querySelectorAll('tbody tr').forEach(row => {\n        const isPayment = row.querySelector('td:nth-child(2) .classificacao.pagamento');\n        if (isPayment) row.style.display = 'none';\n      });\n    });\n    document.addEventListener('DOMContentLoaded', () => {\n      const overlay = document.getElementById('loading-overlay');\n      if (overlay) overlay.style.display = 'none';\n    });\n  </script>\n</body>\n</html>'''
-    with open(nome_arquivo, "w", encoding="utf-8") as f:
-        f.write(html)
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Uso:")
-        print("  python app.py processar              # Processamento incremental automático")
-        print("  python app.py processar --force      # Reprocessa todos os arquivos de input/")
-        print("  python app.py processar --entry 'DD/MM/AAAA HH:MM:SS'  # Reprocessa apenas a linha correspondente")
-        print("  python app.py verificar <arquivo_csv>")
-        print("  python app.py corrigir <arquivo_csv> # Corrige totalizadores duplicados")
-        print("  python app.py teste                  # Executa testes E2E completos")
-        sys.exit(1)
-    
-    comando = sys.argv[1]
-    
-    if comando == "processar":
-        force = False
-        entry = None
-        # Suporte a --force e --entry
-        if len(sys.argv) > 2:
-            if sys.argv[2] == "--force":
-                force = True
-            elif sys.argv[2] == "--entry":
-                if len(sys.argv) > 3:
-                    entry = sys.argv[3]
-                else:
-                    print("Uso: python app.py processar --entry 'DD/MM/AAAA HH:MM:SS'")
-                    sys.exit(1)
-        # Permitir --force --entry juntos
-        if len(sys.argv) > 4:
-            if sys.argv[2] == "--force" and sys.argv[3] == "--entry":
-                force = True
-                entry = sys.argv[4]
-            elif sys.argv[2] == "--entry" and sys.argv[4] == "--force":
-                entry = sys.argv[3]
-                force = True
-        processar_incremental(force=force, entry=entry)
-        if force:
-            for f in os.listdir('input'):
-                caminho = os.path.join('input', f)
-                if os.path.isfile(caminho):
-                    shutil.move(caminho, os.path.join('imgs', f))
-            print("Arquivos reprocessados e movidos de volta para imgs/.")
-        
-    elif comando == "verificar":
-        if len(sys.argv) != 3:
-            print("Uso: python app.py verificar <arquivo_csv>")
-            sys.exit(1)
-            
-        csv_file = sys.argv[2]
-        verificar_totais(csv_file)
-        
-    elif comando == "corrigir":
-        if len(sys.argv) != 3:
-            print("Uso: python app.py corrigir <arquivo_csv>")
-            sys.exit(1)
-            
-        csv_file = sys.argv[2]
-        sucesso = corrigir_totalizadores_duplicados(csv_file)
-        sys.exit(0 if sucesso else 1)
-        
-    elif comando == "teste":
-        # Executa testes E2E
-        sucesso = executar_testes_e2e()
-        sys.exit(0 if sucesso else 1)
-    elif comando == "prestacao":
-        # Gera planilha no formato da Justiça
-        # gerar_formato_justica("calculo.csv", "prestacao_contas.xls", "prestacao_contas_justica.xlsx")
-        print("A função gerar_formato_justica foi removida.")
-        sys.exit(0)
-    else:
-        print("Comando inválido. Use 'processar', 'verificar' ou 'teste'")
-        sys.exit(1)
+
+
 

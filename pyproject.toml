@@ -1,0 +1,31 @@
+# pyproject.toml
+# Caminho relativo ao projeto: pyproject.toml
+# Configuração do Poetry para gerenciamento de dependências do projeto
+[tool.poetry]
+name = "gastos-tia-claudia"
+version = "0.1.0"
+description = "Sistema de processamento de comprovantes financeiros"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [{include = "gastos_tia_claudia", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+pandas = "*"
+openpyxl = "*"
+opencv-python = "*"
+pytesseract = "*"
+openai = "*"
+Pillow = "*"
+PyPDF2 = "*"
+pdf2image = "*"
+pdfplumber = "*"
+click = "*"
+jinja2 = "^3.1.6"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api" 

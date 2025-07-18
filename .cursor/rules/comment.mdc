@@ -1,0 +1,5 @@
+---
+description: Todos os arquivos do projeto devem conter um comentario no topo, informando o caminho relativo ao projeto. Quando necessario, respeitar exigencias da linguagem como no caso do shebang.
+globs: '*'
+alwaysApply: true
+---

@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+A única massa de dados para testes permitida neste projeto está disponível no diretório massa/. 

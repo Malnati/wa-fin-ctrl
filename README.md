@@ -1,3 +1,7 @@
+# README.md
+# Caminho relativo ao projeto: README.md
+# Documentação principal do sistema de processamento de comprovantes financeiros
+
 # Gastos Tia Claudia 📊💰
 
 Sistema para processamento automatizado de comprovantes financeiros extraídos de conversas do WhatsApp. O projeto utiliza OCR (Tesseract) e inteligência artificial (ChatGPT) para extrair valores, gerar descrições e classificar transações a partir de imagens de comprovantes.

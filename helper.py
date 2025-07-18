@@ -1,7 +1,11 @@
+# helper.py
+# Caminho relativo ao projeto: helper.py
+# Módulo de funções auxiliares para processamento de dados financeiros
 import re
 import os
 import pandas as pd
 import shutil
+from env import *
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""
@@ -117,8 +121,8 @@ def incrementar_csv(novo_df, arquivo_csv):
     return df_combinado
 
 def mover_arquivos_processados():
-    input_dir = "input"
-    imgs_dir = "imgs"
+    input_dir = ATTR_FIN_DIR_INPUT
+    imgs_dir = ATTR_FIN_DIR_IMGS
     os.makedirs(imgs_dir, exist_ok=True)
     extensoes_imagem = ('.jpg', '.jpeg', '.png', '.pdf')
     arquivos_input = [f for f in os.listdir(input_dir) if f.lower().endswith(extensoes_imagem)]
@@ -128,7 +132,7 @@ def mover_arquivos_processados():
         destino = os.path.join(imgs_dir, arquivo)
         shutil.move(origem, destino)
         arquivos_movidos += 1
-        print(f"Movido: {arquivo} -> imgs/")
+        print(f"Movido: {arquivo} -> {ATTR_FIN_DIR_IMGS}/")
     if arquivos_movidos > 0:
-        print(f"Total de {arquivos_movidos} arquivos movidos para imgs/")
+        print(f"Total de {arquivos_movidos} arquivos movidos para {ATTR_FIN_DIR_IMGS}/")
     return arquivos_movidos

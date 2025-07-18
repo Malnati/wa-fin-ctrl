@@ -1,0 +1,5 @@
+---
+description: Os scripts código-fonte e demais arquivos criados para verificar propostas de soluções ou testar soluções sugeridas devem morar em dev/.
+globs: 
+alwaysApply: true
+---
