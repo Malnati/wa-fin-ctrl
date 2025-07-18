@@ -22,7 +22,7 @@ except ImportError:
     pdfplumber = None
     convert_from_path = None
 
-from ocr import registrar_ocr_xml
+from ocr import registrar_ocr_xml, process_image_ocr
 
 # === CONSTANTES DE DIRETÓRIOS E ARQUIVOS ===
 DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
@@ -34,78 +34,6 @@ ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
 ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'mensagens/diagnostico.csv')
 ARQ_CHAT = os.getenv('ATTR_FIN_ARQ_CHAT', '_chat.txt')
 ARQ_OCR_XML = os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/ocr.xml')
-
-def process_image_ocr(image_path):
-    """Processa uma imagem ou PDF e extrai texto usando OCR"""
-    try:
-        # Se o caminho já é completo (contém diretório), usa como está
-        if os.path.exists(image_path):
-            pass  # Usa o caminho fornecido
-        # Se não existe, tenta em imgs/ (para compatibilidade)
-        elif not image_path.startswith((DIR_IMGS + '/', DIR_INPUT + '/')):
-            # Tenta primeiro em input/ (arquivos novos)
-            input_path = os.path.join(DIR_INPUT, image_path)
-            if os.path.exists(input_path):
-                image_path = input_path
-            # Se não está em input/, tenta em imgs/ (arquivos já processados)
-            else:
-                imgs_path = os.path.join(DIR_IMGS, image_path)
-                if os.path.exists(imgs_path):
-                    image_path = imgs_path
-                else:
-                    return "Arquivo não encontrado"
-        elif not os.path.exists(image_path):
-            return "Arquivo não encontrado"
-
-        # Se for PDF, processa de forma especial
-        if image_path.lower().endswith('.pdf'):
-            if pdfplumber is None or convert_from_path is None:
-                return ("Erro: Suporte a PDF não disponível. "
-                        "Adicione as bibliotecas 'pdfplumber' e 'pdf2image' no Dockerfile para processar PDFs.")
-            texto_pdf = ""
-            # Primeiro tenta extrair texto pesquisável
-            try:
-                with pdfplumber.open(image_path) as pdf:
-                    for page in pdf.pages:
-                        texto_pdf += page.extract_text() or ''
-                texto_pdf = texto_pdf.strip()
-            except Exception as e:
-                texto_pdf = ""
-            # Se não extraiu nada, tenta OCR nas imagens das páginas
-            if not texto_pdf:
-                try:
-                    imagens = convert_from_path(image_path)
-                    texto_ocr = []
-                    for img in imagens:
-                        # Converte PIL Image para array do OpenCV
-                        img_cv = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-                        gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
-                        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-                        texto_ocr.append(pytesseract.image_to_string(thresh, lang='eng'))
-                    texto_pdf = '\n'.join(texto_ocr).strip()
-                except Exception as e:
-                    return f"Erro ao processar PDF: {str(e)}"
-            # Limpa o texto extraído
-            texto_pdf = re.sub(r'\n+', ' ', texto_pdf).strip()
-            texto_pdf = re.sub(r'\s+', ' ', texto_pdf)
-            return texto_pdf if texto_pdf else "Nenhum texto detectado"
-        # Caso contrário, processa como imagem
-        # Carrega a imagem
-        img = cv2.imread(image_path)
-        if img is None:
-            return "Erro ao carregar imagem"
-        # Converte para escala de cinza
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # Aplica threshold para melhorar o OCR
-        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        # Extrai texto usando pytesseract
-        text = pytesseract.image_to_string(thresh, lang='eng')
-        # Remove quebras de linha excessivas e espaços
-        text = re.sub(r'\n+', ' ', text).strip()
-        text = re.sub(r'\s+', ' ', text)
-        return text if text else "Nenhum texto detectado"
-    except Exception as e:
-        return f"Erro no OCR: {str(e)}"
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""
@@ -358,8 +286,6 @@ def txt_to_csv(input_file, output_file):
                 print(f"Processando OCR: {row['anexo']}")
                 ocr_result = process_image_ocr(caminho_input)
                 df.at[idx, 'OCR'] = ocr_result
-                # Registra extração no XML
-                registrar_ocr_xml(row['anexo'], ocr_result)
             else:
                 # Se não está em input/, verifica se está em imgs/ (já processado)
                 caminho_imgs = os.path.join("imgs", row['anexo'])
@@ -666,8 +592,6 @@ def txt_to_csv_anexos_only(input_file, output_file):
                 print(f"Processando OCR: {row['ANEXO']}")
                 ocr_result = process_image_ocr(caminho_input)
                 df_anexos.at[idx, 'OCR'] = ocr_result
-                # Registra extração no XML
-                registrar_ocr_xml(row['ANEXO'], ocr_result)
                 
                 # Extrai valor total usando ChatGPT
                 print(f"Extraindo valor total: {row['ANEXO']}")
@@ -856,8 +780,6 @@ def processar_incremental(force=False, entry=None):
                 descricao = generate_payment_description_with_chatgpt(ocr_result)
                 classificacao = classify_transaction_type_with_chatgpt(ocr_result)
                 motivo_erro = ""
-                # Registra extração no XML
-                registrar_ocr_xml(arquivo, ocr_result)
                 if not valor_total and not descricao and not classificacao:
                     motivo_erro = diagnostico_erro_ocr(caminho, ocr_result)
                 registros.append({
