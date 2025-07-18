@@ -200,6 +200,7 @@ def _preparar_linhas_impressao(df_mes):
     return rows
 
 def gerar_relatorio_html(csv_path):
+    print(f"DEBUG: Iniciando gerar_relatorio_html com csv_path: {csv_path}")
     try:
         if not os.path.exists(csv_path):
             print(f"❌ O relatório report.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
@@ -232,6 +233,7 @@ def gerar_relatorio_html(csv_path):
             }
         }
         
+        print(f"DEBUG: Chamando TemplateRenderer.render com output_path: report.html")
         TemplateRenderer.render(
             template_name="unified_report.html.j2",
             context=context,
@@ -356,3 +358,9 @@ def gerar_html_impressao(df_mes, nome_arquivo, nome_mes, ano):
         print(f"✅ HTML de impressão gerado: {nome_arquivo}")
     except Exception as e:
         print(f"❌ Erro ao gerar HTML de impressão: {str(e)}")
+
+if __name__ == "__main__":
+    print("🚀 Iniciando geração de relatórios...")
+    gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+    gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+    print("✅ Geração de relatórios concluída!")

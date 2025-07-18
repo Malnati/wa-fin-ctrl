@@ -30,28 +30,10 @@
   <td>
     {% if row.row_class != 'total-row' and row.anexo and row.anexo != 'nan' and row.anexo != '' %}
       {% if row.anexo.lower().endswith(('.jpg', '.jpeg', '.png')) %}
-        {% if attrs.IMGS_DIR_PATH and attrs.INPUT_DIR_PATH %}
-          {% set img_found = false %}
-          {% if attrs.IMGS_DIR_PATH %}
-            <img src="{{ attrs.IMGS_DIR_PATH }}/{{ row.anexo }}" 
-                 class="thumb" 
-                 alt="Comprovante {{ row.anexo }}" 
-                 title="{{ row.anexo }}">
-            {% set img_found = true %}
-          {% endif %}
-          {% if not img_found and attrs.INPUT_DIR_PATH %}
-            <img src="{{ attrs.INPUT_DIR_PATH }}/{{ row.anexo }}" 
-                 class="thumb" 
-                 alt="Comprovante {{ row.anexo }}" 
-                 title="{{ row.anexo }}">
-            {% set img_found = true %}
-          {% endif %}
-          {% if not img_found %}
-            <span style="color: #f39c12; font-size: 11px;">Não encontrado: {{ row.anexo }}</span>
-          {% endif %}
-        {% else %}
-          <span style="color: #f39c12; font-size: 11px;">Não encontrado: {{ row.anexo }}</span>
-        {% endif %}
+        <img src="imgs/{{ row.anexo }}" 
+             class="thumb" 
+             alt="Comprovante {{ row.anexo }}" 
+             title="{{ row.anexo }}">
       {% endif %}
     {% endif %}
   </td>

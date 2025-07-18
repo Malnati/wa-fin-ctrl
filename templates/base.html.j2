@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Relatório de Prestação de Contas{% endblock %}</title>
-  <link rel="stylesheet" href="templates/static/styles.css">
+  <link rel="stylesheet" href="static/styles.css">
   <style>
     {% block extra_styles %}{% endblock %}
   </style>
@@ -12,9 +12,6 @@
 </head>
 <body>
   <!-- Verificação de paths de imagens -->
-  {% if not attrs.IMGS_DIR_PATH or not attrs.INPUT_DIR_PATH %}
-    <script>console.error("attrs.IMGS_DIR_PATH ou attrs.INPUT_DIR_PATH não definidos.");</script>
-  {% endif %}
   
   <div id="loading-overlay">
     <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde...</div>
@@ -63,7 +60,7 @@
     <img id="modal-img" class="modal-content">
   </div>
   
-  <script src="templates/static/scripts.js"></script>
+  <script src="static/scripts.js"></script>
   
   {% block extra_scripts %}{% endblock %}
 </body>
