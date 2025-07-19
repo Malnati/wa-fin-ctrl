@@ -8,11 +8,13 @@ VAR_FIN_DIR_INPUT=input
 VAR_FIN_DIR_IMGS=imgs
 VAR_FIN_DIR_MASSA=massa
 VAR_FIN_DIR_TMP=tmp
+VAR_FIN_DIR_MENSAGENS=mensagens
+VAR_FIN_DIR_OCR=ocr
 VAR_FIN_ARQ_CALCULO=mensagens/calculo.csv
 VAR_FIN_ARQ_MENSAGENS=mensagens/mensagens.csv
 VAR_FIN_ARQ_DIAGNOSTICO=diagnostico.csv
 VAR_FIN_ARQ_CHAT=_chat.txt
-VAR_FIN_ARQ_OCR_XML=ocr/extract.xml
+VAR_FIN_ARQ_OCR_XML=ocr/extract.xml	
 
 # Configuração de ambiente
 export ATTR_FIN_OPENAI_API_KEY=${VAR_FIN_OPENAI_API_KEY}
@@ -20,6 +22,8 @@ export ATTR_FIN_DIR_INPUT=${VAR_FIN_DIR_INPUT}
 export ATTR_FIN_DIR_IMGS=${VAR_FIN_DIR_IMGS}
 export ATTR_FIN_DIR_MASSA=${VAR_FIN_DIR_MASSA}
 export ATTR_FIN_DIR_TMP=${VAR_FIN_DIR_TMP}
+export ATTR_FIN_DIR_MENSAGENS=${VAR_FIN_DIR_MENSAGENS}
+export ATTR_FIN_DIR_OCR=${VAR_FIN_DIR_OCR}
 export ATTR_FIN_ARQ_CALCULO=${VAR_FIN_ARQ_CALCULO}
 export ATTR_FIN_ARQ_MENSAGENS=${VAR_FIN_ARQ_MENSAGENS}
 export ATTR_FIN_ARQ_DIAGNOSTICO=${VAR_FIN_ARQ_DIAGNOSTICO}
@@ -46,8 +50,8 @@ show-variables:
 	@echo "ATTR_FIN_ARQ_MENSAGENS: ${ATTR_FIN_ARQ_MENSAGENS}"
 
 create-directories:
-	@echo "Criando diretórios: ${ATTR_TEST} ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}"
-	@mkdir -p "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" || { echo "Erro ao criar diretórios"; exit 1; }
+	@echo "Criando diretórios: ${ATTR_TEST} ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}, ${ATTR_FIN_DIR_MENSAGENS}, ${ATTR_FIN_DIR_OCR}"
+	@mkdir -p "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" || { echo "Erro ao criar diretórios"; exit 1; }
 
 # Verificar se Poetry está disponível
 check_poetry_installed:

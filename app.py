@@ -464,6 +464,12 @@ def mover_arquivos_processados():
 
 def incrementar_csv(novo_df, arquivo_csv):
     """Incrementa um arquivo CSV existente com novos dados, evitando duplicatas"""
+    # Cria o diretório se não existir
+    diretorio = os.path.dirname(arquivo_csv)
+    if diretorio and not os.path.exists(diretorio):
+        os.makedirs(diretorio, exist_ok=True)
+        print(f"Diretório criado: {diretorio}")
+    
     if os.path.exists(arquivo_csv):
         # Lê o CSV existente
         df_existente = pd.read_csv(arquivo_csv)
