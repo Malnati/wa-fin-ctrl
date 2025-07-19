@@ -1657,7 +1657,7 @@ def dismiss_entry(data_hora):
             print("❌ Formato de hora inválido. Use: HH:MM:SS")
             return False
         
-        print(f"🔍 Procurando entrada: {data} {hora}")
+        print(f" Procurando entrada: {data} {hora}")
         
         # Lista todos os arquivos CSV no diretório mensagens/
         mensagens_dir = os.path.dirname(ATTR_FIN_ARQ_MENSAGENS)
@@ -1721,7 +1721,18 @@ def dismiss_entry(data_hora):
         
         if entradas_encontradas > 0:
             print(f"\n✅ Total de {entradas_encontradas} entrada(s) marcada(s) como 'dismiss'")
-            print("🔄 Execute 'poetry run python cli.py processar' para regenerar os relatórios HTML")
+            print(" Gerando relatórios atualizados...")
+            
+            # Regenera os relatórios automaticamente
+            try:
+                from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+                from env import ATTR_FIN_ARQ_CALCULO
+                gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+                gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+                print("✅ Relatórios regenerados com sucesso!")
+            except Exception as e:
+                print(f"⚠️  Erro ao regenerar relatórios: {str(e)}")
+            
             return True
         else:
             print(f"\n❌ Nenhuma entrada encontrada para {data} {hora}")
