@@ -1544,11 +1544,43 @@ def fix_entry(data_hora, novo_valor):
                     elif 'VALOR' in df.columns and linha['VALOR'] and str(linha['VALOR']).lower() not in ['nan', '']:
                         valor_original = str(linha['VALOR'])
                     
+                    # NOVA REGRA: Se não encontrar valor, aplicar automaticamente o fix
                     if not valor_original:
-                        print(f"⚠️  Nenhum valor encontrado para corrigir na entrada {data} {hora}")
+                        print(f"💰 Nenhum valor encontrado - aplicando fix automático: R$ {novo_valor}")
+                        
+                        # Determina qual coluna usar baseado na estrutura do arquivo
+                        if 'RICARDO' in df.columns and 'RAFAEL' in df.columns:
+                            # Arquivo calculo.csv - verifica qual coluna está vazia
+                            if pd.isna(linha['RICARDO']) or str(linha['RICARDO']).lower() in ['nan', '']:
+                                df.at[idx, 'RICARDO'] = novo_valor
+                                coluna_usada = 'RICARDO'
+                            elif pd.isna(linha['RAFAEL']) or str(linha['RAFAEL']).lower() in ['nan', '']:
+                                df.at[idx, 'RAFAEL'] = novo_valor
+                                coluna_usada = 'RAFAEL'
+                            else:
+                                # Se ambas estão vazias, usa RICARDO por padrão
+                                df.at[idx, 'RICARDO'] = novo_valor
+                                coluna_usada = 'RICARDO'
+                        elif 'VALOR' in df.columns:
+                            # Arquivo mensagens.csv
+                            df.at[idx, 'VALOR'] = novo_valor
+                            coluna_usada = 'VALOR'
+                        else:
+                            print(f"⚠️  Estrutura de arquivo não reconhecida")
+                            continue
+                        
+                        # Adiciona informação na coluna VALIDADE
+                        if 'VALIDADE' in df.columns:
+                            df.at[idx, 'VALIDADE'] = f"fix-auto: {novo_valor} (sem valor anterior)"
+                        else:
+                            # Se não existe coluna VALIDADE, adiciona
+                            df['VALIDADE'] = ''
+                            df.at[idx, 'VALIDADE'] = f"fix-auto: {novo_valor} (sem valor anterior)"
+                        
+                        print(f"✅ Valor aplicado na coluna {coluna_usada} e marcado na VALIDADE")
                         continue
                     
-                    print(f"💰 Valor original: R$ {valor_original}")
+                    print(f" Valor original: R$ {valor_original}")
                     print(f"💰 Novo valor: R$ {novo_valor}")
                     
                     # Converte valor original para formato brasileiro para comparação
@@ -1580,14 +1612,14 @@ def fix_entry(data_hora, novo_valor):
                 
                 # Salva o arquivo CSV atualizado
                 df.to_csv(arquivo_csv, index=False)
-                print(f"💾 Arquivo {os.path.basename(arquivo_csv)} atualizado")
+                print(f" Arquivo {os.path.basename(arquivo_csv)} atualizado")
         
         if not entrada_encontrada:
             print(f"❌ Nenhuma entrada encontrada com data/hora: {data} {hora}")
             return False
         
         print("✅ Correção concluída com sucesso!")
-        print("🔄 Gerando relatórios atualizados...")
+        print(" Gerando relatórios atualizados...")
         
         # Regenera os relatórios
         try:
