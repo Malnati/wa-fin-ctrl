@@ -84,6 +84,8 @@ help:
 	@echo "  fix: Corrige uma entrada específica"
 	@echo "    Exemplo: make fix find=\"24/04/2025 11:57:45\" value=\"39,47\" class=\"transferência\" desc=\"PIX para padaria\""
 	@echo "    Exemplo com dismiss: make fix find=\"24/04/2025 11:57:45\" dismiss=1"
+	@echo "    Exemplo com rotação: make fix find=\"24/04/2025 11:57:45\" rotate=\"90\""
+	@echo "    Exemplo com rotação e IA: make fix find=\"24/04/2025 11:57:45\" rotate=\"90\" ia=1"
 	@echo "  server: Inicia o servidor HTTP local"
 	@echo "  copy: Copia a estrutura do projeto para a área de transferência"
 
@@ -107,6 +109,12 @@ fix:
 
 fix-dismiss:
 	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --dismiss
+
+fix-rotate:
+	poetry run python cli.py fix "$(find)" --rotate "$(rotate)"
+
+fix-rotate-ia:
+	poetry run python cli.py fix "$(find)" --rotate "$(rotate)" --ia
 
 server:
 	poetry run python -m http.server 8000
@@ -209,4 +217,4 @@ copy-september:
 copy-october:
 	@cp -v "massa/10 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
 
-.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october
+.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia
