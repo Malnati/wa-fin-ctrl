@@ -30,6 +30,18 @@ def _carregar_ocr_map():
         print(f"❌ Erro ao carregar OCR: {str(e)}")
     return ocr_map
 
+def _verificar_imagem_jpg_pdf(anexo):
+    """Verifica se existe uma imagem JPG correspondente ao PDF."""
+    if not anexo or anexo.lower() == 'nan' or not anexo.lower().endswith('.pdf'):
+        return None
+    
+    nome_base = os.path.splitext(anexo)[0]
+    jpg_path = os.path.join(ATTR_FIN_DIR_IMGS, f"{nome_base}.jpg")
+    
+    if os.path.exists(jpg_path):
+        return f"{nome_base}.jpg"
+    return None
+
 def _preparar_linha(row, ocr_map, tem_motivo=False):
     """Prepara os dados de uma linha para o template - apenas dados puros, sem HTML."""
     data = str(row.get('DATA', ''))
@@ -46,6 +58,10 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     
     # Buscar texto OCR pelo nome do arquivo (campo ANEXO)
     anexo = str(row.get('ANEXO', ''))
+    
+    # Verificar se existe imagem JPG para PDF
+    imagem_jpg = _verificar_imagem_jpg_pdf(anexo)
+    
     # 1) primeiro, tenta usar o que já veio no CSV (coluna "OCR")
     texto_csv = str(row.get('OCR', '') or '').strip()
     if texto_csv and texto_csv.lower() != 'nan':
@@ -230,7 +246,8 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         'descricao': descricao,
         'ocr': texto_ocr,  # Texto OCR carregado do XML
         'row_class': row_class,
-        'valor': valor
+        'valor': valor,
+        'imagem_jpg': imagem_jpg  # Imagem JPG correspondente ao PDF
     }
     print(f"DEBUG LINHA: {linha}")
     

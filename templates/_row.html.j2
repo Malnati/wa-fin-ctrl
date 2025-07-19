@@ -30,6 +30,15 @@
              class="thumb" 
              alt="Comprovante {{ row.anexo }}" 
              title="{{ row.anexo }}">
+      {% elif row.anexo.lower().endswith('.pdf') %}
+        {% if row.imagem_jpg %}
+          <img src="imgs/{{ row.imagem_jpg }}" 
+               class="thumb" 
+               alt="Comprovante {{ row.imagem_jpg }}" 
+               title="{{ row.imagem_jpg }} (convertido de PDF)">
+        {% else %}
+          <span class="pdf-icon">📄</span>
+        {% endif %}
       {% endif %}
     {% endif %}
   </td>
