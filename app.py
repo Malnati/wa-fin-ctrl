@@ -1470,8 +1470,8 @@ def corrigir_totalizadores_duplicados(csv_file):
         print(f"❌ Erro ao corrigir totalizadores: {str(e)}")
         return False
 
-def fix_entry(data_hora, novo_valor):
-    """Corrige o valor de uma entrada específica em todos os arquivos CSV do diretório mensagens/"""
+def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descricao=None, dismiss=False):
+    """Corrige uma entrada específica em todos os arquivos CSV do diretório mensagens/"""
     try:
         # Parse da data e hora
         if ' ' not in data_hora:
@@ -1490,35 +1490,37 @@ def fix_entry(data_hora, novo_valor):
             print("❌ Formato de hora inválido. Use: HH:MM:SS")
             return False
         
-        # Valida formato do valor
-        if not re.match(r'^\d+[,.]?\d*$', novo_valor):
-            print("❌ Formato de valor inválido. Use: 2,33 ou 2.33")
-            return False
+        # Valida formato do valor (se fornecido)
+        if novo_valor:
+            if not re.match(r'^\d+[,.]?\d*$', novo_valor):
+                print("❌ Formato de valor inválido. Use: 2,33 ou 2.33")
+                return False
+            
+            # Converte valor para formato brasileiro
+            novo_valor = novo_valor.replace('.', '').replace(',', '.')
+            try:
+                float(novo_valor)
+            except ValueError:
+                print("❌ Valor inválido")
+                return False
         
-        # Converte valor para formato brasileiro
-        novo_valor = novo_valor.replace('.', '').replace(',', '.')
-        try:
-            float(novo_valor)
-        except ValueError:
-            print("❌ Valor inválido")
-            return False
+        # Busca arquivos CSV nos diretórios mensagens e tmp
+        diretorios = [ATTR_FIN_DIR_MENSAGENS, ATTR_FIN_DIR_TMP]
+        arquivos_csv = []
         
-        # Busca arquivos CSV no diretório mensagens
-        mensagens_dir = ATTR_FIN_DIR_MENSAGENS
-        if not os.path.exists(mensagens_dir):
-            print(f"❌ Diretório {mensagens_dir} não encontrado")
-            return False
+        for diretorio in diretorios:
+            if os.path.exists(diretorio):
+                csv_files = [os.path.join(diretorio, f) for f in os.listdir(diretorio) if f.endswith('.csv')]
+                arquivos_csv.extend(csv_files)
         
-        arquivos_csv = [f for f in os.listdir(mensagens_dir) if f.endswith('.csv')]
         if not arquivos_csv:
-            print(f"❌ Nenhum arquivo CSV encontrado em {mensagens_dir}")
+            print(f"❌ Nenhum arquivo CSV encontrado em {ATTR_FIN_DIR_MENSAGENS} ou {ATTR_FIN_DIR_TMP}")
             return False
         
         entrada_encontrada = False
         
         # Processa cada arquivo CSV
         for arquivo_csv in arquivos_csv:
-            arquivo_csv = os.path.join(mensagens_dir, arquivo_csv)
             if not os.path.exists(arquivo_csv):
                 continue
                 
@@ -1575,46 +1577,97 @@ def fix_entry(data_hora, novo_valor):
                             print(f"⚠️  Estrutura de arquivo não reconhecida")
                             continue
                         
-                        # Adiciona informação na coluna VALIDADE
-                        if 'VALIDADE' in df.columns:
-                            df.at[idx, 'VALIDADE'] = f"fix-auto: {novo_valor} (sem valor anterior)"
-                        else:
-                            # Se não existe coluna VALIDADE, adiciona
-                            df['VALIDADE'] = ''
-                            df.at[idx, 'VALIDADE'] = f"fix-auto: {novo_valor} (sem valor anterior)"
+                        # Aplica as correções solicitadas para o caso de fix automático
+                        alteracoes = [f"valor: aplicado {novo_valor} (sem valor anterior)"]
                         
-                        print(f"✅ Valor aplicado na coluna {coluna_usada} e marcado na VALIDADE")
+                        # 2. Corrige classificação (se fornecida)
+                        if nova_classificacao and 'CLASSIFICACAO' in df.columns:
+                            classificacao_original = str(linha.get('CLASSIFICACAO', ''))
+                            df.at[idx, 'CLASSIFICACAO'] = nova_classificacao
+                            alteracoes.append(f"classificação: {classificacao_original} → {nova_classificacao}")
+                        
+                        # 3. Corrige descrição (se fornecida)
+                        if nova_descricao and 'DESCRICAO' in df.columns:
+                            descricao_original = str(linha.get('DESCRICAO', ''))
+                            df.at[idx, 'DESCRICAO'] = nova_descricao
+                            alteracoes.append(f"descrição: {descricao_original} → {nova_descricao}")
+                        
+                        # 4. Aplica dismiss (se solicitado)
+                        if dismiss:
+                            df.at[idx, 'VALIDADE'] = 'dismiss'
+                            alteracoes.append("marcado como dismiss")
+                            print(f"✅ Entrada marcada como dismiss")
+                        else:
+                            # Adiciona informação na coluna VALIDADE sobre as alterações
+                            if 'VALIDADE' in df.columns:
+                                df.at[idx, 'VALIDADE'] = f"fix-auto: {', '.join(alteracoes)}"
+                            else:
+                                # Se não existe coluna VALIDADE, adiciona
+                                df['VALIDADE'] = ''
+                                df.at[idx, 'VALIDADE'] = f"fix-auto: {', '.join(alteracoes)}"
+                        
+                        print(f"✅ Alterações aplicadas: {', '.join(alteracoes)}")
                         continue
                     
                     print(f" Valor original: R$ {valor_original}")
                     print(f"💰 Novo valor: R$ {novo_valor}")
                     
-                    # Converte valor original para formato brasileiro para comparação
-                    valor_original_clean = valor_original.replace('.', '').replace(',', '.')
-                    try:
-                        valor_original_float = float(valor_original_clean)
-                        novo_valor_float = float(novo_valor)
-                    except ValueError:
-                        print(f"⚠️  Erro ao converter valores para comparação")
-                        continue
+                    # Converte valor original para formato brasileiro para comparação (apenas se novo_valor foi fornecido)
+                    if novo_valor:
+                        valor_original_clean = valor_original.replace('.', '').replace(',', '.')
+                        try:
+                            valor_original_float = float(valor_original_clean)
+                            novo_valor_float = float(novo_valor)
+                        except ValueError:
+                            print(f"⚠️  Erro ao converter valores para comparação")
+                            continue
                     
-                    # Atualiza o valor na coluna apropriada
-                    if 'RICARDO' in df.columns and linha['RICARDO'] and str(linha['RICARDO']).lower() not in ['nan', '']:
-                        df.at[idx, 'RICARDO'] = novo_valor
-                    elif 'RAFAEL' in df.columns and linha['RAFAEL'] and str(linha['RAFAEL']).lower() not in ['nan', '']:
-                        df.at[idx, 'RAFAEL'] = novo_valor
-                    elif 'VALOR' in df.columns and linha['VALOR'] and str(linha['VALOR']).lower() not in ['nan', '']:
-                        df.at[idx, 'VALOR'] = novo_valor
+                    # Aplica as correções solicitadas
+                    alteracoes = []
                     
-                    # Adiciona informação na coluna VALIDADE
-                    if 'VALIDADE' in df.columns:
-                        df.at[idx, 'VALIDADE'] = f"fix-value de {valor_original} para {novo_valor}"
+                    # 1. Corrige valor (se fornecido)
+                    if novo_valor:
+                        if 'RICARDO' in df.columns and linha['RICARDO'] and str(linha['RICARDO']).lower() not in ['nan', '']:
+                            df.at[idx, 'RICARDO'] = novo_valor
+                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
+                        elif 'RAFAEL' in df.columns and linha['RAFAEL'] and str(linha['RAFAEL']).lower() not in ['nan', '']:
+                            df.at[idx, 'RAFAEL'] = novo_valor
+                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
+                        elif 'VALOR' in df.columns and linha['VALOR'] and str(linha['VALOR']).lower() not in ['nan', '']:
+                            df.at[idx, 'VALOR'] = novo_valor
+                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
+                    
+                    # 2. Corrige classificação (se fornecida)
+                    if nova_classificacao and 'CLASSIFICACAO' in df.columns:
+                        classificacao_original = str(linha.get('CLASSIFICACAO', ''))
+                        df.at[idx, 'CLASSIFICACAO'] = nova_classificacao
+                        alteracoes.append(f"classificação: {classificacao_original} → {nova_classificacao}")
+                    
+                    # 3. Corrige descrição (se fornecida)
+                    if nova_descricao and 'DESCRICAO' in df.columns:
+                        descricao_original = str(linha.get('DESCRICAO', ''))
+                        df.at[idx, 'DESCRICAO'] = nova_descricao
+                        alteracoes.append(f"descrição: {descricao_original} → {nova_descricao}")
+                    
+                    # 4. Aplica dismiss (se solicitado)
+                    if dismiss:
+                        df.at[idx, 'VALIDADE'] = 'dismiss'
+                        alteracoes.append("marcado como dismiss")
+                        print(f"✅ Entrada marcada como dismiss")
                     else:
-                        # Se não existe coluna VALIDADE, adiciona
-                        df['VALIDADE'] = ''
-                        df.at[idx, 'VALIDADE'] = f"fix-value de {valor_original} para {novo_valor}"
+                        # Adiciona informação na coluna VALIDADE sobre as alterações
+                        if alteracoes:
+                            if 'VALIDADE' in df.columns:
+                                df.at[idx, 'VALIDADE'] = f"fix: {', '.join(alteracoes)}"
+                            else:
+                                # Se não existe coluna VALIDADE, adiciona
+                                df['VALIDADE'] = ''
+                                df.at[idx, 'VALIDADE'] = f"fix: {', '.join(alteracoes)}"
                     
-                    print(f"✅ Valor corrigido e marcado na coluna VALIDADE")
+                    if alteracoes:
+                        print(f"✅ Alterações aplicadas: {', '.join(alteracoes)}")
+                    else:
+                        print(f"ℹ️  Nenhuma alteração aplicada")
                 
                 # Salva o arquivo CSV atualizado
                 df.to_csv(arquivo_csv, index=False)

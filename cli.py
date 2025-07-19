@@ -96,10 +96,13 @@ def prestacao():
 
 @cli.command()
 @click.argument('data_hora', type=str)
-@click.option('--value', type=str, required=True, help='Novo valor para corrigir (ex: 2,33)')
-def fix(data_hora, value):
-    """Corrige o valor de uma entrada específica em todos os arquivos CSV."""
-    sucesso = fix_entry(data_hora, value)
+@click.option('--value', type=str, help='Novo valor para corrigir (ex: 2,33)')
+@click.option('--class', 'classification', type=str, help='Nova classificação para a entrada')
+@click.option('--desc', 'description', type=str, help='Nova descrição para a entrada')
+@click.option('--dismiss', is_flag=True, help='Marca a entrada como desconsiderada (dismiss)')
+def fix(data_hora, value, classification, description, dismiss):
+    """Corrige uma entrada específica em todos os arquivos CSV."""
+    sucesso = fix_entry(data_hora, value, classification, description, dismiss)
     exit(0 if sucesso else 1)
 
 @cli.command()

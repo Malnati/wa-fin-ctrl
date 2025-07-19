@@ -80,7 +80,10 @@ help:
 	@echo "  process: Processa arquivos incrementalmente"
 	@echo "  force: Processa todos os arquivos (força reprocessamento)"
 	@echo "  dismiss: Marca uma entrada como desconsiderada"
-	@echo "    Exemplo: make dismiss arg=\"21/04/2025 18:33:54\""
+	@echo "    Exemplo: make dismiss find=\"21/04/2025 18:33:54\""
+	@echo "  fix: Corrige uma entrada específica"
+	@echo "    Exemplo: make fix find=\"24/04/2025 11:57:45\" value=\"39,47\" class=\"transferência\" desc=\"PIX para padaria\""
+	@echo "    Exemplo com dismiss: make fix find=\"24/04/2025 11:57:45\" dismiss=1"
 	@echo "  server: Inicia o servidor HTTP local"
 	@echo "  copy: Copia a estrutura do projeto para a área de transferência"
 
@@ -100,7 +103,7 @@ dismiss:
 	poetry run python cli.py dismiss "$(find)"
 	
 fix:
-	poetry run python cli.py fix "$(find)" --value "$(value)"
+	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" $(if $(dismiss),--dismiss,)
 
 server:
 	poetry run python -m http.server 8000
