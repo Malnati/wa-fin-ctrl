@@ -6,6 +6,7 @@ split/*
 tmp/*
 imgs/
 input/*
+mensagens/*
 ocr/extract.xml
 report.html
 report-2025-04-Abril.html

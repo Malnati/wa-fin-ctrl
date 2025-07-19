@@ -82,6 +82,9 @@ def process_image_ocr(image_path):
                 except Exception as e:
                     return f"Erro ao processar PDF: {str(e)}"
 
+            # Converter PDF para JPG se ainda não foi convertido
+            _converter_pdf_para_jpg(image_path)
+
             registrar_ocr_xml(os.path.basename(image_path), texto_pdf)
             return texto_pdf if texto_pdf else "Nenhum texto detectado"
         # 4. Caso contrário, processa como imagem
@@ -117,3 +120,38 @@ def registrar_ocr_xml(arquivo, texto, arq_xml=ATTR_FIN_ARQ_OCR_XML):
         entry = ET.SubElement(root, 'entry', {'arquivo': arquivo})
         entry.text = texto
         tree.write(arq_xml, encoding='utf-8', xml_declaration=True)
+
+def _converter_pdf_para_jpg(pdf_path):
+    """Converte um PDF para JPG mantendo o mesmo nome do arquivo original."""
+    try:
+        # Verificar se o arquivo é um PDF
+        if not pdf_path.lower().endswith('.pdf'):
+            return
+        
+        # Verificar se já existe uma versão JPG
+        nome_base = os.path.splitext(os.path.basename(pdf_path))[0]
+        jpg_path = os.path.join(ATTR_FIN_DIR_IMGS, f"{nome_base}.jpg")
+        
+        if os.path.exists(jpg_path):
+            print(f"📄 JPG já existe para {os.path.basename(pdf_path)}")
+            return
+        
+        # Converter PDF para JPG
+        from pdf2image import convert_from_path
+        from PIL import Image
+        
+        print(f"🔄 Convertendo {os.path.basename(pdf_path)} para JPG...")
+        
+        # Converter primeira página do PDF para imagem
+        imagens = convert_from_path(pdf_path, first_page=1, last_page=1)
+        
+        if imagens:
+            # Salvar como JPG
+            imagem = imagens[0]
+            imagem.save(jpg_path, 'JPEG', quality=85)
+            print(f"✅ PDF convertido para JPG: {nome_base}.jpg")
+        else:
+            print(f"❌ Erro: Não foi possível converter {os.path.basename(pdf_path)} para JPG")
+            
+    except Exception as e:
+        print(f"❌ Erro ao converter PDF para JPG: {str(e)}")

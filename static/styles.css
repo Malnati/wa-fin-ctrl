@@ -71,6 +71,42 @@ tr:hover {
   background-color: #fff3cd !important; 
 }
 
+.dismiss-row { 
+  background-color: #f8d7da !important; 
+  color: #721c24; 
+  text-decoration: line-through; 
+  opacity: 0.7; 
+}
+
+.dismiss-row:hover { 
+  background-color: #f8d7da !important; 
+  opacity: 0.8; 
+}
+
+.dismiss-row td {
+  color: #721c24 !important;
+}
+
+.fix-row { 
+  background-color: #d1ecf1 !important; 
+  color: #0c5460; 
+  border-left: 4px solid #17a2b8; 
+}
+
+.fix-row:hover { 
+  background-color: #bee5eb !important; 
+  opacity: 0.9; 
+}
+
+.fix-row td {
+  color: #0c5460 !important;
+}
+
+.fix-row .valor {
+  color: #17a2b8 !important;
+  font-weight: bold;
+}
+
 .valor { 
   font-weight: bold; 
   color: #27ae60; 
@@ -115,6 +151,20 @@ img.thumb:hover {
   position: relative; 
   border: 2px solid #3498db; 
   box-shadow: 0 0 20px rgba(0,0,0,0.5); 
+}
+
+.pdf-icon {
+  font-size: 24px;
+  color: #e74c3c;
+  cursor: pointer;
+  display: inline-block;
+  padding: 8px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.pdf-icon:hover {
+  background-color: #fdf2f2;
 }
 
 .modal { 

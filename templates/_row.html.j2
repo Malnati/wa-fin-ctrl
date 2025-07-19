@@ -16,10 +16,6 @@
   <td>
     {% if row.ricardo and row.ricardo != 'nan' and row.ricardo != '' %}
       <span class="valor">{{ row.ricardo }}</span>
-    {% elif row.rafael and row.rafael != 'nan' and row.rafael != '' %}
-      <span class="valor">{{ row.rafael }}</span>
-    {% elif row.valor and row.valor != 'nan' and row.valor != '' %}
-      <span class="valor">{{ row.valor }}</span>
     {% endif %}
   </td>
   <td>
@@ -34,6 +30,15 @@
              class="thumb" 
              alt="Comprovante {{ row.anexo }}" 
              title="{{ row.anexo }}">
+      {% elif row.anexo.lower().endswith('.pdf') %}
+        {% if row.imagem_jpg %}
+          <img src="imgs/{{ row.imagem_jpg }}" 
+               class="thumb" 
+               alt="Comprovante {{ row.imagem_jpg }}" 
+               title="{{ row.imagem_jpg }} (convertido de PDF)">
+        {% else %}
+          <span class="pdf-icon">📄</span>
+        {% endif %}
       {% endif %}
     {% endif %}
   </td>

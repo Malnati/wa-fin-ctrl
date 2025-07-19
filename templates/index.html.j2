@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gastos Tia Claudia - Relatórios</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 40px; 
+      background: #f5f5f5; 
+    }
+    .container {
+      max-width: 800px; 
+      margin: 0 auto;
+      background: white; 
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+    }
+    h1 { 
+      color: #2c3e50; 
+      text-align: center; 
+      margin-bottom: 30px;
+    }
+    .reports { 
+      list-style: none; 
+      padding: 0; 
+    }
+    .reports li { 
+      margin: 10px 0; 
+    }
+    .reports a { 
+      display: block; 
+      padding: 15px; 
+      background: #3498db; 
+      color: white;
+      text-decoration: none; 
+      border-radius: 5px; 
+      transition: background 0.3s; 
+    }
+    .reports a:hover { 
+      background: #2980b9; 
+    }
+    .info { 
+      background: #ecf0f1; 
+      padding: 15px; 
+      border-radius: 5px; 
+      margin-bottom: 20px; 
+    }
+    .empty { 
+      background: #f8d7da; 
+      border: 1px solid #f5c6cb; 
+      color: #721c24; 
+      padding: 15px; 
+      border-radius: 5px;
+      margin: 20px 0; 
+    }
+    .loading { 
+      text-align: center; 
+      padding: 20px; 
+      color: #666; 
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Relatórios de Gastos</h1>
+    <div class="info">
+      <strong>Sistema de Prestação de Contas</strong><br>
+      Relatórios gerados automaticamente a partir dos comprovantes processados.
+    </div>
+    
+    <div id="loading" class="loading">
+      🔍 Carregando relatórios disponíveis...
+    </div>
+    
+    <ul id="reports-list" class="reports" style="display: none;">
+      <li><a href="report.html">📊 Relatório Geral</a></li>
+      {% for report in monthly_reports %}
+      <li><a href="{{ report.filename }}">{{ report.display_name }}</a></li>
+      {% endfor %}
+    </ul>
+    
+    <div id="empty-state" class="empty" style="display: none;">
+      <strong>📭 Nenhum relatório disponível</strong><br>
+      Execute <code>python app.py processar</code> para gerar os relatórios.
+    </div>
+
+    <div class="info" style="margin-top: 20px;">
+      <strong>ℹ️ Nota:</strong> Este sistema detecta automaticamente os relatórios disponíveis. 
+      <br><br>
+      <strong>🔄 Última verificação:</strong> <span id="last-update"></span>
+    </div>
+  </div>
+
+  <script>
+    // Função para detectar arquivos HTML disponíveis
+    async function detectReports() {
+      const reports = [];
+      
+      // Lista de possíveis arquivos para verificar
+      const possibleFiles = [
+        'report.html'
+      ];
+      
+      // Gera possibilidades para relatórios mensais dos últimos 12 meses
+      const currentDate = new Date();
+      for (let i = 0; i < 12; i++) {
+        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const monthName = date.toLocaleDateString('pt-BR', { month: 'long' });
+        const filename = `report-${year}-${month}-${monthName.charAt(0).toUpperCase() + monthName.slice(1)}.html`;
+        possibleFiles.push(filename);
+      }
+      
+      // Verifica quais arquivos existem
+      for (const file of possibleFiles) {
+        try {
+          const response = await fetch(file, { method: 'HEAD' });
+          if (response.ok) {
+            reports.push(file);
+          }
+        } catch (error) {
+          // Arquivo não existe, continua
+        }
+      }
+      
+      return reports;
+    }
+    
+    // Função para obter nome amigável do relatório
+    function getReportDisplayName(filename) {
+      if (filename === 'report.html') {
+        return '📊 Relatório Geral';
+      }
+      
+      // Para relatórios mensais: report-2025-04-Abril.html -> 📅 Abril 2025
+      const match = filename.match(/report-(\d{4})-(\d{2})-(.+)\.html/);
+      if (match) {
+        const year = match[1];
+        const month = match[3];
+        return `📅 ${month} ${year}`;
+      }
+      
+      return filename;
+    }
+    
+    // Função principal
+    async function init() {
+      const loadingEl = document.getElementById('loading');
+      const reportsListEl = document.getElementById('reports-list');
+      const emptyStateEl = document.getElementById('empty-state');
+      const lastUpdateEl = document.getElementById('last-update');
+      
+      try {
+        const availableReports = await detectReports();
+        
+        if (availableReports.length === 0) {
+          loadingEl.style.display = 'none';
+          emptyStateEl.style.display = 'block';
+        } else {
+          // Limpa a lista existente (mantém apenas o Relatório Geral)
+          const generalReport = reportsListEl.querySelector('li:first-child');
+          reportsListEl.innerHTML = '';
+          reportsListEl.appendChild(generalReport);
+          
+          // Adiciona relatórios mensais encontrados
+          for (const report of availableReports) {
+            if (report !== 'report.html') {
+              const li = document.createElement('li');
+              const a = document.createElement('a');
+              a.href = report;
+              a.textContent = getReportDisplayName(report);
+              li.appendChild(a);
+              reportsListEl.appendChild(li);
+            }
+          }
+          
+          loadingEl.style.display = 'none';
+          reportsListEl.style.display = 'block';
+        }
+        
+        // Atualiza timestamp
+        lastUpdateEl.textContent = new Date().toLocaleString('pt-BR');
+        
+      } catch (error) {
+        console.error('Erro ao detectar relatórios:', error);
+        loadingEl.style.display = 'none';
+        emptyStateEl.style.display = 'block';
+      }
+    }
+    
+    // Inicia quando a página carrega
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html> 

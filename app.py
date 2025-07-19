@@ -66,6 +66,87 @@ def convert_to_brazilian_format(valor):
     # Se só tem números, mantém como está
     return valor
 
+def extract_value_from_ocr(ocr_text):
+    """Extrai valor monetário do texto OCR usando expressões regulares"""
+    if not ocr_text:
+        return ""
+    
+    # Padrões para encontrar valores no texto OCR
+    padroes_valor = [
+        r'R\$\s*([0-9.,]+)',  # R$ 123,45
+        r'valor\s*R\$\s*([0-9.,]+)',  # valor R$ 123,45
+        r'([0-9.,]+)\s*reais',  # 123,45 reais
+        r'total\s*R\$\s*([0-9.,]+)',  # total R$ 123,45
+        r'pago\s*R\$\s*([0-9.,]+)',  # pago R$ 123,45
+        r'R\$\s*([0-9.,]+)\s*dados',  # R$ 123,45 dados
+        r'valor\s*:\s*R\$\s*([0-9.,]+)',  # valor: R$ 123,45
+        r'([0-9.,]+)\s*via\s*celular',  # 123,45 via celular
+        r'([0-9.,]+)\s*realizado',  # 123,45 realizado
+        r'VALOR\s*TOTAL\s*R\$\s*([0-9.,]+)',  # VALOR TOTAL R$ 123,45
+        r'VALOR\s*A\s*PAGAR\s*R\$\s*([0-9.,]+)',  # VALOR A PAGAR R$ 123,45
+        r'R\$\s*([0-9.,]+)\s*realizado',  # R$ 123,45 realizado
+        r'valor\s*R\$\s*([0-9.,]+)\s*realizado',  # valor R$ 123,45 realizado
+        r'([0-9.,]+)\s*R\$',  # 123,45 R$
+        r'R\$\s*([0-9.,]+)\s*R\$',  # R$ 123,45 R$
+    ]
+    
+    valores_encontrados = []
+    
+    for padrao in padroes_valor:
+        matches = re.findall(padrao, ocr_text, re.IGNORECASE)
+        for match in matches:
+            if match:
+                # Limpa o valor encontrado
+                valor_limpo = match.strip()
+                # Remove caracteres não numéricos exceto vírgula e ponto
+                valor_limpo = re.sub(r'[^\d,.]', '', valor_limpo)
+                if valor_limpo:
+                    valores_encontrados.append(valor_limpo)
+    
+    if not valores_encontrados:
+        return ""
+    
+    # Se encontrou múltiplos valores, retorna o maior (geralmente o total)
+    valores_float = []
+    for valor in valores_encontrados:
+        try:
+            # Converte para float (formato brasileiro)
+            valor_float = float(valor.replace('.', '').replace(',', '.'))
+            valores_float.append(valor_float)
+        except ValueError:
+            continue
+    
+    if not valores_float:
+        return ""
+    
+    # Retorna o maior valor encontrado
+    maior_valor = max(valores_float)
+    return f"{maior_valor:.2f}"
+
+
+def is_financial_receipt(ocr_text):
+    """Verifica se o texto OCR indica que é um comprovante financeiro"""
+    if not ocr_text or len(ocr_text.strip()) < 10:
+        return False
+    
+    # Palavras-chave que indicam comprovante financeiro
+    keywords = [
+        'pix', 'transferência', 'pagamento', 'comprovante', 'recibo',
+        'banco', 'bb', 'nubank', 'itau', 'bradesco', 'santander',
+        'valor', 'total', 'r$', 'reais', 'realizado', 'pago',
+        'conta', 'cartão', 'débito', 'crédito', 'boleto',
+        'qr code', 'celular', 'app', 'mobile'
+    ]
+    
+    texto_lower = ocr_text.lower()
+    
+    # Conta quantas palavras-chave estão presentes
+    matches = sum(1 for keyword in keywords if keyword in texto_lower)
+    
+    # Se pelo menos 2 palavras-chave estão presentes, considera como comprovante
+    return matches >= 2
+
+
 def extract_total_value_with_chatgpt(ocr_text):
     """Usa a API do ChatGPT para identificar o valor total da compra no texto OCR"""
     try:
@@ -263,6 +344,8 @@ def txt_to_csv(input_file, output_file):
     
     # Adiciona coluna para dados do OCR
     df['OCR'] = ''
+    # Adiciona coluna para validade
+    df['VALIDADE'] = ''
     
     # Processa OCR apenas para anexos que existem no diretório input/
     input_dir = ATTR_FIN_DIR_INPUT
@@ -381,6 +464,12 @@ def mover_arquivos_processados():
 
 def incrementar_csv(novo_df, arquivo_csv):
     """Incrementa um arquivo CSV existente com novos dados, evitando duplicatas"""
+    # Cria o diretório se não existir
+    diretorio = os.path.dirname(arquivo_csv)
+    if diretorio and not os.path.exists(diretorio):
+        os.makedirs(diretorio, exist_ok=True)
+        print(f"Diretório criado: {diretorio}")
+    
     if os.path.exists(arquivo_csv):
         # Lê o CSV existente
         df_existente = pd.read_csv(arquivo_csv)
@@ -403,6 +492,11 @@ def incrementar_csv(novo_df, arquivo_csv):
             else:
                 # Se não tem coluna OCR, adiciona todos os novos registros
                 novos_registros = novo_df.copy()
+        
+        # Adiciona coluna VALIDADE se não existir no CSV existente
+        if 'VALIDADE' not in df_existente.columns:
+            df_existente['VALIDADE'] = ''
+            print(f"➕ Coluna VALIDADE adicionada ao CSV existente")
         
         if len(novos_registros) > 0:
             # Combina com os novos dados
@@ -492,6 +586,7 @@ def adicionar_totalizacao_mensal(df):
                 'DESCRICAO': f'Total do mês {mes:02d}/{ano}',
                 'VALOR': '',
                 'OCR': '',
+                'VALIDADE': '',
                 'DATA_DT': datetime(ano, mes, ultimo_dia, 23, 59),
                 'MES_ANO': mes_periodo
             }
@@ -578,6 +673,8 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
     df_anexos['CLASSIFICACAO'] = ''
     df_anexos['RICARDO'] = ''
     df_anexos['RAFAEL'] = ''
+    # Adiciona coluna para validade
+    df_anexos['VALIDADE'] = ''
     
     # 1) carrega CSV existente para recuperação de dados
     if os.path.exists(output_file):
@@ -595,8 +692,13 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
         anexo = str(row['ANEXO'])
         if anexo in processed:
             prev = df_existente[df_existente['ANEXO'] == anexo].iloc[0]
-            for col in ['OCR','VALOR','DESCRICAO','CLASSIFICACAO','RICARDO','RAFAEL']:
+            for col in ['OCR','VALOR','DESCRICAO','CLASSIFICACAO','RICARDO','RAFAEL','VALIDADE']:
                 df_anexos.at[idx, col] = prev[col]
+            
+            # Se foi marcado com ai-check, pula a tentativa de identificação de valor
+            if prev.get('VALIDADE', '') == 'ai-check':
+                print(f"  - Pulado (ai-check): {row['ANEXO']}")
+            
             continue
             
         # Trata imagens e PDFs da mesma forma
@@ -611,9 +713,29 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
                 ocr_result = process_image_ocr(caminho_input)
                 df_anexos.at[idx, 'OCR'] = ocr_result
                 
-                # Extrai valor total usando ChatGPT
-                print(f"Extraindo valor total: {row['ANEXO']}")
-                valor_total = extract_total_value_with_chatgpt(ocr_result)
+                # Verifica se é um comprovante financeiro
+                is_receipt = is_financial_receipt(ocr_result)
+                
+                # Extrai valor total - primeiro tenta OCR, depois IA como fallback
+                valor_total = ""
+                ai_used = False
+                
+                if is_receipt:
+                    # Primeiro tenta extrair valor via regex do OCR
+                    valor_total = extract_value_from_ocr(ocr_result)
+                    
+                    # Se não encontrou valor via OCR, usa IA como fallback
+                    if not valor_total:
+                        valor_total = extract_total_value_with_chatgpt(ocr_result)
+                        ai_used = True
+                        print(f"  - IA usada para extração de valor (OCR não encontrou)")
+                    
+                    # Marca na coluna VALIDADE se IA foi usada
+                    if ai_used:
+                        df_anexos.at[idx, 'VALIDADE'] = "ai-check"
+                else:
+                    print(f"  - Não identificado como comprovante financeiro")
+                
                 df_anexos.at[idx, 'VALOR'] = valor_total
                 
                 # Gera descrição do pagamento usando ChatGPT
@@ -647,8 +769,8 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
     # Adiciona linhas de totalização mensal
     df_anexos = adicionar_totalizacao_mensal(df_anexos)
     
-    # Reordena as colunas na ordem desejada: DATA, HORA, REMETENTE, CLASSIFICACAO, RICARDO, RAFAEL, ANEXO, DESCRICAO, VALOR, OCR
-    ordem_colunas = ['DATA', 'HORA', 'REMETENTE', 'CLASSIFICACAO', 'RICARDO', 'RAFAEL', 'ANEXO', 'DESCRICAO', 'VALOR', 'OCR']
+    # Reordena as colunas na ordem desejada: DATA, HORA, REMETENTE, CLASSIFICACAO, RICARDO, RAFAEL, ANEXO, DESCRICAO, VALOR, OCR, VALIDADE
+    ordem_colunas = ['DATA', 'HORA', 'REMETENTE', 'CLASSIFICACAO', 'RICARDO', 'RAFAEL', 'ANEXO', 'DESCRICAO', 'VALOR', 'OCR', 'VALIDADE']
     df_anexos = df_anexos[ordem_colunas]
     
     # Incrementa o CSV em vez de sobrescrever
@@ -998,8 +1120,24 @@ def processar_imgs(force=False, entry=None):
         # Registra no XML (usar só o nome do arquivo)
         registrar_ocr_xml(os.path.basename(str(img_path)), ocr_text)
         
-        # Extrai valor total usando ChatGPT
-        valor_total = extract_total_value_with_chatgpt(ocr_text)
+        # Verifica se é um comprovante financeiro
+        is_receipt = is_financial_receipt(ocr_text)
+        
+        # Extrai valor total - primeiro tenta OCR, depois IA como fallback
+        valor_total = ""
+        ai_used = False
+        
+        if is_receipt:
+            # Primeiro tenta extrair valor via regex do OCR
+            valor_total = extract_value_from_ocr(ocr_text)
+            
+            # Se não encontrou valor via OCR, usa IA como fallback
+            if not valor_total:
+                valor_total = extract_total_value_with_chatgpt(ocr_text)
+                ai_used = True
+                print(f"  - IA usada para extração de valor (OCR não encontrou)")
+        else:
+            print(f"  - Não identificado como comprovante financeiro")
         
         # Gera descrição do pagamento usando ChatGPT
         descricao = generate_payment_description_with_chatgpt(ocr_text)
@@ -1010,6 +1148,7 @@ def processar_imgs(force=False, entry=None):
         print(f"  - Valor: {valor_total}")
         print(f"  - Descrição: {descricao}")
         print(f"  - Classificação: {classificacao}")
+        print(f"  - IA usada: {'Sim' if ai_used else 'Não'}")
     
     # Atualiza {ATTR_FIN_ARQ_CALCULO} apenas com imagens
     print("\n=== ATUALIZANDO CSV APENAS COM IMAGENS ===")
@@ -1304,85 +1443,9 @@ def testar_verificacao_totais():
         print(f"❌ Erro no teste de verificação de totais: {e}")
         return False
 
-def testar_ocr_individual():
-    """Testa o OCR em imagens individuais"""
-    print("\n--- Testando OCR Individual ---")
-    
-    try:
-        # Procura por imagens de teste
-        diretorios_busca = [ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_MASSA]
-        imagem_teste = None
-        
-        for diretorio in diretorios_busca:
-            if os.path.exists(diretorio):
-                imagens = [f for f in os.listdir(diretorio) 
-                          if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
-                if imagens:
-                    imagem_teste = os.path.join(diretorio, imagens[0])
-                    break
-        
-        if not imagem_teste:
-            print("⚠️  Nenhuma imagem encontrada para teste de OCR")
-            return True  # Não é falha, apenas não há imagem para testar
-        
-        print(f"Testando OCR na imagem: {imagem_teste}")
-        
-        # Executa OCR
-        resultado_ocr = process_image_ocr(imagem_teste)
-        
-        # Verifica se OCR retornou algo válido
-        sucesso = (resultado_ocr and 
-                  resultado_ocr not in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"] and
-                  "Erro no OCR" not in resultado_ocr)
-        
-        print(f"Resultado OCR: {resultado_ocr[:100]}..." if len(resultado_ocr) > 100 else f"Resultado OCR: {resultado_ocr}")
-        print(f"OCR individual: {'✅ PASSOU' if sucesso else '❌ FALHOU'}")
-        return sucesso
-        
-    except Exception as e:
-        print(f"❌ Erro no teste de OCR individual: {e}")
-        return False
 
-def testar_funcoes_chatgpt():
-    """Testa as funções que usam ChatGPT (se API disponível)"""
-    print("\n--- Testando Funções ChatGPT ---")
-    
-    try:
-        # Verifica se API está disponível
-        api_key = ATTR_FIN_OPENAI_API_KEY
-        if not api_key:
-            print("⚠️  API Key do OpenAI não configurada")
-            return False
-        
-        # Texto de teste
-        texto_teste = "PIX Banco do Brasil R$ 29,90 Padaria Bonanza"
-        
-        # Testa extração de valor
-        print("Testando extração de valor...")
-        valor = extract_total_value_with_chatgpt(texto_teste)
-        sucesso_valor = bool(valor and valor != "")
-        
-        # Testa geração de descrição
-        print("Testando geração de descrição...")
-        descricao = generate_payment_description_with_chatgpt(texto_teste)
-        sucesso_descricao = bool(descricao and descricao != "")
-        
-        # Testa classificação
-        print("Testando classificação...")
-        classificacao = classify_transaction_type_with_chatgpt(texto_teste)
-        sucesso_classificacao = classificacao in ["Transferência", "Pagamento"]
-        
-        print(f"Valor extraído: {valor}")
-        print(f"Descrição gerada: {descricao}")
-        print(f"Classificação: {classificacao}")
-        
-        sucesso_geral = sucesso_valor and sucesso_descricao and sucesso_classificacao
-        print(f"Funções ChatGPT: {'✅ PASSOU' if sucesso_geral else '❌ FALHOU'}")
-        return sucesso_geral
-        
-    except Exception as e:
-        print(f"❌ Erro no teste de funções ChatGPT: {e}")
-        return False
+
+
 
 def corrigir_totalizadores_duplicados(csv_file):
     """Corrige totalizadores duplicados no arquivo CSV existente"""
@@ -1405,6 +1468,337 @@ def corrigir_totalizadores_duplicados(csv_file):
         
     except Exception as e:
         print(f"❌ Erro ao corrigir totalizadores: {str(e)}")
+        return False
+
+def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descricao=None, dismiss=False):
+    """Corrige uma entrada específica em todos os arquivos CSV do diretório mensagens/"""
+    try:
+        # Parse da data e hora
+        if ' ' not in data_hora:
+            print("❌ Formato inválido. Use: DD/MM/AAAA HH:MM:SS")
+            return False
+        
+        data, hora = data_hora.strip().split(' ', 1)
+        
+        # Valida formato da data
+        if not re.match(r'^\d{2}/\d{2}/\d{4}$', data):
+            print("❌ Formato de data inválido. Use: DD/MM/AAAA")
+            return False
+        
+        # Valida formato da hora
+        if not re.match(r'^\d{2}:\d{2}:\d{2}$', hora):
+            print("❌ Formato de hora inválido. Use: HH:MM:SS")
+            return False
+        
+        # Valida formato do valor (se fornecido)
+        if novo_valor:
+            if not re.match(r'^\d+[,.]?\d*$', novo_valor):
+                print("❌ Formato de valor inválido. Use: 2,33 ou 2.33")
+                return False
+            
+            # Converte valor para formato brasileiro
+            novo_valor = novo_valor.replace('.', '').replace(',', '.')
+            try:
+                float(novo_valor)
+            except ValueError:
+                print("❌ Valor inválido")
+                return False
+        
+        # Busca arquivos CSV nos diretórios mensagens e tmp
+        diretorios = [ATTR_FIN_DIR_MENSAGENS, ATTR_FIN_DIR_TMP]
+        arquivos_csv = []
+        
+        for diretorio in diretorios:
+            if os.path.exists(diretorio):
+                csv_files = [os.path.join(diretorio, f) for f in os.listdir(diretorio) if f.endswith('.csv')]
+                arquivos_csv.extend(csv_files)
+        
+        if not arquivos_csv:
+            print(f"❌ Nenhum arquivo CSV encontrado em {ATTR_FIN_DIR_MENSAGENS} ou {ATTR_FIN_DIR_TMP}")
+            return False
+        
+        entrada_encontrada = False
+        
+        # Processa cada arquivo CSV
+        for arquivo_csv in arquivos_csv:
+            if not os.path.exists(arquivo_csv):
+                continue
+                
+            print(f"🔍 Procurando em {os.path.basename(arquivo_csv)}...")
+            
+            # Lê o CSV
+            df = pd.read_csv(arquivo_csv)
+            
+            # Procura pela entrada com data e hora exatas
+            # Verifica se as colunas existem (pode ser DATA/HORA ou data/hora)
+            data_col = 'DATA' if 'DATA' in df.columns else 'data'
+            hora_col = 'HORA' if 'HORA' in df.columns else 'hora'
+            
+            mask = (df[data_col] == data) & (df[hora_col] == hora)
+            linhas_encontradas = df[mask]
+            
+            if not linhas_encontradas.empty:
+                entrada_encontrada = True
+                
+                for idx, linha in linhas_encontradas.iterrows():
+                    print(f"✅ Entrada encontrada: {data} {hora}")
+                    
+                    # Obtém o valor original (prioriza RICARDO/RAFAEL, depois VALOR)
+                    valor_original = None
+                    if 'RICARDO' in df.columns and linha['RICARDO'] and str(linha['RICARDO']).lower() not in ['nan', '']:
+                        valor_original = str(linha['RICARDO'])
+                    elif 'RAFAEL' in df.columns and linha['RAFAEL'] and str(linha['RAFAEL']).lower() not in ['nan', '']:
+                        valor_original = str(linha['RAFAEL'])
+                    elif 'VALOR' in df.columns and linha['VALOR'] and str(linha['VALOR']).lower() not in ['nan', '']:
+                        valor_original = str(linha['VALOR'])
+                    
+                    # NOVA REGRA: Se não encontrar valor, aplicar automaticamente o fix
+                    if not valor_original:
+                        print(f"💰 Nenhum valor encontrado - aplicando fix automático: R$ {novo_valor}")
+                        
+                        # Determina qual coluna usar baseado na estrutura do arquivo
+                        if 'RICARDO' in df.columns and 'RAFAEL' in df.columns:
+                            # Arquivo calculo.csv - verifica qual coluna está vazia
+                            if pd.isna(linha['RICARDO']) or str(linha['RICARDO']).lower() in ['nan', '']:
+                                df.at[idx, 'RICARDO'] = novo_valor
+                                coluna_usada = 'RICARDO'
+                            elif pd.isna(linha['RAFAEL']) or str(linha['RAFAEL']).lower() in ['nan', '']:
+                                df.at[idx, 'RAFAEL'] = novo_valor
+                                coluna_usada = 'RAFAEL'
+                            else:
+                                # Se ambas estão vazias, usa RICARDO por padrão
+                                df.at[idx, 'RICARDO'] = novo_valor
+                                coluna_usada = 'RICARDO'
+                        elif 'VALOR' in df.columns:
+                            # Arquivo mensagens.csv
+                            df.at[idx, 'VALOR'] = novo_valor
+                            coluna_usada = 'VALOR'
+                        else:
+                            print(f"⚠️  Estrutura de arquivo não reconhecida")
+                            continue
+                        
+                        # Aplica as correções solicitadas para o caso de fix automático
+                        alteracoes = [f"valor: aplicado {novo_valor} (sem valor anterior)"]
+                        
+                        # 2. Corrige classificação (se fornecida)
+                        if nova_classificacao and 'CLASSIFICACAO' in df.columns:
+                            classificacao_original = str(linha.get('CLASSIFICACAO', ''))
+                            df.at[idx, 'CLASSIFICACAO'] = nova_classificacao
+                            alteracoes.append(f"classificação: {classificacao_original} → {nova_classificacao}")
+                        
+                        # 3. Corrige descrição (se fornecida)
+                        if nova_descricao and 'DESCRICAO' in df.columns:
+                            descricao_original = str(linha.get('DESCRICAO', ''))
+                            df.at[idx, 'DESCRICAO'] = nova_descricao
+                            alteracoes.append(f"descrição: {descricao_original} → {nova_descricao}")
+                        
+                        # 4. Aplica dismiss (se solicitado)
+                        if dismiss:
+                            df.at[idx, 'VALIDADE'] = 'dismiss'
+                            alteracoes.append("marcado como dismiss")
+                            print(f"✅ Entrada marcada como dismiss")
+                        else:
+                            # Adiciona informação na coluna VALIDADE sobre as alterações
+                            if 'VALIDADE' in df.columns:
+                                df.at[idx, 'VALIDADE'] = f"fix-auto: {', '.join(alteracoes)}"
+                            else:
+                                # Se não existe coluna VALIDADE, adiciona
+                                df['VALIDADE'] = ''
+                                df.at[idx, 'VALIDADE'] = f"fix-auto: {', '.join(alteracoes)}"
+                        
+                        print(f"✅ Alterações aplicadas: {', '.join(alteracoes)}")
+                        continue
+                    
+                    print(f" Valor original: R$ {valor_original}")
+                    print(f"💰 Novo valor: R$ {novo_valor}")
+                    
+                    # Converte valor original para formato brasileiro para comparação (apenas se novo_valor foi fornecido)
+                    if novo_valor:
+                        valor_original_clean = valor_original.replace('.', '').replace(',', '.')
+                        try:
+                            valor_original_float = float(valor_original_clean)
+                            novo_valor_float = float(novo_valor)
+                        except ValueError:
+                            print(f"⚠️  Erro ao converter valores para comparação")
+                            continue
+                    
+                    # Aplica as correções solicitadas
+                    alteracoes = []
+                    
+                    # 1. Corrige valor (se fornecido)
+                    if novo_valor:
+                        if 'RICARDO' in df.columns and linha['RICARDO'] and str(linha['RICARDO']).lower() not in ['nan', '']:
+                            df.at[idx, 'RICARDO'] = novo_valor
+                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
+                        elif 'RAFAEL' in df.columns and linha['RAFAEL'] and str(linha['RAFAEL']).lower() not in ['nan', '']:
+                            df.at[idx, 'RAFAEL'] = novo_valor
+                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
+                        elif 'VALOR' in df.columns and linha['VALOR'] and str(linha['VALOR']).lower() not in ['nan', '']:
+                            df.at[idx, 'VALOR'] = novo_valor
+                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
+                    
+                    # 2. Corrige classificação (se fornecida)
+                    if nova_classificacao and 'CLASSIFICACAO' in df.columns:
+                        classificacao_original = str(linha.get('CLASSIFICACAO', ''))
+                        df.at[idx, 'CLASSIFICACAO'] = nova_classificacao
+                        alteracoes.append(f"classificação: {classificacao_original} → {nova_classificacao}")
+                    
+                    # 3. Corrige descrição (se fornecida)
+                    if nova_descricao and 'DESCRICAO' in df.columns:
+                        descricao_original = str(linha.get('DESCRICAO', ''))
+                        df.at[idx, 'DESCRICAO'] = nova_descricao
+                        alteracoes.append(f"descrição: {descricao_original} → {nova_descricao}")
+                    
+                    # 4. Aplica dismiss (se solicitado)
+                    if dismiss:
+                        df.at[idx, 'VALIDADE'] = 'dismiss'
+                        alteracoes.append("marcado como dismiss")
+                        print(f"✅ Entrada marcada como dismiss")
+                    else:
+                        # Adiciona informação na coluna VALIDADE sobre as alterações
+                        if alteracoes:
+                            if 'VALIDADE' in df.columns:
+                                df.at[idx, 'VALIDADE'] = f"fix: {', '.join(alteracoes)}"
+                            else:
+                                # Se não existe coluna VALIDADE, adiciona
+                                df['VALIDADE'] = ''
+                                df.at[idx, 'VALIDADE'] = f"fix: {', '.join(alteracoes)}"
+                    
+                    if alteracoes:
+                        print(f"✅ Alterações aplicadas: {', '.join(alteracoes)}")
+                    else:
+                        print(f"ℹ️  Nenhuma alteração aplicada")
+                
+                # Salva o arquivo CSV atualizado
+                df.to_csv(arquivo_csv, index=False)
+                print(f" Arquivo {os.path.basename(arquivo_csv)} atualizado")
+        
+        if not entrada_encontrada:
+            print(f"❌ Nenhuma entrada encontrada com data/hora: {data} {hora}")
+            return False
+        
+        print("✅ Correção concluída com sucesso!")
+        print(" Gerando relatórios atualizados...")
+        
+        # Regenera os relatórios
+        try:
+            from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+            from env import ATTR_FIN_ARQ_CALCULO
+            gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+            gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+            print("✅ Relatórios regenerados com sucesso!")
+        except Exception as e:
+            print(f"⚠️  Erro ao regenerar relatórios: {str(e)}")
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Erro durante a correção: {str(e)}")
+        return False
+
+def dismiss_entry(data_hora):
+    """Marca uma entrada como desconsiderada (dismiss) em todos os arquivos CSV do diretório mensagens/"""
+    try:
+        # Parse da data e hora
+        if ' ' not in data_hora:
+            print("❌ Formato inválido. Use: DD/MM/AAAA HH:MM:SS")
+            return False
+        
+        data, hora = data_hora.strip().split(' ', 1)
+        
+        # Valida formato da data
+        if not re.match(r'^\d{2}/\d{2}/\d{4}$', data):
+            print("❌ Formato de data inválido. Use: DD/MM/AAAA")
+            return False
+        
+        # Valida formato da hora
+        if not re.match(r'^\d{2}:\d{2}:\d{2}$', hora):
+            print("❌ Formato de hora inválido. Use: HH:MM:SS")
+            return False
+        
+        print(f" Procurando entrada: {data} {hora}")
+        
+        # Lista todos os arquivos CSV no diretório mensagens/
+        mensagens_dir = os.path.dirname(ATTR_FIN_ARQ_MENSAGENS)
+        if not os.path.exists(mensagens_dir):
+            print(f"❌ Diretório {mensagens_dir} não encontrado!")
+            return False
+        
+        arquivos_csv = [f for f in os.listdir(mensagens_dir) if f.endswith('.csv')]
+        
+        if not arquivos_csv:
+            print(f"❌ Nenhum arquivo CSV encontrado em {mensagens_dir}/")
+            return False
+        
+        entradas_encontradas = 0
+        
+        for arquivo_csv in arquivos_csv:
+            caminho_csv = os.path.join(mensagens_dir, arquivo_csv)
+            print(f"📄 Verificando arquivo: {arquivo_csv}")
+            
+            try:
+                df = pd.read_csv(caminho_csv)
+                
+                # Verifica se tem as colunas necessárias
+                if 'DATA' not in df.columns or 'HORA' not in df.columns:
+                    print(f"⚠️  Arquivo {arquivo_csv} não tem colunas DATA/HORA - pulando")
+                    continue
+                
+                # Adiciona coluna VALIDADE se não existir
+                if 'VALIDADE' not in df.columns:
+                    df['VALIDADE'] = ''
+                    print(f"➕ Coluna VALIDADE adicionada ao arquivo {arquivo_csv}")
+                
+                # Converte coluna VALIDADE para string para evitar warnings
+                df['VALIDADE'] = df['VALIDADE'].astype(str)
+                
+                # Procura pela entrada específica
+                mask = (df['DATA'] == data) & (df['HORA'] == hora)
+                linhas_encontradas = df[mask]
+                
+                if len(linhas_encontradas) > 0:
+                    # Marca como dismiss
+                    df.loc[mask, 'VALIDADE'] = 'dismiss'
+                    
+                    # Salva o arquivo atualizado
+                    df.to_csv(caminho_csv, index=False, quoting=1)
+                    
+                    print(f"✅ {len(linhas_encontradas)} entrada(s) marcada(s) como 'dismiss' em {arquivo_csv}")
+                    entradas_encontradas += len(linhas_encontradas)
+                    
+                    # Mostra detalhes das entradas encontradas
+                    for idx, row in linhas_encontradas.iterrows():
+                        anexo = row.get('ANEXO', 'N/A')
+                        descricao = row.get('DESCRICAO', 'N/A')
+                        print(f"   - {anexo}: {descricao}")
+                else:
+                    print(f"ℹ️  Nenhuma entrada encontrada em {arquivo_csv}")
+                    
+            except Exception as e:
+                print(f"❌ Erro ao processar {arquivo_csv}: {str(e)}")
+                continue
+        
+        if entradas_encontradas > 0:
+            print(f"\n✅ Total de {entradas_encontradas} entrada(s) marcada(s) como 'dismiss'")
+            print(" Gerando relatórios atualizados...")
+            
+            # Regenera os relatórios automaticamente
+            try:
+                from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+                from env import ATTR_FIN_ARQ_CALCULO
+                gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+                gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+                print("✅ Relatórios regenerados com sucesso!")
+            except Exception as e:
+                print(f"⚠️  Erro ao regenerar relatórios: {str(e)}")
+            
+            return True
+        else:
+            print(f"\n❌ Nenhuma entrada encontrada para {data} {hora}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Erro ao executar dismiss: {str(e)}")
         return False
 
 

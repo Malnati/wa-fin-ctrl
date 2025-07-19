@@ -7,6 +7,40 @@
   <link rel="stylesheet" href="static/styles.css">
   <style>
     {% block extra_styles %}{% endblock %}
+    .totalizadores {
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .totalizador {
+      text-align: center;
+      min-width: 150px;
+    }
+    .totalizador h3 {
+      margin: 0 0 5px 0;
+      color: #495057;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .totalizador .valor {
+      font-size: 24px;
+      font-weight: bold;
+      color: #28a745;
+    }
+    .totalizador .valor.zero {
+      color: #6c757d;
+    }
+    .totalizador .label {
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: 5px;
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
@@ -20,6 +54,32 @@
   <div class="container">
     <h1>{% block header_title %}Relatório de Prestação de Contas{% endblock %}</h1>
     <div class="info">Gerado automaticamente em {{ timestamp }}</div>
+    
+    {% if totalizadores %}
+    <div class="totalizadores">
+      <div class="totalizador">
+        <h3>Ricardo</h3>
+        <div class="valor {% if totalizadores.ricardo_float == 0 %}zero{% endif %}">
+          R$ {{ totalizadores.ricardo }}
+        </div>
+        <div class="label">Total do período</div>
+      </div>
+      <div class="totalizador">
+        <h3>Rafael</h3>
+        <div class="valor {% if totalizadores.rafael_float == 0 %}zero{% endif %}">
+          R$ {{ totalizadores.rafael }}
+        </div>
+        <div class="label">Total do período</div>
+      </div>
+      <div class="totalizador">
+        <h3>Total Geral</h3>
+        <div class="valor {% if totalizadores.ricardo_float + totalizadores.rafael_float == 0 %}zero{% endif %}">
+          R$ {{ "%.2f"|format(totalizadores.ricardo_float + totalizadores.rafael_float) }}
+        </div>
+        <div class="label">Soma de ambos</div>
+      </div>
+    </div>
+    {% endif %}
     
     <div style="text-align:right; margin-bottom:10px;">
       {% block header_buttons %}{% endblock %}

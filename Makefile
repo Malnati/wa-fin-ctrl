@@ -8,23 +8,27 @@ VAR_FIN_DIR_INPUT=input
 VAR_FIN_DIR_IMGS=imgs
 VAR_FIN_DIR_MASSA=massa
 VAR_FIN_DIR_TMP=tmp
+VAR_FIN_DIR_MENSAGENS=mensagens
+VAR_FIN_DIR_OCR=ocr
 VAR_FIN_ARQ_CALCULO=mensagens/calculo.csv
 VAR_FIN_ARQ_MENSAGENS=mensagens/mensagens.csv
 VAR_FIN_ARQ_DIAGNOSTICO=diagnostico.csv
 VAR_FIN_ARQ_CHAT=_chat.txt
-VAR_FIN_ARQ_OCR_XML=ocr/extract.xml
+VAR_FIN_ARQ_OCR_XML=ocr/extract.xml	
 
 # Configuração de ambiente
-export ATTR_FIN_OPENAI_API_KEY="${VAR_FIN_OPENAI_API_KEY}"
-export ATTR_FIN_DIR_INPUT="${VAR_FIN_DIR_INPUT}"
-export ATTR_FIN_DIR_IMGS="${VAR_FIN_DIR_IMGS}"
-export ATTR_FIN_DIR_MASSA="${VAR_FIN_DIR_MASSA}"
-export ATTR_FIN_DIR_TMP="${VAR_FIN_DIR_TMP}"
-export ATTR_FIN_ARQ_CALCULO="${VAR_FIN_ARQ_CALCULO}"
-export ATTR_FIN_ARQ_MENSAGENS="${VAR_FIN_ARQ_MENSAGENS}"
-export ATTR_FIN_ARQ_DIAGNOSTICO="${VAR_FIN_ARQ_DIAGNOSTICO}"
-export ATTR_FIN_ARQ_CHAT="${VAR_FIN_ARQ_CHAT}"
-export ATTR_FIN_ARQ_OCR_XML="${VAR_FIN_ARQ_OCR_XML}"
+export ATTR_FIN_OPENAI_API_KEY=${VAR_FIN_OPENAI_API_KEY}
+export ATTR_FIN_DIR_INPUT=${VAR_FIN_DIR_INPUT}
+export ATTR_FIN_DIR_IMGS=${VAR_FIN_DIR_IMGS}
+export ATTR_FIN_DIR_MASSA=${VAR_FIN_DIR_MASSA}
+export ATTR_FIN_DIR_TMP=${VAR_FIN_DIR_TMP}
+export ATTR_FIN_DIR_MENSAGENS=${VAR_FIN_DIR_MENSAGENS}
+export ATTR_FIN_DIR_OCR=${VAR_FIN_DIR_OCR}
+export ATTR_FIN_ARQ_CALCULO=${VAR_FIN_ARQ_CALCULO}
+export ATTR_FIN_ARQ_MENSAGENS=${VAR_FIN_ARQ_MENSAGENS}
+export ATTR_FIN_ARQ_DIAGNOSTICO=${VAR_FIN_ARQ_DIAGNOSTICO}
+export ATTR_FIN_ARQ_CHAT=${VAR_FIN_ARQ_CHAT}
+export ATTR_FIN_ARQ_OCR_XML=${VAR_FIN_ARQ_OCR_XML}
 
 show-variables:
 	@echo "VAR_FIN_OPENAI_API_KEY: ${VAR_FIN_OPENAI_API_KEY}"
@@ -46,8 +50,8 @@ show-variables:
 	@echo "ATTR_FIN_ARQ_MENSAGENS: ${ATTR_FIN_ARQ_MENSAGENS}"
 
 create-directories:
-	@echo "Criando diretórios: ${ATTR_TEST} ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}"
-	@mkdir -p "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" || { echo "Erro ao criar diretórios"; exit 1; }
+	@echo "Criando diretórios: ${ATTR_TEST} ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}, ${ATTR_FIN_DIR_MENSAGENS}, ${ATTR_FIN_DIR_OCR}"
+	@mkdir -p "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" || { echo "Erro ao criar diretórios"; exit 1; }
 
 # Verificar se Poetry está disponível
 check_poetry_installed:
@@ -73,6 +77,13 @@ help:
 	@echo "  help: Exibe esta mensagem de ajuda"
 	@echo "  install: Instala as dependências do projeto"
 	@echo "  run: Executa o script principal"
+	@echo "  process: Processa arquivos incrementalmente"
+	@echo "  force: Processa todos os arquivos (força reprocessamento)"
+	@echo "  dismiss: Marca uma entrada como desconsiderada"
+	@echo "    Exemplo: make dismiss find=\"21/04/2025 18:33:54\""
+	@echo "  fix: Corrige uma entrada específica"
+	@echo "    Exemplo: make fix find=\"24/04/2025 11:57:45\" value=\"39,47\" class=\"transferência\" desc=\"PIX para padaria\""
+	@echo "    Exemplo com dismiss: make fix find=\"24/04/2025 11:57:45\" dismiss=1"
 	@echo "  server: Inicia o servidor HTTP local"
 	@echo "  copy: Copia a estrutura do projeto para a área de transferência"
 
@@ -87,6 +98,15 @@ process:
 
 force:
 	poetry run python cli.py processar --force
+	
+dismiss:
+	poetry run python cli.py dismiss "$(find)"
+	
+fix:
+	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)"
+
+fix-dismiss:
+	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --dismiss
 
 server:
 	poetry run python -m http.server 8000
@@ -155,6 +175,9 @@ remove-imgs:
 remove-tmp:
 	@rm -rf tmp/*
 
+remove-input:
+	@rm -rf input/*
+
 remove-all:
 	@$(MAKE) remove-reports
 	@$(MAKE) remove-baks
@@ -162,5 +185,28 @@ remove-all:
 	@$(MAKE) remove-mensagens
 	@$(MAKE) remove-imgs
 	@$(MAKE) remove-tmp
+	@$(MAKE) remove-input
 
-.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-all
+
+copy-april:
+	@cp -v "massa/04 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-may:
+	@cp -v "massa/05 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-june:
+	@cp -v "massa/06 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-july:
+	@cp -v "massa/07 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-august:
+	@cp -v "massa/08 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-september:
+	@cp -v "massa/09 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+copy-october:
+	@cp -v "massa/10 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+
+.PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october

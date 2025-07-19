@@ -1,0 +1,5 @@
+---
+description: Todos os testes devem morar em test.py. Mesmo aqueles testes criados temporariamente para apoio de desnvolvimentos, mesmo estes devem morar em test.py.
+globs: "*.py"
+alwaysApply: true
+---

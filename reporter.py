@@ -6,6 +6,7 @@ import pandas as pd
 import base64
 import subprocess
 import xml.etree.ElementTree as ET
+import re
 from pathlib import Path
 from env import *
 from template import TemplateRenderer
@@ -29,6 +30,18 @@ def _carregar_ocr_map():
         print(f"❌ Erro ao carregar OCR: {str(e)}")
     return ocr_map
 
+def _verificar_imagem_jpg_pdf(anexo):
+    """Verifica se existe uma imagem JPG correspondente ao PDF."""
+    if not anexo or anexo.lower() == 'nan' or not anexo.lower().endswith('.pdf'):
+        return None
+    
+    nome_base = os.path.splitext(anexo)[0]
+    jpg_path = os.path.join(ATTR_FIN_DIR_IMGS, f"{nome_base}.jpg")
+    
+    if os.path.exists(jpg_path):
+        return f"{nome_base}.jpg"
+    return None
+
 def _preparar_linha(row, ocr_map, tem_motivo=False):
     """Prepara os dados de uma linha para o template - apenas dados puros, sem HTML."""
     data = str(row.get('DATA', ''))
@@ -41,9 +54,14 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     anexo = str(row.get('ANEXO', ''))
     descricao = str(row.get('DESCRICAO', ''))
     valor = str(row.get('VALOR', ''))
+    validade = str(row.get('VALIDADE', ''))
     
     # Buscar texto OCR pelo nome do arquivo (campo ANEXO)
     anexo = str(row.get('ANEXO', ''))
+    
+    # Verificar se existe imagem JPG para PDF
+    imagem_jpg = _verificar_imagem_jpg_pdf(anexo)
+    
     # 1) primeiro, tenta usar o que já veio no CSV (coluna "OCR")
     texto_csv = str(row.get('OCR', '') or '').strip()
     if texto_csv and texto_csv.lower() != 'nan':
@@ -73,6 +91,48 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
             r'([0-9.,]+)\s*reais',  # 123,45 reais
             r'total\s*R\$\s*([0-9.,]+)',  # total R$ 123,45
             r'pago\s*R\$\s*([0-9.,]+)',  # pago R$ 123,45
+            r'R\$\s*([0-9.,]+)\s*dados',  # R$ 123,45 dados
+            r'valor\s*:\s*R\$\s*([0-9.,]+)',  # valor: R$ 123,45
+            r'([0-9.,]+)\s*via\s*celular',  # 123,45 via celular
+            r'([0-9.,]+)\s*realizado',  # 123,45 realizado
+            r'VALOR\s*TOTAL\s*R\$\s*([0-9.,]+)',  # VALOR TOTAL R$ 123,45
+            r'VALOR\s*A\s*PAGAR\s*R\$\s*([0-9.,]+)',  # VALOR A PAGAR R$ 123,45
+            r'R\$\s*([0-9.,]+)\s*realizado',  # R$ 123,45 realizado
+            r'valor\s*R\$\s*([0-9.,]+)\s*realizado',  # valor R$ 123,45 realizado
+            r'([0-9.,]+)\s*R\$\s*realizado',  # 123,45 R$ realizado
+            r'VALOR\s*PAGO\s*R\$\s*([0-9.,]+)',  # VALOR PAGO R$ 123,45
+            r'VALOR\s*PAGO\s*([0-9.,]+)',  # VALOR PAGO 123,45
+            r'valor\s*R\$\s*([0-9.,]+)\s*dados',  # valor R$ 123,45 dados
+            r'([0-9.,]+)\s*R\$\s*dados',  # 123,45 R$ dados
+            r'R\$\s*([0-9.,]+)\s*via',  # R$ 123,45 via
+            r'valor\s*:\s*([0-9.,]+)',  # valor: 123,45
+            r'([0-9.,]+)\s*R\$\s*via',  # 123,45 R$ via
+            r'VALOR\s*TOTAL\s*([0-9.,]+)',  # VALOR TOTAL 123,45
+            r'VALOR\s*A\s*PAGAR\s*([0-9.,]+)',  # VALOR A PAGAR 123,45
+            r'R\$\s*([0-9.,]+)\s*realizado',  # R$ 123,45 realizado
+            r'valor\s*R\$\s*([0-9.,]+)\s*realizado',  # valor R$ 123,45 realizado
+            r'([0-9.,]+)\s*R\$\s*realizado',  # 123,45 R$ realizado
+            r'VALOR\s*PAGO\s*R\$\s*([0-9.,]+)',  # VALOR PAGO R$ 123,45
+            r'VALOR\s*PAGO\s*([0-9.,]+)',  # VALOR PAGO 123,45
+            r'valor\s*R\$\s*([0-9.,]+)\s*dados',  # valor R$ 123,45 dados
+            r'([0-9.,]+)\s*R\$\s*dados',  # 123,45 R$ dados
+            r'R\$\s*([0-9.,]+)\s*via',  # R$ 123,45 via
+            r'valor\s*:\s*([0-9.,]+)',  # valor: 123,45
+            r'([0-9.,]+)\s*R\$\s*via',  # 123,45 R$ via
+            r'VALOR\s*TOTAL\s*([0-9.,]+)',  # VALOR TOTAL 123,45
+            r'VALOR\s*A\s*PAGAR\s*([0-9.,]+)',  # VALOR A PAGAR 123,45
+            r'R\$\s*([0-9.,]+)\s*realizado',  # R$ 123,45 realizado
+            r'valor\s*R\$\s*([0-9.,]+)\s*realizado',  # valor R$ 123,45 realizado
+            r'([0-9.,]+)\s*R\$\s*realizado',  # 123,45 R$ realizado
+            r'VALOR\s*PAGO\s*R\$\s*([0-9.,]+)',  # VALOR PAGO R$ 123,45
+            r'VALOR\s*PAGO\s*([0-9.,]+)',  # VALOR PAGO 123,45
+            r'valor\s*R\$\s*([0-9.,]+)\s*dados',  # valor R$ 123,45 dados
+            r'([0-9.,]+)\s*R\$\s*dados',  # 123,45 R$ dados
+            r'R\$\s*([0-9.,]+)\s*via',  # R$ 123,45 via
+            r'valor\s*:\s*([0-9.,]+)',  # valor: 123,45
+            r'([0-9.,]+)\s*R\$\s*via',  # 123,45 R$ via
+            r'VALOR\s*TOTAL\s*([0-9.,]+)',  # VALOR TOTAL 123,45
+            r'VALOR\s*A\s*PAGAR\s*([0-9.,]+)',  # VALOR A PAGAR 123,45
         ]
         
         for padrao in padroes_valor:
@@ -129,11 +189,33 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     def limpar_valor(valor):
         if not valor:
             return ''
-        valor = str(valor).replace('R$', '').replace(' ', '').replace('.', '').replace(',', '.')
+        valor = str(valor).replace('R$', '').replace(' ', '')
+        # Se já é um número float válido, apenas formata
         try:
-            return f"{float(valor):.2f}"
-        except Exception:
-            return valor
+            float_valor = float(valor)
+            return f"{float_valor:.2f}"
+        except ValueError:
+            # Se não é float válido, tenta converter formato brasileiro
+            try:
+                # Remove pontos de milhares e converte vírgula para ponto
+                valor_limpo = valor.replace('.', '').replace(',', '.')
+                float_valor = float(valor_limpo)
+                return f"{float_valor:.2f}"
+            except Exception:
+                # Se ainda não conseguiu, tenta outros formatos
+                try:
+                    # Remove todos os caracteres não numéricos exceto ponto e vírgula
+                    valor_limpo = re.sub(r'[^\d.,]', '', valor)
+                    if ',' in valor_limpo and '.' in valor_limpo:
+                        # Se tem ambos, assume que vírgula é decimal e ponto é milhares
+                        valor_limpo = valor_limpo.replace('.', '').replace(',', '.')
+                    elif ',' in valor_limpo:
+                        # Se só tem vírgula, assume que é decimal
+                        valor_limpo = valor_limpo.replace(',', '.')
+                    float_valor = float(valor_limpo)
+                    return f"{float_valor:.2f}"
+                except Exception:
+                    return valor
 
     ricardo = limpar_valor(ricardo)
     rafael = limpar_valor(rafael)
@@ -141,6 +223,19 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
 
     # Flag para linha de total
     row_class = 'total-row' if 'TOTAL' in remetente.upper() else ''
+    
+    # Se a entrada está marcada como dismiss, altera a descrição
+    if validade and validade.lower() == 'dismiss':
+        descricao = 'desconsiderado'
+        row_class = 'dismiss-row' if not row_class else f'{row_class} dismiss-row'
+    # Se a entrada está marcada como fix-value, adiciona classe especial
+    elif validade and 'fix-value' in validade.lower():
+        row_class = 'fix-row' if not row_class else f'{row_class} fix-row'
+        # Adiciona informação sobre a correção na descrição se não estiver vazia
+        if descricao and descricao.lower() not in ['nan', '']:
+            descricao = f"{descricao} (corrigido)"
+        else:
+            descricao = "Valor corrigido"
     
     linha = {
         'data_hora': data_hora,
@@ -151,7 +246,8 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         'descricao': descricao,
         'ocr': texto_ocr,  # Texto OCR carregado do XML
         'row_class': row_class,
-        'valor': valor
+        'valor': valor,
+        'imagem_jpg': imagem_jpg  # Imagem JPG correspondente ao PDF
     }
     print(f"DEBUG LINHA: {linha}")
     
@@ -199,6 +295,42 @@ def _preparar_linhas_impressao(df_mes):
     
     return rows
 
+def _calcular_totalizadores_pessoas(rows):
+    """Calcula totalizadores por pessoa, excluindo registros com 'dismiss'."""
+    def parse_valor(valor_str):
+        """Converte string de valor para float."""
+        if not valor_str or valor_str.lower() in ['nan', '']:
+            return 0.0
+        try:
+            # Remove R$ e espaços, converte vírgula para ponto
+            valor_limpo = str(valor_str).replace('R$', '').replace(' ', '').replace(',', '.')
+            return float(valor_limpo)
+        except (ValueError, TypeError):
+            return 0.0
+    
+    total_ricardo = 0.0
+    total_rafael = 0.0
+    
+    for row in rows:
+        # Pula registros marcados como dismiss
+        if row.get('row_class', '').find('dismiss-row') != -1:
+            continue
+        
+        # Soma valores de Ricardo
+        valor_ricardo = parse_valor(row.get('ricardo', ''))
+        total_ricardo += valor_ricardo
+        
+        # Soma valores de Rafael
+        valor_rafael = parse_valor(row.get('rafael', ''))
+        total_rafael += valor_rafael
+    
+    return {
+        'ricardo': f"{total_ricardo:.2f}",
+        'rafael': f"{total_rafael:.2f}",
+        'ricardo_float': total_ricardo,
+        'rafael_float': total_rafael
+    }
+
 def gerar_relatorio_html(csv_path):
     print(f"DEBUG: Iniciando gerar_relatorio_html com csv_path: {csv_path}")
     try:
@@ -223,10 +355,14 @@ def gerar_relatorio_html(csv_path):
         for _, row in df.iterrows():
             rows.append(_preparar_linha(row, ocr_map, tem_motivo))
         
+        # Calcular totalizadores por pessoa
+        totalizadores = _calcular_totalizadores_pessoas(rows)
+        
         context = {
             "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
             "rows": rows,
             "tem_motivo": tem_motivo,
+            "totalizadores": totalizadores,
             "attrs": {
                 "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
                 "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
@@ -240,6 +376,40 @@ def gerar_relatorio_html(csv_path):
             output_path="report.html"
         )
         print("✅ Relatório HTML gerado: report.html")
+        
+        # Gera o index.html a partir do template
+        print("📄 Gerando página de entrada: index.html")
+        
+        # Detecta relatórios mensais disponíveis
+        monthly_reports = []
+        for file in os.listdir("."):
+            if file.startswith("report-") and file.endswith(".html"):
+                # Extrai informações do nome do arquivo: report-2025-04-Abril.html
+                match = re.match(r"report-(\d{4})-(\d{2})-(.+)\.html", file)
+                if match:
+                    year = match.group(1)
+                    month = match.group(3)
+                    display_name = f"📅 {month} {year}"
+                    monthly_reports.append({
+                        "filename": file,
+                        "display_name": display_name
+                    })
+        
+        # Ordena por data (mais recente primeiro)
+        monthly_reports.sort(key=lambda x: x["filename"], reverse=True)
+        
+        # Contexto para o template
+        index_context = {
+            "monthly_reports": monthly_reports
+        }
+        
+        # Renderiza o template
+        TemplateRenderer.render(
+            template_name="index.html.j2",
+            context=index_context,
+            output_path="index.html"
+        )
+        print("✅ Página de entrada gerada: index.html")
         
         # Validação OCR
         print("🔍 Validando conformidade OCR...")
@@ -298,11 +468,15 @@ def gerar_relatorios_mensais_html(csv_path):
             for _, row in dados_mes.iterrows():
                 rows.append(_preparar_linha(row, ocr_map, tem_motivo))
             
+            # Calcular totalizadores por pessoa para este mês
+            totalizadores = _calcular_totalizadores_pessoas(rows)
+            
             context = {
                 "periodo": f"{nome_mes} {ano}",
                 "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
                 "rows": rows,
                 "tem_motivo": tem_motivo,
+                "totalizadores": totalizadores,
                 "edit_link": f"report-edit-{ano}-{mes:02d}-{nome_mes}.html",
                 "attrs": {
                     "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
@@ -321,6 +495,7 @@ def gerar_relatorios_mensais_html(csv_path):
                 "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
                 "rows": rows,
                 "tem_motivo": tem_motivo,
+                "totalizadores": totalizadores,
                 # Não incluir edit_link para relatórios de edição
                 "attrs": {
                     "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
