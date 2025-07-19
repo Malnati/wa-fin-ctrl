@@ -75,6 +75,48 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
             r'([0-9.,]+)\s*reais',  # 123,45 reais
             r'total\s*R\$\s*([0-9.,]+)',  # total R$ 123,45
             r'pago\s*R\$\s*([0-9.,]+)',  # pago R$ 123,45
+            r'R\$\s*([0-9.,]+)\s*dados',  # R$ 123,45 dados
+            r'valor\s*:\s*R\$\s*([0-9.,]+)',  # valor: R$ 123,45
+            r'([0-9.,]+)\s*via\s*celular',  # 123,45 via celular
+            r'([0-9.,]+)\s*realizado',  # 123,45 realizado
+            r'VALOR\s*TOTAL\s*R\$\s*([0-9.,]+)',  # VALOR TOTAL R$ 123,45
+            r'VALOR\s*A\s*PAGAR\s*R\$\s*([0-9.,]+)',  # VALOR A PAGAR R$ 123,45
+            r'R\$\s*([0-9.,]+)\s*realizado',  # R$ 123,45 realizado
+            r'valor\s*R\$\s*([0-9.,]+)\s*realizado',  # valor R$ 123,45 realizado
+            r'([0-9.,]+)\s*R\$\s*realizado',  # 123,45 R$ realizado
+            r'VALOR\s*PAGO\s*R\$\s*([0-9.,]+)',  # VALOR PAGO R$ 123,45
+            r'VALOR\s*PAGO\s*([0-9.,]+)',  # VALOR PAGO 123,45
+            r'valor\s*R\$\s*([0-9.,]+)\s*dados',  # valor R$ 123,45 dados
+            r'([0-9.,]+)\s*R\$\s*dados',  # 123,45 R$ dados
+            r'R\$\s*([0-9.,]+)\s*via',  # R$ 123,45 via
+            r'valor\s*:\s*([0-9.,]+)',  # valor: 123,45
+            r'([0-9.,]+)\s*R\$\s*via',  # 123,45 R$ via
+            r'VALOR\s*TOTAL\s*([0-9.,]+)',  # VALOR TOTAL 123,45
+            r'VALOR\s*A\s*PAGAR\s*([0-9.,]+)',  # VALOR A PAGAR 123,45
+            r'R\$\s*([0-9.,]+)\s*realizado',  # R$ 123,45 realizado
+            r'valor\s*R\$\s*([0-9.,]+)\s*realizado',  # valor R$ 123,45 realizado
+            r'([0-9.,]+)\s*R\$\s*realizado',  # 123,45 R$ realizado
+            r'VALOR\s*PAGO\s*R\$\s*([0-9.,]+)',  # VALOR PAGO R$ 123,45
+            r'VALOR\s*PAGO\s*([0-9.,]+)',  # VALOR PAGO 123,45
+            r'valor\s*R\$\s*([0-9.,]+)\s*dados',  # valor R$ 123,45 dados
+            r'([0-9.,]+)\s*R\$\s*dados',  # 123,45 R$ dados
+            r'R\$\s*([0-9.,]+)\s*via',  # R$ 123,45 via
+            r'valor\s*:\s*([0-9.,]+)',  # valor: 123,45
+            r'([0-9.,]+)\s*R\$\s*via',  # 123,45 R$ via
+            r'VALOR\s*TOTAL\s*([0-9.,]+)',  # VALOR TOTAL 123,45
+            r'VALOR\s*A\s*PAGAR\s*([0-9.,]+)',  # VALOR A PAGAR 123,45
+            r'R\$\s*([0-9.,]+)\s*realizado',  # R$ 123,45 realizado
+            r'valor\s*R\$\s*([0-9.,]+)\s*realizado',  # valor R$ 123,45 realizado
+            r'([0-9.,]+)\s*R\$\s*realizado',  # 123,45 R$ realizado
+            r'VALOR\s*PAGO\s*R\$\s*([0-9.,]+)',  # VALOR PAGO R$ 123,45
+            r'VALOR\s*PAGO\s*([0-9.,]+)',  # VALOR PAGO 123,45
+            r'valor\s*R\$\s*([0-9.,]+)\s*dados',  # valor R$ 123,45 dados
+            r'([0-9.,]+)\s*R\$\s*dados',  # 123,45 R$ dados
+            r'R\$\s*([0-9.,]+)\s*via',  # R$ 123,45 via
+            r'valor\s*:\s*([0-9.,]+)',  # valor: 123,45
+            r'([0-9.,]+)\s*R\$\s*via',  # 123,45 R$ via
+            r'VALOR\s*TOTAL\s*([0-9.,]+)',  # VALOR TOTAL 123,45
+            r'VALOR\s*A\s*PAGAR\s*([0-9.,]+)',  # VALOR A PAGAR 123,45
         ]
         
         for padrao in padroes_valor:
@@ -131,11 +173,33 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     def limpar_valor(valor):
         if not valor:
             return ''
-        valor = str(valor).replace('R$', '').replace(' ', '').replace('.', '').replace(',', '.')
+        valor = str(valor).replace('R$', '').replace(' ', '')
+        # Se já é um número float válido, apenas formata
         try:
-            return f"{float(valor):.2f}"
-        except Exception:
-            return valor
+            float_valor = float(valor)
+            return f"{float_valor:.2f}"
+        except ValueError:
+            # Se não é float válido, tenta converter formato brasileiro
+            try:
+                # Remove pontos de milhares e converte vírgula para ponto
+                valor_limpo = valor.replace('.', '').replace(',', '.')
+                float_valor = float(valor_limpo)
+                return f"{float_valor:.2f}"
+            except Exception:
+                # Se ainda não conseguiu, tenta outros formatos
+                try:
+                    # Remove todos os caracteres não numéricos exceto ponto e vírgula
+                    valor_limpo = re.sub(r'[^\d.,]', '', valor)
+                    if ',' in valor_limpo and '.' in valor_limpo:
+                        # Se tem ambos, assume que vírgula é decimal e ponto é milhares
+                        valor_limpo = valor_limpo.replace('.', '').replace(',', '.')
+                    elif ',' in valor_limpo:
+                        # Se só tem vírgula, assume que é decimal
+                        valor_limpo = valor_limpo.replace(',', '.')
+                    float_valor = float(valor_limpo)
+                    return f"{float_valor:.2f}"
+                except Exception:
+                    return valor
 
     ricardo = limpar_valor(ricardo)
     rafael = limpar_valor(rafael)
@@ -148,6 +212,14 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     if validade and validade.lower() == 'dismiss':
         descricao = 'desconsiderado'
         row_class = 'dismiss-row' if not row_class else f'{row_class} dismiss-row'
+    # Se a entrada está marcada como fix-value, adiciona classe especial
+    elif validade and 'fix-value' in validade.lower():
+        row_class = 'fix-row' if not row_class else f'{row_class} fix-row'
+        # Adiciona informação sobre a correção na descrição se não estiver vazia
+        if descricao and descricao.lower() not in ['nan', '']:
+            descricao = f"{descricao} (corrigido)"
+        else:
+            descricao = "Valor corrigido"
     
     linha = {
         'data_hora': data_hora,
