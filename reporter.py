@@ -278,6 +278,42 @@ def _preparar_linhas_impressao(df_mes):
     
     return rows
 
+def _calcular_totalizadores_pessoas(rows):
+    """Calcula totalizadores por pessoa, excluindo registros com 'dismiss'."""
+    def parse_valor(valor_str):
+        """Converte string de valor para float."""
+        if not valor_str or valor_str.lower() in ['nan', '']:
+            return 0.0
+        try:
+            # Remove R$ e espaços, converte vírgula para ponto
+            valor_limpo = str(valor_str).replace('R$', '').replace(' ', '').replace(',', '.')
+            return float(valor_limpo)
+        except (ValueError, TypeError):
+            return 0.0
+    
+    total_ricardo = 0.0
+    total_rafael = 0.0
+    
+    for row in rows:
+        # Pula registros marcados como dismiss
+        if row.get('row_class', '').find('dismiss-row') != -1:
+            continue
+        
+        # Soma valores de Ricardo
+        valor_ricardo = parse_valor(row.get('ricardo', ''))
+        total_ricardo += valor_ricardo
+        
+        # Soma valores de Rafael
+        valor_rafael = parse_valor(row.get('rafael', ''))
+        total_rafael += valor_rafael
+    
+    return {
+        'ricardo': f"{total_ricardo:.2f}",
+        'rafael': f"{total_rafael:.2f}",
+        'ricardo_float': total_ricardo,
+        'rafael_float': total_rafael
+    }
+
 def gerar_relatorio_html(csv_path):
     print(f"DEBUG: Iniciando gerar_relatorio_html com csv_path: {csv_path}")
     try:
@@ -302,10 +338,14 @@ def gerar_relatorio_html(csv_path):
         for _, row in df.iterrows():
             rows.append(_preparar_linha(row, ocr_map, tem_motivo))
         
+        # Calcular totalizadores por pessoa
+        totalizadores = _calcular_totalizadores_pessoas(rows)
+        
         context = {
             "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
             "rows": rows,
             "tem_motivo": tem_motivo,
+            "totalizadores": totalizadores,
             "attrs": {
                 "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
                 "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
@@ -411,11 +451,15 @@ def gerar_relatorios_mensais_html(csv_path):
             for _, row in dados_mes.iterrows():
                 rows.append(_preparar_linha(row, ocr_map, tem_motivo))
             
+            # Calcular totalizadores por pessoa para este mês
+            totalizadores = _calcular_totalizadores_pessoas(rows)
+            
             context = {
                 "periodo": f"{nome_mes} {ano}",
                 "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
                 "rows": rows,
                 "tem_motivo": tem_motivo,
+                "totalizadores": totalizadores,
                 "edit_link": f"report-edit-{ano}-{mes:02d}-{nome_mes}.html",
                 "attrs": {
                     "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
@@ -434,6 +478,7 @@ def gerar_relatorios_mensais_html(csv_path):
                 "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
                 "rows": rows,
                 "tem_motivo": tem_motivo,
+                "totalizadores": totalizadores,
                 # Não incluir edit_link para relatórios de edição
                 "attrs": {
                     "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
