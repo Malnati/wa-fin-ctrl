@@ -16,7 +16,8 @@ from app import (
     verificar_totais, 
     corrigir_totalizadores_duplicados, 
     executar_testes_e2e,
-    dismiss_entry
+    dismiss_entry,
+    fix_entry
 )
 
 @click.group()
@@ -91,6 +92,14 @@ def prestacao():
     """Gera planilha no formato da Justiça (função removida)."""
     print("A função gerar_formato_justica foi removida.")
     exit(0)
+
+@cli.command()
+@click.argument('data_hora', type=str)
+@click.option('--value', type=str, required=True, help='Novo valor para corrigir (ex: 2,33)')
+def fix(data_hora, value):
+    """Corrige o valor de uma entrada específica em todos os arquivos CSV."""
+    sucesso = fix_entry(data_hora, value)
+    exit(0 if sucesso else 1)
 
 @cli.command()
 @click.argument('data_hora', type=str)
