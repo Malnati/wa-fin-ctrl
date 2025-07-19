@@ -1470,7 +1470,7 @@ def corrigir_totalizadores_duplicados(csv_file):
         print(f"❌ Erro ao corrigir totalizadores: {str(e)}")
         return False
 
-def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descricao=None, dismiss=False):
+def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descricao=None, dismiss=False, rotate=None, ia=False):
     """Corrige uma entrada específica em todos os arquivos CSV do diretório mensagens/"""
     try:
         # Parse da data e hora
@@ -1504,6 +1504,17 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                 print("❌ Valor inválido")
                 return False
         
+        # Valida parâmetro de rotação (se fornecido)
+        if rotate:
+            try:
+                rotate_degrees = int(rotate)
+                if rotate_degrees not in [90, 180, 270]:
+                    print("❌ Graus de rotação inválidos. Use: 90, 180 ou 270")
+                    return False
+            except ValueError:
+                print("❌ Graus de rotação inválidos. Use: 90, 180 ou 270")
+                return False
+        
         # Busca arquivos CSV nos diretórios mensagens e tmp
         diretorios = [ATTR_FIN_DIR_MENSAGENS, ATTR_FIN_DIR_TMP]
         arquivos_csv = []
@@ -1518,6 +1529,7 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
             return False
         
         entrada_encontrada = False
+        arquivo_anexo = None
         
         # Processa cada arquivo CSV
         for arquivo_csv in arquivos_csv:
@@ -1542,6 +1554,11 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                 
                 for idx, linha in linhas_encontradas.iterrows():
                     print(f"✅ Entrada encontrada: {data} {hora}")
+                    
+                    # Obtém o arquivo anexo para rotação/re-submissão
+                    if 'ANEXO' in df.columns and linha['ANEXO']:
+                        arquivo_anexo = str(linha['ANEXO'])
+                        print(f"📎 Arquivo anexo: {arquivo_anexo}")
                     
                     # Obtém o valor original (prioriza RICARDO/RAFAEL, depois VALOR)
                     valor_original = None
@@ -1673,6 +1690,26 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                 df.to_csv(arquivo_csv, index=False)
                 print(f" Arquivo {os.path.basename(arquivo_csv)} atualizado")
         
+        # Processa rotação e re-submissão para IA se solicitado
+        if arquivo_anexo and (rotate or ia):
+            print(f"\n🔄 Processando rotação/re-submissão para arquivo: {arquivo_anexo}")
+            
+            # Aplica rotação se solicitada
+            if rotate:
+                sucesso_rotacao = aplicar_rotacao_imagem(arquivo_anexo, int(rotate))
+                if sucesso_rotacao:
+                    print(f"✅ Rotação de {rotate}° aplicada com sucesso")
+                else:
+                    print(f"❌ Erro ao aplicar rotação de {rotate}°")
+            
+            # Re-submete para ChatGPT se solicitado
+            if ia:
+                sucesso_ia = re_submeter_para_chatgpt(arquivo_anexo)
+                if sucesso_ia:
+                    print(f"✅ Re-submissão para ChatGPT concluída")
+                else:
+                    print(f"❌ Erro na re-submissão para ChatGPT")
+        
         if not entrada_encontrada:
             print(f"❌ Nenhuma entrada encontrada com data/hora: {data} {hora}")
             return False
@@ -1799,6 +1836,166 @@ def dismiss_entry(data_hora):
             
     except Exception as e:
         print(f"❌ Erro ao executar dismiss: {str(e)}")
+        return False
+
+def aplicar_rotacao_imagem(arquivo_anexo, graus):
+    """Aplica rotação em uma imagem ou converte PDF para JPG e aplica rotação."""
+    try:
+        import cv2
+        from PIL import Image
+        import os
+        
+        # Determina o caminho do arquivo
+        caminhos_possiveis = [
+            os.path.join(ATTR_FIN_DIR_INPUT, arquivo_anexo),
+            os.path.join(ATTR_FIN_DIR_IMGS, arquivo_anexo),
+            arquivo_anexo
+        ]
+        
+        arquivo_path = None
+        for caminho in caminhos_possiveis:
+            if os.path.exists(caminho):
+                arquivo_path = caminho
+                break
+        
+        if not arquivo_path:
+            print(f"❌ Arquivo não encontrado: {arquivo_anexo}")
+            return False
+        
+        # Se for PDF, converte para JPG primeiro
+        if arquivo_path.lower().endswith('.pdf'):
+            print(f"📄 Convertendo PDF para JPG antes da rotação...")
+            from pdf2image import convert_from_path
+            
+            try:
+                # Converte primeira página do PDF para imagem
+                imagens = convert_from_path(arquivo_path, first_page=1, last_page=1)
+                if not imagens:
+                    print(f"❌ Erro ao converter PDF para imagem")
+                    return False
+                
+                # Salva como JPG temporário
+                nome_base = os.path.splitext(os.path.basename(arquivo_path))[0]
+                jpg_temp_path = os.path.join(ATTR_FIN_DIR_IMGS, f"{nome_base}.jpg")
+                imagens[0].save(jpg_temp_path, 'JPEG', quality=85)
+                
+                arquivo_path = jpg_temp_path
+                print(f"✅ PDF convertido para JPG: {nome_base}.jpg")
+                
+            except Exception as e:
+                print(f"❌ Erro ao converter PDF: {str(e)}")
+                return False
+        
+        # Aplica rotação na imagem
+        if arquivo_path.lower().endswith(('.jpg', '.jpeg', '.png')):
+            try:
+                # Carrega a imagem
+                img = cv2.imread(arquivo_path)
+                if img is None:
+                    print(f"❌ Erro ao carregar imagem: {arquivo_path}")
+                    return False
+                
+                # Aplica rotação
+                altura, largura = img.shape[:2]
+                centro = (largura // 2, altura // 2)
+                
+                if graus == 90:
+                    matriz_rotacao = cv2.getRotationMatrix2D(centro, 90, 1.0)
+                elif graus == 180:
+                    matriz_rotacao = cv2.getRotationMatrix2D(centro, 180, 1.0)
+                elif graus == 270:
+                    matriz_rotacao = cv2.getRotationMatrix2D(centro, 270, 1.0)
+                else:
+                    print(f"❌ Graus de rotação inválidos: {graus}")
+                    return False
+                
+                # Aplica a transformação
+                img_rotacionada = cv2.warpAffine(img, matriz_rotacao, (largura, altura))
+                
+                # Salva a imagem rotacionada (sobrescreve a original)
+                cv2.imwrite(arquivo_path, img_rotacionada)
+                
+                print(f"✅ Rotação de {graus}° aplicada em: {os.path.basename(arquivo_path)}")
+                return True
+                
+            except Exception as e:
+                print(f"❌ Erro ao aplicar rotação: {str(e)}")
+                return False
+        else:
+            print(f"❌ Formato de arquivo não suportado para rotação: {arquivo_path}")
+            return False
+            
+    except Exception as e:
+        print(f"❌ Erro geral na rotação: {str(e)}")
+        return False
+
+def re_submeter_para_chatgpt(arquivo_anexo):
+    """Re-submete uma imagem para processamento com ChatGPT após rotação."""
+    try:
+        import os
+        
+        # Determina o caminho do arquivo
+        caminhos_possiveis = [
+            os.path.join(ATTR_FIN_DIR_INPUT, arquivo_anexo),
+            os.path.join(ATTR_FIN_DIR_IMGS, arquivo_anexo),
+            arquivo_anexo
+        ]
+        
+        arquivo_path = None
+        for caminho in caminhos_possiveis:
+            if os.path.exists(caminho):
+                arquivo_path = caminho
+                break
+        
+        if not arquivo_path:
+            print(f"❌ Arquivo não encontrado: {arquivo_anexo}")
+            return False
+        
+        print(f"🤖 Re-submetendo para ChatGPT: {os.path.basename(arquivo_path)}")
+        
+        # Processa OCR na imagem rotacionada
+        from ocr import process_image_ocr
+        ocr_text = process_image_ocr(arquivo_path)
+        
+        if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
+            print(f"❌ OCR não conseguiu extrair texto da imagem rotacionada")
+            return False
+        
+        print(f"📝 Texto extraído via OCR: {ocr_text[:100]}...")
+        
+        # Re-submete para ChatGPT para extrair valor, descrição e classificação
+        from ia import extract_total_value_with_chatgpt, generate_payment_description_with_chatgpt, classify_transaction_type_with_chatgpt
+        
+        # Extrai valor total
+        valor_total = extract_total_value_with_chatgpt(ocr_text)
+        if valor_total:
+            print(f"💰 Valor extraído via IA: R$ {valor_total}")
+        else:
+            print(f"⚠️  IA não conseguiu extrair valor")
+        
+        # Gera descrição
+        descricao = generate_payment_description_with_chatgpt(ocr_text)
+        if descricao:
+            print(f"📝 Descrição gerada via IA: {descricao}")
+        else:
+            print(f"⚠️  IA não conseguiu gerar descrição")
+        
+        # Classifica transação
+        classificacao = classify_transaction_type_with_chatgpt(ocr_text)
+        if classificacao:
+            print(f"🏷️  Classificação via IA: {classificacao}")
+        else:
+            print(f"⚠️  IA não conseguiu classificar transação")
+        
+        # Atualiza o XML de OCR com o novo texto
+        from ocr import registrar_ocr_xml
+        registrar_ocr_xml(os.path.basename(arquivo_path), ocr_text)
+        
+        print(f"✅ Re-submissão para ChatGPT concluída com sucesso")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Erro na re-submissão para ChatGPT: {str(e)}")
         return False
 
 
