@@ -93,31 +93,31 @@ install:
 	poetry install --no-interaction --no-root
 
 run:
-	poetry run python cli.py
+	poetry run python cli.py --help 
 
 process:
-	poetry run python cli.py processar || echo "Erro ao executar o comando 'processar'. Verifique os logs para mais detalhes."
+	poetry run python cli.py processar 
 
 force:
-	poetry run python cli.py processar --force
+	poetry run python cli.py processar --force 
 	
 dismiss:
-	poetry run python cli.py dismiss "$(find)"
+	poetry run python cli.py dismiss "$(find)" 
 	
 fix:
-	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)"
+	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" 
 
 fix-dismiss:
-	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --dismiss
+	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --dismiss 
 
 fix-rotate:
-	poetry run python cli.py fix "$(find)" --rotate "$(rotate)"
+	poetry run python cli.py fix "$(find)" --rotate "$(rotate)" 
 
 fix-rotate-ia:
-	poetry run python cli.py fix "$(find)" --rotate "$(rotate)" --ia
+	poetry run python cli.py fix "$(find)" --rotate "$(rotate)" --ia 
 
 server:
-	poetry run python -m http.server 8000
+	poetry run python -m http.server 8000 
 
 copy:
 	@mkdir -p tmp
