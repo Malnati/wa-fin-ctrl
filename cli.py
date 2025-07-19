@@ -84,7 +84,8 @@ def corrigir(csv_file):
 @cli.command()
 def teste():
     """Executa testes automatizados de ponta a ponta."""
-    sucesso = executar_testes_e2e()
+    from test import executar_todos_testes
+    sucesso = executar_todos_testes()
     exit(0 if sucesso else 1)
 
 @cli.command()
