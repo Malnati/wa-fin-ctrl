@@ -103,7 +103,10 @@ dismiss:
 	poetry run python cli.py dismiss "$(find)"
 	
 fix:
-	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" $(if $(dismiss),--dismiss,)
+	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)"
+
+fix-dismiss:
+	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --dismiss
 
 server:
 	poetry run python -m http.server 8000
