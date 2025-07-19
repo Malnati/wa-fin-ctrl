@@ -100,9 +100,11 @@ def prestacao():
 @click.option('--class', 'classification', type=str, help='Nova classificação para a entrada')
 @click.option('--desc', 'description', type=str, help='Nova descrição para a entrada')
 @click.option('--dismiss', is_flag=True, help='Marca a entrada como desconsiderada (dismiss)')
-def fix(data_hora, value, classification, description, dismiss):
+@click.option('--rotate', type=str, help='Graus de rotação para aplicar na imagem (ex: 90, 180, 270)')
+@click.option('--ia', is_flag=True, help='Re-submete a imagem para o ChatGPT após rotação')
+def fix(data_hora, value, classification, description, dismiss, rotate, ia):
     """Corrige uma entrada específica em todos os arquivos CSV."""
-    sucesso = fix_entry(data_hora, value, classification, description, dismiss)
+    sucesso = fix_entry(data_hora, value, classification, description, dismiss, rotate, ia)
     exit(0 if sucesso else 1)
 
 @cli.command()
