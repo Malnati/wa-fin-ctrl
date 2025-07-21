@@ -1,8 +1,8 @@
 {# Macro para renderizar uma linha da tabela #}
 {% macro render_row(row, loop_index, attrs, is_editable=false) %}
 <tr class="{{ row.row_class }}" data-row-id="{{ loop_index }}" {% if row.motivo %} data-motivo="{{ row.motivo }}"{% endif %} data-data-hora="{{ row.data_hora }}">
-  <td class="data-hora desktop-only">{{ row.data_hora }}</td>
-  <td class="classificacao-cell">
+  <td class="data-hora desktop-only align-middle text-center">{{ row.data_hora }}</td>
+  <td class="classificacao-cell align-middle text-center">
     {% if row.classificacao and row.classificacao != 'nan' %}
       {% if row.classificacao.lower() == 'transferência' %}
         <span class="form-control-plaintext form-control-sm clickable-field classificacao transferencia {% if is_editable %}edit-field{% endif %}" 
@@ -41,7 +41,7 @@
       {% endif %}
     {% endif %}
   </td>
-  <td class="valor-cell">
+  <td class="valor-cell align-middle text-center">
     {% if row.ricardo and row.ricardo != 'nan' and row.ricardo != '' %}
       <span class="valor {% if is_editable %}edit-field{% endif %}" 
             {% if is_editable %}data-field="ricardo" 
@@ -60,7 +60,7 @@
       {% endif %}
     {% endif %}
   </td>
-  <td class="valor-cell">
+  <td class="valor-cell align-middle text-center">
     {% if row.rafael and row.rafael != 'nan' and row.rafael != '' %}
       <span class="valor {% if is_editable %}edit-field{% endif %}" 
             {% if is_editable %}data-field="rafael" 
@@ -79,7 +79,7 @@
       {% endif %}
     {% endif %}
   </td>
-  <td>
+  <td class="align-middle text-center">
     {% if row.row_class != 'total-row' and row.anexo and row.anexo != 'nan' and row.anexo != '' %}
       {% if row.anexo.lower().endswith(('.jpg', '.jpeg', '.png')) %}
         <img src="../imgs/{{ row.anexo }}" 
@@ -98,7 +98,7 @@
       {% endif %}
     {% endif %}
   </td>
-  <td class="descricao-cell optional-column" style="text-align: left; font-size: 12px;">
+  <td class="descricao-cell optional-column align-middle text-center" style="text-align: left; font-size: 12px;">
     {% if row.descricao and row.descricao != 'nan' %}
       <span class="{% if is_editable %}edit-field{% endif %}" 
             {% if is_editable %}data-field="descricao" 
@@ -117,7 +117,7 @@
       {% endif %}
     {% endif %}
   </td>
-  <td class="ocr-cell optional-column desktop-only" style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+  <td class="ocr-cell optional-column desktop-only align-middle text-center" style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
     {% if row.ocr and row.ocr != 'nan' %}
       {% if row.anexo and row.anexo.lower().endswith('.pdf') %}
         📄 
@@ -128,14 +128,14 @@
     {% endif %}
   </td>
   {% if tem_motivo %}
-  <td style="color:#e67e22;font-size:12px;">
+  <td class="align-middle text-center" style="color:#e67e22;font-size:12px;">
     {% if row.motivo and row.motivo != 'nan' %}
       {{ row.motivo }}
     {% endif %}
   </td>
   {% endif %}
   {% if is_editable %}
-  <td class="actions-cell">
+  <td class="actions-cell align-middle text-center">
     <div class="row-actions">
       <button class="btn-save" 
               onclick="saveRowChanges('{{ row.data_hora }}')" 
