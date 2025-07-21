@@ -396,23 +396,60 @@ async function reprocessAI(dataHora) {
 
 // Função para configurar WebSocket
 function setupWebSocket() {
-    const ws = new WebSocket(`ws://${window.location.host}/ws`);
+    try {
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        
+        ws.onopen = function() {
+            console.log('WebSocket conectado com sucesso');
+        };
+        
+        ws.onmessage = function(event) {
+            if (event.data === 'reload') {
+                console.log('Recebido comando de reload via WebSocket');
+                location.reload();
+            }
+        };
+        
+        ws.onclose = function() {
+            console.log('WebSocket fechado, tentando reconectar...');
+            setTimeout(setupWebSocket, 1000);
+        };
+        
+        ws.onerror = function(error) {
+            console.error('Erro no WebSocket:', error);
+            // Fallback para polling se WebSocket falhar
+            setupPolling();
+        };
+        
+        return ws;
+    } catch (error) {
+        console.error('Erro ao configurar WebSocket:', error);
+        // Fallback para polling
+        setupPolling();
+        return null;
+    }
+}
+
+// Função para configurar polling como fallback
+function setupPolling() {
+    console.log('Configurando polling como fallback...');
+    let lastUpdate = Date.now();
     
-    ws.onmessage = function(event) {
-        if (event.data === 'reload') {
-            console.log('Recebido comando de reload via WebSocket');
-            location.reload();
+    setInterval(async () => {
+        try {
+            const response = await fetch('/api/status');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.last_update * 1000 > lastUpdate) {
+                    console.log('Detectada atualização via polling');
+                    lastUpdate = data.last_update * 1000;
+                    location.reload();
+                }
+            }
+        } catch (error) {
+            console.error('Erro no polling:', error);
         }
-    };
-    
-    ws.onclose = function() {
-        console.log('WebSocket fechado, tentando reconectar...');
-        setTimeout(setupWebSocket, 1000);
-    };
-    
-    ws.onerror = function(error) {
-        console.error('Erro no WebSocket:', error);
-    };
+    }, 2000); // Verifica a cada 2 segundos
 }
 
 // Função para recarregar após comandos específicos
@@ -429,12 +466,12 @@ async function processAndReload(force = false, backup = false) {
         
         if (response.ok) {
             const result = await response.json();
-            if (result.data.reload_triggered) {
-                // Aguarda um pouco antes de recarregar
-                setTimeout(() => {
-                    location.reload();
-                }, 1000);
-            }
+            console.log('Processamento concluído:', result.message);
+            
+            // Aguarda um pouco antes de recarregar para dar tempo do WebSocket
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
         } else {
             throw new Error(`HTTP ${response.status}`);
         }
@@ -442,6 +479,20 @@ async function processAndReload(force = false, backup = false) {
         console.error('Erro ao processar:', error);
         alert('Erro ao processar arquivos');
     }
+}
+
+// Função para verificar se WebSocket está disponível
+async function checkWebSocketAvailability() {
+    try {
+        const response = await fetch('/api/status');
+        if (response.ok) {
+            const data = await response.json();
+            return data.websocket_available;
+        }
+    } catch (error) {
+        console.error('Erro ao verificar disponibilidade do WebSocket:', error);
+    }
+    return false;
 }
 
 // ===== INICIALIZAÇÃO =====
@@ -597,8 +648,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
-  // Inicializa WebSocket quando a página carrega
-  setupWebSocket();
+  // Inicializa sistema de atualização em tempo real
+  async function initializeRealtimeUpdates() {
+    try {
+      const wsAvailable = await checkWebSocketAvailability();
+      if (wsAvailable) {
+        console.log('Inicializando WebSocket...');
+        setupWebSocket();
+      } else {
+        console.log('WebSocket não disponível, usando polling...');
+        setupPolling();
+      }
+    } catch (error) {
+      console.error('Erro ao inicializar atualizações em tempo real:', error);
+      // Fallback para polling
+      setupPolling();
+    }
+  }
+  
+  initializeRealtimeUpdates();
   
   console.log('Inicialização do relatório concluída');
 });

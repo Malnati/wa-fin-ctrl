@@ -13,6 +13,7 @@ import os
 import shutil
 import glob
 import re
+import time
 from typing import Optional, List
 from pathlib import Path
 from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
@@ -25,8 +26,10 @@ import signal
 import os
 import sys
 
-# Variável global para controlar o reload
+# Variável global para controlar o reload e status
 _force_reload = False
+_last_update_time = time.time()
+_connection_manager = None
 
 def trigger_server_reload():
     """Força o reload do servidor uvicorn"""
@@ -34,6 +37,45 @@ def trigger_server_reload():
     _force_reload = True
     # Envia sinal SIGTERM para o processo atual
     os.kill(os.getpid(), signal.SIGTERM)
+
+def update_last_modified():
+    """Atualiza o timestamp da última modificação"""
+    global _last_update_time
+    _last_update_time = time.time()
+
+# Gerenciador de conexões WebSocket
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        try:
+            await websocket.send_text(message)
+        except:
+            self.disconnect(websocket)
+
+    async def broadcast(self, message: str):
+        disconnected = []
+        for connection in self.active_connections:
+            try:
+                await connection.send_text(message)
+            except:
+                disconnected.append(connection)
+        
+        # Remove conexões inativas
+        for conn in disconnected:
+            self.disconnect(conn)
+
+# Inicializa o gerenciador de conexões
+_connection_manager = ConnectionManager()
 
 app = FastAPI(
     title="WA Fin Ctrl API",
@@ -73,6 +115,35 @@ async def root():
             detail=f"Erro ao servir página de relatórios: {str(e)}"
         )
 
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """Endpoint WebSocket para notificações em tempo real"""
+    await _connection_manager.connect(websocket)
+    try:
+        while True:
+            # Mantém a conexão ativa
+            data = await websocket.receive_text()
+            # Echo para teste
+            await _connection_manager.send_personal_message(f"Echo: {data}", websocket)
+    except WebSocketDisconnect:
+        _connection_manager.disconnect(websocket)
+    except Exception as e:
+        print(f"Erro no WebSocket: {e}")
+        _connection_manager.disconnect(websocket)
+
+@app.get("/api/status")
+async def get_status():
+    """
+    Endpoint para verificar status e última atualização.
+    Útil para polling quando WebSocket não está disponível.
+    """
+    return {
+        "status": "healthy",
+        "last_update": _last_update_time,
+        "timestamp": time.time(),
+        "websocket_available": True
+    }
+
 @app.post("/fix")
 async def fix(
     find: str = Form(...),
@@ -100,14 +171,20 @@ async def fix(
         )
         
         if sucesso:
-            # Força reload do servidor após correção
-            trigger_server_reload()
+            # Atualiza timestamp
+            update_last_modified()
+            
+            # Notifica clientes via WebSocket
+            try:
+                await _connection_manager.broadcast("reload")
+            except Exception as e:
+                print(f"Erro ao enviar notificação WebSocket: {e}")
             
             return JSONResponse(
                 status_code=200,
                 content={
                     "success": True,
-                    "message": f"Entrada {find} corrigida com sucesso. Servidor será recarregado.",
+                    "message": f"Entrada {find} corrigida com sucesso",
                     "data": {
                         "find": find,
                         "value": value,
@@ -116,7 +193,7 @@ async def fix(
                         "rotate": rotate,
                         "ia": ia,
                         "dismiss": dismiss,
-                        "reload_triggered": True
+                        "last_update": _last_update_time
                     }
                 }
             )
@@ -132,42 +209,6 @@ async def fix(
             detail=f"Erro interno: {str(e)}"
         )
 
-# Gerenciador de conexões WebSocket
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
-
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
-
-    async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            try:
-                await connection.send_text(message)
-            except:
-                # Remove conexões inativas
-                self.active_connections.remove(connection)
-
-manager = ConnectionManager()
-
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
-    try:
-        while True:
-            data = await websocket.receive_text()
-            # Echo para teste
-            await manager.send_personal_message(f"Message text was: {data}", websocket)
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
-
 @app.post("/process")
 async def process(
     force: bool = Form(False),
@@ -181,8 +222,14 @@ async def process(
         # Chama a função existente do app.py
         processar_incremental(force=force, backup=backup)
         
+        # Atualiza timestamp
+        update_last_modified()
+        
         # Notifica clientes via WebSocket
-        await manager.broadcast("reload")
+        try:
+            await _connection_manager.broadcast("reload")
+        except Exception as e:
+            print(f"Erro ao enviar notificação WebSocket: {e}")
         
         return JSONResponse(
             status_code=200,
@@ -191,7 +238,8 @@ async def process(
                 "message": "Processamento concluído com sucesso",
                 "data": {
                     "force": force,
-                    "backup": backup
+                    "backup": backup,
+                    "last_update": _last_update_time
                 }
             }
         )
