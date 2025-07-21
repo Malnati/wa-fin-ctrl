@@ -368,6 +368,7 @@ def gerar_relatorio_html(csv_path, backup=True):
             "rows": rows,
             "tem_motivo": tem_motivo,
             "totalizadores": totalizadores,
+            "is_editable": False,  # Relatório geral é apenas para visualização
             "attrs": {
                 "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
                 "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
@@ -422,7 +423,11 @@ def gerar_relatorio_html(csv_path, backup=True):
         # Validação OCR
         print("🔍 Validando conformidade OCR...")
         try:
-            subprocess.run(['python', 'check.py', csv_path], check=True)
+            # Executa o check.py usando o caminho correto
+            import sys
+            from pathlib import Path
+            check_script = Path(__file__).parent / 'check.py'
+            subprocess.run([sys.executable, str(check_script), csv_path], check=True)
             print("✅ Validação OCR concluída com sucesso")
         except subprocess.CalledProcessError:
             print("❌ Falha na validação OCR - verifique as linhas sem OCR")
@@ -432,18 +437,23 @@ def gerar_relatorio_html(csv_path, backup=True):
         print(f"❌ Erro ao gerar relatório HTML: {str(e)}")
 
 def gerar_relatorios_mensais_html(csv_path, backup=True):
+    print(f"📅 Gerando relatórios mensais HTML baseado em {csv_path}...")
     try:
         if not os.path.exists(csv_path):
-            print(f"❌ Arquivo {csv_path} não encontrado para gerar relatórios mensais")
+            print(f"❌ Relatórios mensais não foram gerados pela ausência da planilha de cálculos ({csv_path})")
             return
         
         # Carregar dados OCR
         ocr_map = _carregar_ocr_map()
         
+        # Carregar dados
         df = pd.read_csv(csv_path)
         df['DATA_DT'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
         df['ANO_MES'] = df['DATA_DT'].dt.to_period('M')
+        
+        # Agrupar por mês
         grupos_mensais = df.groupby('ANO_MES')
+        
         nomes_meses = {
             1: 'Janeiro', 2: 'Fevereiro', 3: 'Marco', 4: 'Abril',
             5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
@@ -451,6 +461,7 @@ def gerar_relatorios_mensais_html(csv_path, backup=True):
         }
         
         relatorios_gerados = 0
+        
         for periodo, dados_mes in grupos_mensais:
             ano = periodo.year
             mes = periodo.month
@@ -484,6 +495,7 @@ def gerar_relatorios_mensais_html(csv_path, backup=True):
                 "tem_motivo": tem_motivo,
                 "totalizadores": totalizadores,
                 "edit_link": f"report-edit-{ano}-{mes:02d}-{nome_mes}.html",
+                "is_editable": False,  # Relatório mensal normal é apenas para visualização
                 "attrs": {
                     "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
                     "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
@@ -504,6 +516,7 @@ def gerar_relatorios_mensais_html(csv_path, backup=True):
                 "tem_motivo": tem_motivo,
                 "totalizadores": totalizadores,
                 # Não incluir edit_link para relatórios de edição
+                "is_editable": True,  # Relatório editável tem funcionalidades de edição
                 "attrs": {
                     "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
                     "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
