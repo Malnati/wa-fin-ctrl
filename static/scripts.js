@@ -35,103 +35,85 @@ function startEditing(field) {
   row.classList.add('row-editing');
   editingRow = row;
   
-  // Criar input para edição
+  // Transformar campo em input
   const input = document.createElement('input');
   input.type = 'text';
-  input.className = 'edit-field editing form-control form-control-sm';
-  input.value = field.textContent === 'Clique para editar' ? '' : field.textContent;
-  input.dataset.field = field.dataset.field;
+  input.value = field.textContent.trim();
+  input.className = 'form-control form-control-sm';
+  input.style.width = '100%';
+  input.style.minWidth = '80px';
   
   // Substituir o span pelo input
   field.style.display = 'none';
   field.parentNode.insertBefore(input, field);
-  
-  // Focar no input
   input.focus();
   input.select();
   
   // Event listeners para o input
-  input.addEventListener('blur', () => finishEditing(input, field));
+  input.addEventListener('blur', () => finishEditing(field, input));
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      finishEditing(input, field);
+      finishEditing(field, input);
     } else if (e.key === 'Escape') {
-      cancelEditing(input, field);
+      cancelEditing(field, input);
     }
   });
 }
 
-// Função para finalizar edição de um campo
-function finishEditing(input, field) {
+// Função para finalizar edição
+function finishEditing(field, input) {
   const newValue = input.value.trim();
   const originalValue = field.dataset.original;
   
-  // Restaurar o span
+  // Remover input
+  input.remove();
   field.style.display = '';
-  field.textContent = newValue || 'Clique para editar';
   
-  // Atualizar dados se o valor mudou
+  // Atualizar valor se mudou
   if (newValue !== originalValue) {
-    field.dataset.original = newValue;
+    field.textContent = newValue;
     field.classList.add('modified');
-  } else {
-    field.classList.remove('modified');
+    field.dataset.original = newValue;
   }
   
-  // Remover input
-  input.remove();
-  
-  // Verificar se ainda há campos sendo editados na linha
+  // Verificar se há outras modificações na linha
   const row = field.closest('tr');
-  const editingInputs = row.querySelectorAll('.edit-field.editing');
-  if (editingInputs.length === 0) {
-    // Nenhum campo sendo editado, verificar se há modificações
-    const modifiedFields = row.querySelectorAll('.edit-field.modified');
-    if (modifiedFields.length > 0) {
-      // Mostrar botões de salvar/cancelar
-      showSaveCancelButtons(row);
-    } else {
-      // Nenhuma modificação, sair do modo de edição
-      exitEditMode(row);
-    }
+  const hasModifications = row.querySelectorAll('.edit-field.modified').length > 0;
+  
+  if (hasModifications) {
+    // Mostrar botões de salvar/cancelar
+    row.querySelector('.btn-save').style.display = 'inline-flex';
+    row.querySelector('.btn-cancel').style.display = 'inline-flex';
+  } else {
+    // Finalizar edição da linha
+    finishRowEditing(row);
   }
 }
 
-// Função para cancelar edição de um campo
-function cancelEditing(input, field) {
-  // Restaurar valor original
-  field.style.display = '';
-  field.textContent = field.dataset.original || 'Clique para editar';
-  field.classList.remove('modified');
-  
+// Função para cancelar edição
+function cancelEditing(field, input) {
   // Remover input
   input.remove();
-}
-
-// Função para mostrar botões de salvar/cancelar
-function showSaveCancelButtons(row) {
-  const actions = row.querySelector('.row-actions');
-  actions.querySelector('.btn-save').style.display = 'inline-flex';
-  actions.querySelector('.btn-cancel').style.display = 'inline-flex';
-  actions.querySelector('.btn-dismiss').style.display = 'none';
-  actions.querySelector('.btn-rotate').style.display = 'none';
-  actions.querySelector('.btn-reprocess').style.display = 'none';
-}
-
-// Função para sair do modo de edição
-function exitEditMode(row) {
-  row.classList.remove('row-editing');
-  const actions = row.querySelector('.row-actions');
-  actions.querySelector('.btn-save').style.display = 'none';
-  actions.querySelector('.btn-cancel').style.display = 'none';
-  actions.querySelector('.btn-dismiss').style.display = 'inline-flex';
-  actions.querySelector('.btn-rotate').style.display = 'inline-flex';
-  actions.querySelector('.btn-reprocess').style.display = 'inline-flex';
+  field.style.display = '';
   
-  // Limpar estado de edição
-  if (editingRow === row) {
-    editingRow = null;
-  }
+  // Restaurar valor original
+  field.textContent = field.dataset.original;
+  field.classList.remove('modified');
+}
+
+// Função para finalizar edição da linha
+function finishRowEditing(row) {
+  row.classList.remove('row-editing');
+  editingRow = null;
+  
+  // Esconder botões de salvar/cancelar
+  row.querySelector('.btn-save').style.display = 'none';
+  row.querySelector('.btn-cancel').style.display = 'none';
+  
+  // Mostrar botões normais
+  row.querySelectorAll('.btn-dismiss, .btn-rotate, .btn-reprocess').forEach(btn => {
+    btn.style.display = 'inline-flex';
+  });
 }
 
 // Função para salvar alterações de uma linha
@@ -139,87 +121,53 @@ async function saveRowChanges(dataHora) {
   const row = document.querySelector(`tr[data-data-hora="${dataHora}"]`);
   if (!row) return;
   
-  // Coletar dados modificados
-  const modifiedFields = row.querySelectorAll('.edit-field.modified');
-  if (modifiedFields.length === 0) {
-    exitEditMode(row);
+  // Coletar campos modificados
+  const modifiedFields = {};
+  row.querySelectorAll('.edit-field.modified').forEach(field => {
+    modifiedFields[field.dataset.field] = field.textContent.trim();
+  });
+  
+  if (Object.keys(modifiedFields).length === 0) {
+    finishRowEditing(row);
     return;
   }
   
-  const formData = new FormData();
-  formData.append('find', dataHora);
-  
-  // Adicionar campos modificados
-  modifiedFields.forEach(field => {
-    const fieldName = field.dataset.field;
-    const newValue = field.textContent === 'Clique para editar' ? '' : field.textContent;
-    
-    switch (fieldName) {
-      case 'ricardo':
-      case 'rafael':
-        formData.append('value', newValue);
-        break;
-      case 'classificacao':
-        formData.append('class_', newValue);
-        break;
-      case 'descricao':
-        formData.append('desc', newValue);
-        break;
-    }
-  });
+  // Mostrar loading
+  row.classList.add('row-saving');
   
   try {
-    // Mostrar loading
-    row.classList.add('row-saving');
+    const formData = new FormData();
+    formData.append('find', dataHora);
     
-    // Fazer requisição para a API
+    // Adicionar campos modificados
+    Object.entries(modifiedFields).forEach(([field, value]) => {
+      formData.append(field, value);
+    });
+    
     const response = await fetch('/fix', {
       method: 'POST',
       body: formData
     });
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    
-    if (result.success) {
+    if (response.ok) {
       // Sucesso
-      row.classList.remove('row-saving');
       row.classList.add('row-saved');
-      
-      // Limpar modificações
-      modifiedFields.forEach(field => {
-        field.classList.remove('modified');
-      });
-      
-      // Sair do modo de edição
-      exitEditMode(row);
-      
-      // Feedback visual
       setTimeout(() => {
         row.classList.remove('row-saved');
+        finishRowEditing(row);
+        
+        // Limpar valores originais
+        delete originalValues[dataHora];
       }, 500);
-      
-      console.log('Alterações salvas com sucesso:', result);
     } else {
-      throw new Error(result.message || 'Erro ao salvar alterações');
+      throw new Error(`HTTP ${response.status}`);
     }
-    
   } catch (error) {
-    console.error('Erro ao salvar alterações:', error);
-    
-    // Remover loading e mostrar erro
-    row.classList.remove('row-saving');
+    console.error('Erro ao salvar:', error);
     row.classList.add('row-error');
-    
-    // Feedback visual de erro
-    setTimeout(() => {
-      row.classList.remove('row-error');
-    }, 500);
-    
-    alert(`Erro ao salvar alterações: ${error.message}`);
+    setTimeout(() => row.classList.remove('row-error'), 500);
+  } finally {
+    row.classList.remove('row-saving');
   }
 }
 
@@ -230,135 +178,160 @@ function cancelRowChanges(dataHora) {
   
   // Restaurar valores originais
   if (originalValues[dataHora]) {
-    row.querySelectorAll('.edit-field').forEach(field => {
-      const fieldName = field.dataset.field;
-      const originalValue = originalValues[dataHora][fieldName] || '';
-      field.textContent = originalValue || 'Clique para editar';
-      field.dataset.original = originalValue;
-      field.classList.remove('modified');
+    Object.entries(originalValues[dataHora]).forEach(([field, value]) => {
+      const fieldElement = row.querySelector(`[data-field="${field}"]`);
+      if (fieldElement) {
+        fieldElement.textContent = value;
+        fieldElement.classList.remove('modified');
+        fieldElement.dataset.original = value;
+      }
     });
   }
   
-  // Sair do modo de edição
-  exitEditMode(row);
-  
-  // Limpar valores originais
+  finishRowEditing(row);
   delete originalValues[dataHora];
 }
 
 // Função para marcar linha como desconsiderada
 async function dismissRow(dataHora) {
-  if (!confirm('Tem certeza que deseja marcar esta linha como desconsiderada?')) {
-    return;
-  }
+  if (!confirm('Deseja marcar esta linha como desconsiderada?')) return;
   
-  const formData = new FormData();
-  formData.append('find', dataHora);
-  formData.append('dismiss', 'true');
+  const row = document.querySelector(`tr[data-data-hora="${dataHora}"]`);
+  if (!row) return;
+  
+  row.classList.add('row-saving');
   
   try {
+    const formData = new FormData();
+    formData.append('find', dataHora);
+    formData.append('dismiss', 'true');
+    
     const response = await fetch('/fix', {
       method: 'POST',
       body: formData
     });
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      // Recarregar a página para mostrar as alterações
-      location.reload();
+    if (response.ok) {
+      row.classList.add('dismiss-row');
+      row.querySelector('.descricao-cell').textContent = 'desconsiderado';
     } else {
-      throw new Error(result.message || 'Erro ao marcar como desconsiderada');
+      throw new Error(`HTTP ${response.status}`);
     }
-    
   } catch (error) {
-    console.error('Erro ao marcar como desconsiderada:', error);
-    alert(`Erro ao marcar como desconsiderada: ${error.message}`);
+    console.error('Erro ao desconsiderar:', error);
+    alert('Erro ao desconsiderar linha');
+  } finally {
+    row.classList.remove('row-saving');
   }
 }
 
 // Função para rotacionar imagem
 async function rotateImage(dataHora) {
-  const degrees = prompt('Digite os graus de rotação (90, 180 ou 270):');
-  if (!degrees || !['90', '180', '270'].includes(degrees)) {
-    alert('Por favor, digite 90, 180 ou 270 graus.');
-    return;
-  }
+  const row = document.querySelector(`tr[data-data-hora="${dataHora}"]`);
+  if (!row) return;
   
-  const formData = new FormData();
-  formData.append('find', dataHora);
-  formData.append('rotate', degrees);
+  const degrees = prompt('Digite os graus para rotacionar (90, 180, 270):');
+  if (!degrees || !['90', '180', '270'].includes(degrees)) return;
+  
+  row.classList.add('row-saving');
   
   try {
+    const formData = new FormData();
+    formData.append('find', dataHora);
+    formData.append('rotate', degrees);
+    
     const response = await fetch('/fix', {
       method: 'POST',
       body: formData
     });
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      alert('Imagem rotacionada com sucesso! A página será recarregada.');
+    if (response.ok) {
+      alert('Imagem rotacionada com sucesso!');
+      // Recarregar a página para mostrar a imagem rotacionada
       location.reload();
     } else {
-      throw new Error(result.message || 'Erro ao rotacionar imagem');
+      throw new Error(`HTTP ${response.status}`);
     }
-    
   } catch (error) {
-    console.error('Erro ao rotacionar imagem:', error);
-    alert(`Erro ao rotacionar imagem: ${error.message}`);
+    console.error('Erro ao rotacionar:', error);
+    alert('Erro ao rotacionar imagem');
+  } finally {
+    row.classList.remove('row-saving');
   }
 }
 
 // Função para reprocessar com IA
 async function reprocessAI(dataHora) {
-  if (!confirm('Tem certeza que deseja reprocessar esta entrada com IA? Isso pode alterar valores, descrições e classificações.')) {
-    return;
-  }
+  if (!confirm('Deseja reprocessar esta linha com IA?')) return;
   
-  const formData = new FormData();
-  formData.append('find', dataHora);
-  formData.append('ia', 'true');
+  const row = document.querySelector(`tr[data-data-hora="${dataHora}"]`);
+  if (!row) return;
+  
+  row.classList.add('row-saving');
   
   try {
+    const formData = new FormData();
+    formData.append('find', dataHora);
+    formData.append('ia', 'true');
+    
     const response = await fetch('/fix', {
       method: 'POST',
       body: formData
     });
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const result = await response.json();
-    
-    if (result.success) {
-      alert('Reprocessamento com IA concluído! A página será recarregada.');
+    if (response.ok) {
+      alert('Reprocessamento com IA iniciado!');
+      // Recarregar a página para mostrar os novos dados
       location.reload();
     } else {
-      throw new Error(result.message || 'Erro ao reprocessar com IA');
+      throw new Error(`HTTP ${response.status}`);
     }
-    
   } catch (error) {
-    console.error('Erro ao reprocessar com IA:', error);
-    alert(`Erro ao reprocessar com IA: ${error.message}`);
+    console.error('Erro ao reprocessar:', error);
+    alert('Erro ao reprocessar com IA');
+  } finally {
+    row.classList.remove('row-saving');
   }
 }
+
+// ===== CONTROLE DE COLUNAS OPCIONAIS =====
+
+// Função para alternar visibilidade de colunas
+function toggleColumn(columnClass, show) {
+  const elements = document.querySelectorAll(`.${columnClass}`);
+  elements.forEach(el => {
+    if (show) {
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
+  });
+}
+
+// Função para simular visualização mobile
+function toggleMobileView(enable) {
+  const container = document.querySelector('.container');
+  if (enable) {
+    container.style.maxWidth = '100%';
+    container.style.margin = '5px';
+    container.style.padding = '10px';
+    document.body.classList.add('mobile-simulation');
+  } else {
+    container.style.maxWidth = '';
+    container.style.margin = '';
+    container.style.padding = '';
+    document.body.classList.remove('mobile-simulation');
+  }
+}
+
+// ===== INICIALIZAÇÃO =====
 
 // Inicialização comum
 document.addEventListener('DOMContentLoaded', () => {
   console.log('JavaScript carregado - inicializando relatório...');
   
   // Inicializar tooltips do Bootstrap
-  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
   const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl, {
       trigger: 'hover'
@@ -377,6 +350,29 @@ document.addEventListener('DOMContentLoaded', () => {
     field.addEventListener('click', () => startEditing(field));
   });
   
+  // Configurar controles de colunas opcionais
+  const toggleDescricao = document.getElementById('toggle-descricao');
+  const toggleOcr = document.getElementById('toggle-ocr');
+  const toggleMobileView = document.getElementById('toggle-mobile-view');
+  
+  if (toggleDescricao) {
+    toggleDescricao.addEventListener('change', (e) => {
+      toggleColumn('descricao-cell', e.target.checked);
+    });
+  }
+  
+  if (toggleOcr) {
+    toggleOcr.addEventListener('change', (e) => {
+      toggleColumn('ocr-cell', e.target.checked);
+    });
+  }
+  
+  if (toggleMobileView) {
+    toggleMobileView.addEventListener('change', (e) => {
+      toggleMobileView(e.target.checked);
+    });
+  }
+  
   // Toggle pagamentos
   let showPay = false;
   const toggleBtn = document.getElementById('toggle-payments');
@@ -388,13 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
         row.style.display = pay ? (showPay ? '' : 'none') : '';
       });
     };
-    
-    // COMENTADO: Esconde pagamentos por padrão - estava causando relatório em branco
-    // document.querySelectorAll('tbody tr').forEach(row => {
-    //   if (row.querySelector('.classificacao.pagamento')) {
-    //     row.style.display = 'none';
-    //   }
-    // });
   }
   
   // Remove overlay
