@@ -5,28 +5,68 @@
   <td class="classificacao-cell">
     {% if row.classificacao and row.classificacao != 'nan' %}
       {% if row.classificacao.lower() == 'transferência' %}
-        <span class="classificacao transferencia edit-field" data-field="classificacao" data-original="{{ row.classificacao }}">{{ row.classificacao }}</span>
+        <span class="classificacao transferencia edit-field" 
+              data-field="classificacao" 
+              data-original="{{ row.classificacao }}"
+              title="Clique para editar a classificação">
+          {{ row.classificacao }}
+        </span>
       {% elif row.classificacao.lower() == 'pagamento' %}
-        <span class="classificacao pagamento edit-field" data-field="classificacao" data-original="{{ row.classificacao }}">{{ row.classificacao }}</span>
+        <span class="classificacao pagamento edit-field" 
+              data-field="classificacao" 
+              data-original="{{ row.classificacao }}"
+              title="Clique para editar a classificação">
+          {{ row.classificacao }}
+        </span>
       {% else %}
-        <span class="classificacao edit-field" data-field="classificacao" data-original="{{ row.classificacao }}">{{ row.classificacao }}</span>
+        <span class="classificacao edit-field" 
+              data-field="classificacao" 
+              data-original="{{ row.classificacao }}"
+              title="Clique para editar a classificação">
+          {{ row.classificacao }}
+        </span>
       {% endif %}
     {% else %}
-      <span class="classificacao edit-field empty-field" data-field="classificacao" data-original="">Clique para editar</span>
+      <span class="classificacao edit-field empty-field" 
+            data-field="classificacao" 
+            data-original=""
+            title="Clique para editar a classificação">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
   <td class="valor-cell">
     {% if row.ricardo and row.ricardo != 'nan' and row.ricardo != '' %}
-      <span class="valor edit-field" data-field="ricardo" data-original="{{ row.ricardo }}">{{ row.ricardo }}</span>
+      <span class="valor edit-field" 
+            data-field="ricardo" 
+            data-original="{{ row.ricardo }}"
+            title="Clique para editar o valor de Ricardo">
+        {{ row.ricardo }}
+      </span>
     {% else %}
-      <span class="valor edit-field empty-field" data-field="ricardo" data-original="">Clique para editar</span>
+      <span class="valor edit-field empty-field" 
+            data-field="ricardo" 
+            data-original=""
+            title="Clique para editar o valor de Ricardo">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
   <td class="valor-cell">
     {% if row.rafael and row.rafael != 'nan' and row.rafael != '' %}
-      <span class="valor edit-field" data-field="rafael" data-original="{{ row.rafael }}">{{ row.rafael }}</span>
+      <span class="valor edit-field" 
+            data-field="rafael" 
+            data-original="{{ row.rafael }}"
+            title="Clique para editar o valor de Rafael">
+        {{ row.rafael }}
+      </span>
     {% else %}
-      <span class="valor edit-field empty-field" data-field="rafael" data-original="">Clique para editar</span>
+      <span class="valor edit-field empty-field" 
+            data-field="rafael" 
+            data-original=""
+            title="Clique para editar o valor de Rafael">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
   <td>
@@ -43,16 +83,26 @@
                alt="Comprovante {{ row.imagem_jpg }}" 
                title="{{ row.imagem_jpg }} (convertido de PDF)">
         {% else %}
-          <span class="pdf-icon">📄</span>
+          <span class="pdf-icon" title="Visualizar PDF">📄</span>
         {% endif %}
       {% endif %}
     {% endif %}
   </td>
   <td class="descricao-cell" style="text-align: left; font-size: 12px;">
     {% if row.descricao and row.descricao != 'nan' %}
-      <span class="edit-field" data-field="descricao" data-original="{{ row.descricao }}">{{ row.descricao }}</span>
+      <span class="edit-field" 
+            data-field="descricao" 
+            data-original="{{ row.descricao }}"
+            title="Clique para editar a descrição">
+        {{ row.descricao }}
+      </span>
     {% else %}
-      <span class="edit-field empty-field" data-field="descricao" data-original="">Clique para editar</span>
+      <span class="edit-field empty-field" 
+            data-field="descricao" 
+            data-original=""
+            title="Clique para editar a descrição">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
   <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
@@ -74,11 +124,35 @@
   {% endif %}
   <td class="actions-cell">
     <div class="row-actions">
-      <button class="btn-save" onclick="saveRowChanges('{{ row.data_hora }}')" style="display: none;">💾</button>
-      <button class="btn-cancel" onclick="cancelRowChanges('{{ row.data_hora }}')" style="display: none;">❌</button>
-      <button class="btn-dismiss" onclick="dismissRow('{{ row.data_hora }}')" title="Marcar como desconsiderado">🚫</button>
-      <button class="btn-rotate" onclick="rotateImage('{{ row.data_hora }}')" title="Rotacionar imagem" {% if not row.anexo or row.anexo == 'nan' or row.anexo == '' %}disabled{% endif %}>🔄</button>
-      <button class="btn-reprocess" onclick="reprocessAI('{{ row.data_hora }}')" title="Reprocessar com IA" {% if not row.anexo or row.anexo == 'nan' or row.anexo == '' %}disabled{% endif %}>🤖</button>
+      <button class="btn-save" 
+              onclick="saveRowChanges('{{ row.data_hora }}')" 
+              style="display: none;"
+              title="Salvar alterações">
+        💾
+      </button>
+      <button class="btn-cancel" 
+              onclick="cancelRowChanges('{{ row.data_hora }}')" 
+              style="display: none;"
+              title="Cancelar alterações">
+        ❌
+      </button>
+      <button class="btn-dismiss" 
+              onclick="dismissRow('{{ row.data_hora }}')" 
+              title="Marcar como desconsiderado">
+        🚫
+      </button>
+      <button class="btn-rotate" 
+              onclick="rotateImage('{{ row.data_hora }}')" 
+              title="Rotacionar imagem" 
+              {% if not row.anexo or row.anexo == 'nan' or row.anexo == '' %}disabled{% endif %}>
+        🔄
+      </button>
+      <button class="btn-reprocess" 
+              onclick="reprocessAI('{{ row.data_hora }}')" 
+              title="Reprocessar com IA" 
+              {% if not row.anexo or row.anexo == 'nan' or row.anexo == '' %}disabled{% endif %}>
+        🤖
+      </button>
     </div>
   </td>
 </tr>
