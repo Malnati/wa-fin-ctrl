@@ -686,6 +686,7 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
                 # Extrai valor total - primeiro tenta OCR, depois IA como fallback
                 valor_total = ""
                 ai_used = False
+                classificacao_final = ""
                 
                 if is_receipt:
                     # Primeiro tenta extrair valor via regex do OCR
@@ -696,6 +697,17 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
                         valor_total = extract_total_value_with_chatgpt(ocr_result)
                         ai_used = True
                         print(f"  - IA usada para extração de valor (OCR não encontrou)")
+                    
+                    # Se ainda não encontrou valor, tenta com a imagem + OCR
+                    if not valor_total:
+                        print(f"  - Tentando processamento com imagem + OCR via IA...")
+                        valor_total, classificacao_final = process_image_with_ai_for_value(caminho_input, ocr_result)
+                        ai_used = True
+                        if valor_total:
+                            print(f"  - Valor identificado via IA com imagem: {valor_total}")
+                        else:
+                            print(f"  - IA não conseguiu identificar valor, classificando como desconhecido")
+                            classificacao_final = "desconhecido"
                     
                     # Marca na coluna VALIDADE se IA foi usada
                     if ai_used:
@@ -712,7 +724,13 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
                 
                 # Classifica o tipo de transação usando ChatGPT
                 print(f"Classificando transação: {row['ANEXO']}")
-                classificacao = classify_transaction_type_with_chatgpt(ocr_result)
+                if classificacao_final:
+                    # Usa a classificação retornada pela IA com imagem
+                    classificacao = classificacao_final
+                    print(f"  - Classificação definida pela IA com imagem: {classificacao}")
+                else:
+                    # Usa a classificação padrão do ChatGPT
+                    classificacao = classify_transaction_type_with_chatgpt(ocr_result)
                 df_anexos.at[idx, 'CLASSIFICACAO'] = classificacao
                 
                 # Adiciona o valor à coluna do remetente correspondente APENAS para transferências
@@ -799,16 +817,19 @@ def verificar_totais(csv_file):
         print('=== DISTRIBUIÇÃO POR TIPO ===')
         transferencias = df[df['CLASSIFICACAO'] == 'Transferência']
         pagamentos = df[df['CLASSIFICACAO'] == 'Pagamento']
+        desconhecidos = df[df['CLASSIFICACAO'] == 'desconhecido']
 
         transferencia_total = transferencias['VALOR'].apply(convert_to_float).sum()
         pagamento_total = pagamentos['VALOR'].apply(convert_to_float).sum()
+        desconhecido_total = desconhecidos['VALOR'].apply(convert_to_float).sum()
 
         print(f'Total em Transferências: R$ {transferencia_total:.2f}')
         print(f'Total em Pagamentos: R$ {pagamento_total:.2f}')
-        print(f'Verificação: {transferencia_total + pagamento_total:.2f} = {valor_total:.2f}')
+        print(f'Total em Desconhecidos: R$ {desconhecido_total:.2f}')
+        print(f'Verificação: {transferencia_total + pagamento_total + desconhecido_total:.2f} = {valor_total:.2f}')
         
         # Verificação de consistência
-        if abs((transferencia_total + pagamento_total) - valor_total) < 0.01:
+        if abs((transferencia_total + pagamento_total + desconhecido_total) - valor_total) < 0.01:
             print("✅ Verificação: Totais consistentes!")
         else:
             print("❌ Aviso: Diferença detectada nos totais!")
@@ -1044,18 +1065,53 @@ def processar_pdfs(force=False, entry=None, backup=False):
         # Registra no XML (usar só o nome do arquivo)
         registrar_ocr_xml(os.path.basename(str(pdf_path)), ocr_text)
         
-        # Extrai valor total usando ChatGPT
-        valor_total = extract_total_value_with_chatgpt(ocr_text)
+        # Verifica se é um comprovante financeiro
+        is_receipt = is_financial_receipt(ocr_text)
+        
+        # Extrai valor total - primeiro tenta OCR, depois IA como fallback
+        valor_total = ""
+        ai_used = False
+        classificacao_final = ""
+        
+        if is_receipt:
+            # Primeiro tenta extrair valor via regex do OCR
+            valor_total = extract_value_from_ocr(ocr_text)
+            
+            # Se não encontrou valor via OCR, usa IA como fallback
+            if not valor_total:
+                valor_total = extract_total_value_with_chatgpt(ocr_text)
+                ai_used = True
+                print(f"  - IA usada para extração de valor (OCR não encontrou)")
+            
+            # Se ainda não encontrou valor, tenta com a imagem + OCR
+            if not valor_total:
+                print(f"  - Tentando processamento com imagem + OCR via IA...")
+                valor_total, classificacao_final = process_image_with_ai_for_value(str(pdf_path), ocr_text)
+                ai_used = True
+                if valor_total:
+                    print(f"  - Valor identificado via IA com imagem: {valor_total}")
+                else:
+                    print(f"  - IA não conseguiu identificar valor, classificando como desconhecido")
+                    classificacao_final = "desconhecido"
+        else:
+            print(f"  - Não identificado como comprovante financeiro")
         
         # Gera descrição do pagamento usando ChatGPT
         descricao = generate_payment_description_with_chatgpt(ocr_text)
         
         # Classifica o tipo de transação usando ChatGPT
-        classificacao = classify_transaction_type_with_chatgpt(ocr_text)
+        if classificacao_final:
+            # Usa a classificação retornada pela IA com imagem
+            classificacao = classificacao_final
+            print(f"  - Classificação definida pela IA com imagem: {classificacao}")
+        else:
+            # Usa a classificação padrão do ChatGPT
+            classificacao = classify_transaction_type_with_chatgpt(ocr_text)
         
         print(f"  - Valor: {valor_total}")
         print(f"  - Descrição: {descricao}")
         print(f"  - Classificação: {classificacao}")
+        print(f"  - IA usada: {'Sim' if ai_used else 'Não'}")
     
     # Atualiza {ATTR_FIN_ARQ_CALCULO} apenas com PDFs
     print("\n=== ATUALIZANDO CSV APENAS COM PDFs ===")
@@ -1113,6 +1169,7 @@ def processar_imgs(force=False, entry=None, backup=False):
         # Extrai valor total - primeiro tenta OCR, depois IA como fallback
         valor_total = ""
         ai_used = False
+        classificacao_final = ""
         
         if is_receipt:
             # Primeiro tenta extrair valor via regex do OCR
@@ -1123,6 +1180,17 @@ def processar_imgs(force=False, entry=None, backup=False):
                 valor_total = extract_total_value_with_chatgpt(ocr_text)
                 ai_used = True
                 print(f"  - IA usada para extração de valor (OCR não encontrou)")
+            
+            # Se ainda não encontrou valor, tenta com a imagem + OCR
+            if not valor_total:
+                print(f"  - Tentando processamento com imagem + OCR via IA...")
+                valor_total, classificacao_final = process_image_with_ai_for_value(str(img_path), ocr_text)
+                ai_used = True
+                if valor_total:
+                    print(f"  - Valor identificado via IA com imagem: {valor_total}")
+                else:
+                    print(f"  - IA não conseguiu identificar valor, classificando como desconhecido")
+                    classificacao_final = "desconhecido"
         else:
             print(f"  - Não identificado como comprovante financeiro")
         
@@ -1130,7 +1198,13 @@ def processar_imgs(force=False, entry=None, backup=False):
         descricao = generate_payment_description_with_chatgpt(ocr_text)
         
         # Classifica o tipo de transação usando ChatGPT
-        classificacao = classify_transaction_type_with_chatgpt(ocr_text)
+        if classificacao_final:
+            # Usa a classificação retornada pela IA com imagem
+            classificacao = classificacao_final
+            print(f"  - Classificação definida pela IA com imagem: {classificacao}")
+        else:
+            # Usa a classificação padrão do ChatGPT
+            classificacao = classify_transaction_type_with_chatgpt(ocr_text)
         
         print(f"  - Valor: {valor_total}")
         print(f"  - Descrição: {descricao}")
@@ -2021,6 +2095,85 @@ def re_submeter_para_chatgpt(arquivo_anexo):
     except Exception as e:
         print(f"❌ Erro na re-submissão para ChatGPT: {str(e)}")
         return False
+
+def process_image_with_ai_for_value(image_path, ocr_text):
+    """Processa uma imagem com IA para identificar valor quando OCR não conseguiu"""
+    try:
+        # Verifica se a chave da API está disponível
+        api_key = ATTR_FIN_OPENAI_API_KEY
+        if not api_key:
+            return "", "desconhecido"
+        
+        # Verifica se há texto para processar
+        if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
+            return "", "desconhecido"
+        
+        # Inicializa o cliente OpenAI
+        client = OpenAI(api_key=api_key)
+        
+        # Codifica a imagem em base64
+        with open(image_path, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+        
+        # Prompt para o ChatGPT com a imagem
+        prompt = f"""
+        Analise esta imagem de comprovante financeiro e o texto extraído via OCR.
+        
+        Texto OCR: {ocr_text}
+        
+        Instruções:
+        1. Identifique APENAS o valor total da transação
+        2. Se houver múltiplos valores, retorne o valor da transação principal
+        3. Se não conseguir identificar um valor, retorne "NENHUM"
+        4. Não inclua "R$" ou outros símbolos
+        5. Não retorne explicações, apenas o número
+        
+        Valor total:
+        """
+        
+        # Chama a API do ChatGPT com a imagem
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # Usa modelo que suporta imagens
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{encoded_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=50,
+            temperature=0.1
+        )
+        
+        # Extrai a resposta
+        valor = response.choices[0].message.content.strip()
+        
+        # Limpa a resposta removendo caracteres indesejados
+        valor = re.sub(r'[^\d,.]', '', valor)
+        
+        # Se não encontrou valor válido, retorna vazio e classifica como desconhecido
+        if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
+            return "", "desconhecido"
+        
+        # Converte para formato americano padronizado
+        from .helper import normalize_value_to_american_format
+        valor_americano = normalize_value_to_american_format(valor)
+        
+        return valor_americano, "Pagamento"  # Assume como pagamento se encontrou valor
+        
+    except Exception as e:
+        print(f"Erro ao processar imagem com IA: {str(e)}")
+        return "", "desconhecido"
 
 
 
