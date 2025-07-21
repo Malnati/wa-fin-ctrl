@@ -20,7 +20,7 @@ tmp/
 massa/
 input/
 imgs/
-docs/
+# docs/ - manter no controle de versão para relatórios HTML
 
 # Logs e backups
 *.log
