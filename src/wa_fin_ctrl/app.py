@@ -27,44 +27,7 @@ except ImportError:
 
 from .ocr import registrar_ocr_xml, process_image_ocr
 from .env import *
-
-def convert_to_brazilian_format(valor):
-    """Converte valor do formato americano para brasileiro se necessário"""
-    if not valor or not re.match(r'^\d+([.,]\d+)?$', valor):
-        return valor
-    
-    # Se tem ponto mas não tem vírgula, pode ser formato americano
-    if '.' in valor and ',' not in valor:
-        partes = valor.split('.')
-        if len(partes) == 2:
-            # Se a parte decimal tem 2 dígitos, é valor decimal (ex: 7698.18 -> 7.698,18)
-            if len(partes[1]) == 2:
-                # Converte para formato brasileiro
-                inteira = partes[0]
-                decimal = partes[1]
-                
-                # Adiciona separadores de milhares se necessário
-                if len(inteira) > 3:
-                    # Formata a parte inteira com pontos para milhares
-                    inteira_formatada = ""
-                    for i, digito in enumerate(inteira[::-1]):
-                        if i > 0 and i % 3 == 0:
-                            inteira_formatada = "." + inteira_formatada
-                        inteira_formatada = digito + inteira_formatada
-                    return f"{inteira_formatada},{decimal}"
-                else:
-                    return f"{inteira},{decimal}"
-            
-            # Se a parte depois do ponto tem 3 dígitos, já é formato de milhares
-            elif len(partes[1]) == 3:
-                return valor  # Mantém como está (ex: 1.000)
-    
-    # Se tem vírgula, já está no formato brasileiro
-    if ',' in valor:
-        return valor
-    
-    # Se só tem números, mantém como está
-    return valor
+from .app import convert_to_brazilian_format
 
 def extract_value_from_ocr(ocr_text):
     """Extrai valor monetário do texto OCR usando expressões regulares"""
@@ -1653,8 +1616,8 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                         print(f"✅ Alterações aplicadas: {', '.join(alteracoes)}")
                         continue
                     
-                    print(f" Valor original: R$ {valor_original}")
-                    print(f"💰 Novo valor: R$ {novo_valor}")
+                    print(f" Valor original: R$ {convert_to_brazilian_format(valor_original)}")
+                    print(f"💰 Novo valor: R$ {convert_to_brazilian_format(novo_valor)}")
                     
                     # Converte valor original para formato brasileiro para comparação (apenas se novo_valor foi fornecido)
                     if novo_valor:
@@ -1672,14 +1635,14 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                     # 1. Corrige valor (se fornecido)
                     if novo_valor:
                         if 'RICARDO' in df.columns and linha['RICARDO'] and str(linha['RICARDO']).lower() not in ['nan', '']:
-                            df.at[idx, 'RICARDO'] = novo_valor
-                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
+                            df.at[idx, 'RICARDO'] = convert_to_brazilian_format(novo_valor)
+                            alteracoes.append(f"valor: {valor_original} → {convert_to_brazilian_format(novo_valor)}")
                         elif 'RAFAEL' in df.columns and linha['RAFAEL'] and str(linha['RAFAEL']).lower() not in ['nan', '']:
-                            df.at[idx, 'RAFAEL'] = novo_valor
-                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
+                            df.at[idx, 'RAFAEL'] = convert_to_brazilian_format(novo_valor)
+                            alteracoes.append(f"valor: {valor_original} → {convert_to_brazilian_format(novo_valor)}")
                         elif 'VALOR' in df.columns and linha['VALOR'] and str(linha['VALOR']).lower() not in ['nan', '']:
-                            df.at[idx, 'VALOR'] = novo_valor
-                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
+                            df.at[idx, 'VALOR'] = convert_to_brazilian_format(novo_valor)
+                            alteracoes.append(f"valor: {valor_original} → {convert_to_brazilian_format(novo_valor)}")
                     
                     # 2. Corrige classificação (se fornecida)
                     if nova_classificacao and 'CLASSIFICACAO' in df.columns:
@@ -1746,8 +1709,8 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
         
         # Regenera os relatórios
         try:
-            from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-            from env import ATTR_FIN_ARQ_CALCULO
+            from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+            from .env import ATTR_FIN_ARQ_CALCULO
             gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
             gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
             print("✅ Relatórios regenerados com sucesso!")
@@ -1848,8 +1811,8 @@ def dismiss_entry(data_hora):
             
             # Regenera os relatórios automaticamente
             try:
-                from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-                from env import ATTR_FIN_ARQ_CALCULO
+                from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+                from .env import ATTR_FIN_ARQ_CALCULO
                 gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
                 gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
                 print("✅ Relatórios regenerados com sucesso!")
