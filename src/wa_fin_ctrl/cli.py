@@ -225,6 +225,28 @@ def dismiss(data_hora):
     exit(0 if sucesso else 1)
 
 @cli.command()
+@click.option('--host', default='127.0.0.1', help='Host para servir a API (padrão: 127.0.0.1)')
+@click.option('--port', default=8000, help='Porta para servir a API (padrão: 8000)')
+@click.option('--reload', is_flag=True, help='Habilita reload automático durante desenvolvimento')
+def api(host, port, reload):
+    """Inicia o servidor da API REST FastAPI."""
+    import uvicorn
+    from .api import app
+    
+    print(f"🚀 Iniciando API REST em http://{host}:{port}")
+    print(f"📚 Documentação: http://{host}:{port}/docs")
+    print(f"🔍 Health check: http://{host}:{port}/health")
+    print(f"📊 Relatórios: http://{host}:{port}/reports")
+    print("⏹️  Pressione Ctrl+C para parar o servidor")
+    
+    uvicorn.run(
+        "wa_fin_ctrl.api:app",
+        host=host,
+        port=port,
+        reload=reload
+    )
+
+@cli.command()
 @click.option('--command', type=str, help='Filtrar por comando específico')
 @click.option('--limit', type=int, help='Limitar número de registros')
 @click.option('--json', is_flag=True, help='Saída em formato JSON')

@@ -7,11 +7,15 @@ Reutiliza as funções existentes do CLI para manter consistência.
 """
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 import os
 import shutil
-from typing import Optional
-from .env import ATTR_FIN_DIR_INPUT
+import glob
+import re
+from typing import Optional, List
+from pathlib import Path
+from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
 from .app import (
     processar_incremental,
     fix_entry
@@ -22,6 +26,9 @@ app = FastAPI(
     description="API REST para processamento de comprovantes financeiros do WhatsApp",
     version="1.0.0"
 )
+
+# Monta arquivos estáticos
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.post("/fix")
 async def fix(
@@ -155,6 +162,164 @@ async def upload(file: UploadFile = File(...)):
             detail=f"Erro ao fazer upload: {str(e)}"
         )
 
+@app.get("/reports", response_model=List[dict])
+async def list_reports():
+    """
+    Lista todos os relatórios HTML disponíveis no diretório docs/.
+    """
+    try:
+        reports = []
+        
+        # Verifica se o diretório docs existe
+        if not os.path.exists(ATTR_FIN_DIR_DOCS):
+            return []
+        
+        # Busca todos os arquivos HTML no diretório docs
+        html_files = glob.glob(os.path.join(ATTR_FIN_DIR_DOCS, "*.html"))
+        
+        for file_path in html_files:
+            filename = os.path.basename(file_path)
+            file_size = os.path.getsize(file_path)
+            modified_time = os.path.getmtime(file_path)
+            
+            # Determina o tipo de relatório baseado no nome do arquivo
+            report_type = "geral"
+            period = None
+            is_editable = False
+            
+            if filename == "index.html":
+                report_type = "index"
+                display_name = "Página Inicial"
+            elif filename == "report.html":
+                report_type = "geral"
+                display_name = "Relatório Geral"
+            elif filename.startswith("report-") and filename.endswith(".html"):
+                # Relatórios mensais: report-2025-07-Julho.html
+                match = re.match(r"report-(\d{4})-(\d{2})-(.+)\.html", filename)
+                if match:
+                    year = match.group(1)
+                    month = match.group(3)
+                    report_type = "mensal"
+                    period = f"{month} {year}"
+                    display_name = f"Relatório {month} {year}"
+                    
+                    # Verifica se é editável
+                    if filename.startswith("report-edit-"):
+                        is_editable = True
+                        display_name += " (Editável)"
+            else:
+                display_name = filename
+            
+            reports.append({
+                "filename": filename,
+                "display_name": display_name,
+                "type": report_type,
+                "period": period,
+                "is_editable": is_editable,
+                "size_bytes": file_size,
+                "size_mb": round(file_size / (1024 * 1024), 2),
+                "modified_time": modified_time,
+                "url": f"/reports/{filename}"
+            })
+        
+        # Ordena por data de modificação (mais recente primeiro)
+        reports.sort(key=lambda x: x["modified_time"], reverse=True)
+        
+        return reports
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao listar relatórios: {str(e)}"
+        )
+
+@app.get("/reports/{filename}")
+async def get_report(filename: str):
+    """
+    Serve um relatório HTML específico pelo nome do arquivo.
+    """
+    try:
+        # Valida o nome do arquivo para evitar path traversal
+        if ".." in filename or "/" in filename or "\\" in filename:
+            raise HTTPException(
+                status_code=400,
+                detail="Nome de arquivo inválido"
+            )
+        
+        file_path = os.path.join(ATTR_FIN_DIR_DOCS, filename)
+        
+        if not os.path.exists(file_path):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Relatório '{filename}' não encontrado"
+            )
+        
+        # Verifica se é um arquivo HTML
+        if not filename.lower().endswith('.html'):
+            raise HTTPException(
+                status_code=400,
+                detail="Apenas arquivos HTML são permitidos"
+            )
+        
+        # Retorna o arquivo HTML
+        return FileResponse(
+            path=file_path,
+            media_type="text/html",
+            filename=filename
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao servir relatório: {str(e)}"
+        )
+
+@app.post("/reports/generate")
+async def generate_reports(
+    force: bool = Form(False),
+    backup: bool = Form(True)
+):
+    """
+    Gera relatórios HTML sob demanda.
+    """
+    try:
+        from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+        from .env import ATTR_FIN_ARQ_CALCULO
+        
+        # Verifica se o arquivo de cálculo existe
+        if not os.path.exists(ATTR_FIN_ARQ_CALCULO):
+            raise HTTPException(
+                status_code=400,
+                detail="Arquivo de cálculo não encontrado. Execute o processamento primeiro."
+            )
+        
+        # Gera relatórios
+        gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
+        gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
+        
+        return JSONResponse(
+            status_code=200,
+            content={
+                "success": True,
+                "message": "Relatórios gerados com sucesso",
+                "data": {
+                    "force": force,
+                    "backup": backup,
+                    "calculation_file": ATTR_FIN_ARQ_CALCULO
+                }
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao gerar relatórios: {str(e)}"
+        )
+
 @app.get("/")
 async def root():
     """
@@ -166,7 +331,10 @@ async def root():
         "endpoints": {
             "POST /fix": "Corrige uma entrada específica",
             "POST /process": "Processa arquivos incrementalmente",
-            "POST /upload": "Faz upload de arquivo ZIP"
+            "POST /upload": "Faz upload de arquivo ZIP",
+            "GET /reports": "Lista todos os relatórios disponíveis",
+            "GET /reports/{filename}": "Serve um relatório HTML específico",
+            "POST /reports/generate": "Gera relatórios HTML sob demanda"
         }
     }
 
