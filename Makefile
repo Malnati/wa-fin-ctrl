@@ -406,4 +406,8 @@ api-dev:
 api-host:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} api --host 0.0.0.0 --port 8000
 
+# Inicia a API REST diretamente com uvicorn (alternativa)
+api-uvicorn:
+	poetry run uvicorn src.wa_fin_ctrl.api:app --reload --port 8000
+
 .PHONY: help install run server api api-dev api-host copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia
