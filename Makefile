@@ -3,29 +3,48 @@
 
 .PHONY: help
 
+# Configuração de ambiente
 VAR_FIN_OPENAI_API_KEY=${OPENAI_API_KEY}
+# Diretórios de entrada e saída
 VAR_FIN_DIR_INPUT=input
+# Diretórios de imagens
 VAR_FIN_DIR_IMGS=imgs
+# Diretórios de massa
 VAR_FIN_DIR_MASSA=massa
+# Diretórios temporários
 VAR_FIN_DIR_TMP=tmp
+# Diretórios de mensagens
 VAR_FIN_DIR_MENSAGENS=mensagens
+# Diretórios de OCR
 VAR_FIN_DIR_OCR=ocr
+# Diretórios de documentos
 VAR_FIN_DIR_DOCS=docs
+# Diretórios de código fonte
 VAR_FIN_DIR_SRC=src
+# Diretórios de templates
 VAR_FIN_DIR_TEMPLATES=templates
+# Arquivos de cálculo
 VAR_FIN_ARQ_CALCULO=mensagens/calculo.csv
+# Arquivos de mensagens
 VAR_FIN_ARQ_MENSAGENS=mensagens/mensagens.csv
+# Arquivos de diagnóstico
 VAR_FIN_ARQ_DIAGNOSTICO=diagnostico.csv
+# Arquivos de chat
 VAR_FIN_ARQ_CHAT=_chat.txt
+# Arquivos de OCR
 VAR_FIN_ARQ_OCR_XML=ocr/extract.xml
+# Arquivo principal
 VAR_FIN_ARQ_MAIN=wa-fin.py
+# Arquivos de relatórios
 VAR_FIN_ARQ_REPORT_HTML=docs/report.html
 VAR_FIN_ARQ_REPORT_JULY=docs/report-2025-07-Julho.html
 VAR_FIN_ARQ_REPORT_JULY_EDIT=docs/report-edit-2025-07-Julho.html
+# Arquivos de templates
 VAR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE=templates/monthly_report_editable.html.j2
 VAR_FIN_ARQ_TEMPLATE_MONTHLY=templates/monthly_report.html.j2
 VAR_FIN_ARQ_TEMPLATE_PRINT=templates/print_report.html.j2
 VAR_FIN_ARQ_TEMPLATE_REPORT=templates/report.html.j2
+# Arquivos de massa
 VAR_FIN_ARQ_MASSA_APRIL=massa/04 WhatsApp Chat - NFs e comprovantes tia Claudia.zip
 VAR_FIN_ARQ_MASSA_MAY=massa/05 WhatsApp Chat - NFs e comprovantes tia Claudia.zip
 VAR_FIN_ARQ_MASSA_JUNE=massa/06 WhatsApp Chat - NFs e comprovantes tia Claudia.zip
@@ -35,6 +54,7 @@ VAR_FIN_ARQ_MASSA_SEPTEMBER=massa/09 WhatsApp Chat - NFs e comprovantes tia Clau
 VAR_FIN_ARQ_MASSA_OCTOBER=massa/10 WhatsApp Chat - NFs e comprovantes tia Claudia.zip	
 
 # Configuração de ambiente
+# Exporta as variáveis de ambiente para o shell
 export ATTR_FIN_OPENAI_API_KEY=${VAR_FIN_OPENAI_API_KEY}
 export ATTR_FIN_DIR_INPUT=${VAR_FIN_DIR_INPUT}
 export ATTR_FIN_DIR_IMGS=${VAR_FIN_DIR_IMGS}
@@ -66,6 +86,7 @@ export ATTR_FIN_ARQ_MASSA_AUGUST=${VAR_FIN_ARQ_MASSA_AUGUST}
 export ATTR_FIN_ARQ_MASSA_SEPTEMBER=${VAR_FIN_ARQ_MASSA_SEPTEMBER}
 export ATTR_FIN_ARQ_MASSA_OCTOBER=${VAR_FIN_ARQ_MASSA_OCTOBER}
 
+# Exibe as variáveis de ambiente
 show-variables:
 	@echo "VAR_FIN_OPENAI_API_KEY: ${VAR_FIN_OPENAI_API_KEY}"
 	@echo "VAR_FIN_DIR_INPUT: ${VAR_FIN_DIR_INPUT}"
@@ -128,9 +149,10 @@ show-variables:
 	@echo "ATTR_FIN_ARQ_MASSA_SEPTEMBER: ${ATTR_FIN_ARQ_MASSA_SEPTEMBER}"
 	@echo "ATTR_FIN_ARQ_MASSA_OCTOBER: ${ATTR_FIN_ARQ_MASSA_OCTOBER}"
 
+# Cria os diretórios necessários
 create-directories:
 	@echo "Criando diretórios: ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}, ${ATTR_FIN_DIR_MENSAGENS}, ${ATTR_FIN_DIR_OCR}, ${ATTR_FIN_DIR_DOCS}, ${ATTR_FIN_DIR_SRC}, ${ATTR_FIN_DIR_TEMPLATES}"
-	@mkdir -p "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" "${ATTR_FIN_DIR_DOCS}" "${ATTR_FIN_DIR_SRC}" "${ATTR_FIN_DIR_TEMPLATES}" || { echo "Erro ao criar diretórios"; exit 1; }
+	@mkdir -pv "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" "${ATTR_FIN_DIR_DOCS}" "${ATTR_FIN_DIR_SRC}" "${ATTR_FIN_DIR_TEMPLATES}"
 
 # Verificar se Poetry está disponível
 check_poetry_installed:
@@ -150,6 +172,7 @@ copy: check_poetry_installed install
 copy-july-report: check_poetry_installed install
 copy-report: check_poetry_installed
 
+# Exibe a mensagem de ajuda
 help:
 	@echo "Uso: make <target>"
 	@echo "Targets disponíveis:"
@@ -174,54 +197,71 @@ help:
 	@echo "  server: Inicia o servidor HTTP local"
 	@echo "  copy: Copia a estrutura do projeto para a área de transferência"
 
+# Instala as dependências do projeto
 install:
 	poetry install --no-interaction --no-root
 
+# Executa o script principal
 run:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} --help 
 
+# Processa arquivos incrementalmente (sem backup)
 process:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar 
 
+# Processa arquivos incrementalmente (com backup)
 process-backup:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --backup
 
+# Processa todos os arquivos (força reprocessamento, sem backup)
 force:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force 
 	
+# Processa todos os arquivos (força reprocessamento, com backup)
 force-backup:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force --backup
 
+# Processa apenas PDFs (sem backup)
 pdf:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} pdf
 
+# Processa apenas PDFs (com backup)
 pdf-backup:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} pdf --backup
 
+# Processa apenas imagens (sem backup)
 img:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} img
 
+# Processa apenas imagens (com backup)
 img-backup:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} img --backup
 
+# Marca uma entrada como desconsiderada
 dismiss:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} dismiss "$(find)" 
 	
+# Corrige uma entrada específica
 fix:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" 
 
+# Corrige uma entrada específica e marca como desconsiderada
 fix-dismiss:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --dismiss 
 
+# Corrige uma entrada específica e rotaciona
 fix-rotate:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --rotate "$(rotate)" 
 
+# Corrige uma entrada específica e rotaciona e usa IA
 fix-rotate-ia:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --rotate "$(rotate)" --ia 
 
+# Inicia o servidor HTTP local
 server:
 	poetry run python -m http.server 8000 
 
+# Copia os arquivos do módulo wa_fin_ctrl para analise
 copy:
 	@mkdir -p ${ATTR_FIN_DIR_TMP}
 	@echo "Copiando os arquivos do módulo wa_fin_ctrl para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
@@ -234,6 +274,7 @@ copy:
 	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo copiado para a área de transferência"
 
+# Copia o relatório de Julho para analise
 copy-july-report:
 	@mkdir -p ${ATTR_FIN_DIR_TMP}
 	@echo "Copiando o relatório de Julho..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
@@ -243,6 +284,7 @@ copy-july-report:
 	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo do relatório de Julho copiado para a área de transferência"
 
+# Copia o relatório report.html para analise
 copy-report:
 	@mkdir -p ${ATTR_FIN_DIR_TMP}
 	@echo "Copiando o relatório report.html para analise..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
@@ -250,6 +292,7 @@ copy-report:
 	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo do relatório report.html copiado para a área de transferência"
 
+# Copia os templates dos relatórios para analise
 copy-templates:
 	@mkdir -p ${ATTR_FIN_DIR_TMP}
 	@echo "Copiando os templates dos relatórios para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
@@ -260,6 +303,7 @@ copy-templates:
 	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo dos templates copiado para a área de transferência"
 
+# Copia o OCR para analise
 copy-ocr:
 	@mkdir -p ${ATTR_FIN_DIR_OCR}
 	@echo "<!-- ${ATTR_FIN_ARQ_OCR_XML} -->" > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
@@ -267,27 +311,35 @@ copy-ocr:
 	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo do OCR copiado para a área de transferência"
 
+# Remove os relatórios
 remove-reports:
 	@rm -rf *.html
 
+# Remove os backups
 remove-baks:
 	@rm -rf *.bak
 
+# Remove o OCR
 remove-ocr:
 	@rm -rf ${ATTR_FIN_ARQ_OCR_XML}
 
+# Remove as mensagens
 remove-mensagens:
 	@rm -rf ${ATTR_FIN_DIR_MENSAGENS}/*
 
+# Remove as imagens
 remove-imgs:
 	@rm -rf ${ATTR_FIN_DIR_IMGS}/*
 
+# Remove os temporários
 remove-tmp:
 	@rm -rf ${ATTR_FIN_DIR_TMP}/*
 
+# Remove o diretório de entrada
 remove-input:
 	@rm -rf ${ATTR_FIN_DIR_INPUT}/*
 
+# Remove todos os arquivos
 remove-all:
 	@$(MAKE) remove-reports
 	@$(MAKE) remove-baks
@@ -297,25 +349,31 @@ remove-all:
 	@$(MAKE) remove-tmp
 	@$(MAKE) remove-input
 
-
+# Copia o arquivo de massa de Abril
 copy-april:
 	@cp -v "${ATTR_FIN_ARQ_MASSA_APRIL}" ${ATTR_FIN_DIR_INPUT}
 
+# Copia o arquivo de massa de Maio
 copy-may:
 	@cp -v "${ATTR_FIN_ARQ_MASSA_MAY}" ${ATTR_FIN_DIR_INPUT}
 
+# Copia o arquivo de massa de Junho
 copy-june:
 	@cp -v "${ATTR_FIN_ARQ_MASSA_JUNE}" ${ATTR_FIN_DIR_INPUT}
 
+# Copia o arquivo de massa de Julho
 copy-july:
 	@cp -v "${ATTR_FIN_ARQ_MASSA_JULY}" ${ATTR_FIN_DIR_INPUT}
 
+# Copia o arquivo de massa de Agosto
 copy-august:
 	@cp -v "${ATTR_FIN_ARQ_MASSA_AUGUST}" ${ATTR_FIN_DIR_INPUT}
 
+# Copia o arquivo de massa de Setembro
 copy-september:
 	@cp -v "${ATTR_FIN_ARQ_MASSA_SEPTEMBER}" ${ATTR_FIN_DIR_INPUT}
 
+# Copia o arquivo de massa de Outubro
 copy-october:
 	@cp -v "${ATTR_FIN_ARQ_MASSA_OCTOBER}" ${ATTR_FIN_DIR_INPUT}
 
