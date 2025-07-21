@@ -8,9 +8,7 @@ imgs/
 input/*
 mensagens/*
 ocr/extract.xml
-# Exceção para docs/ - manter no controle de versão
-!docs/
+docs/
 docs/*.html	
 ocr/extract.xml	
-# Exceção para data/ - manter no controle de versão
-!data/	
+data/	
