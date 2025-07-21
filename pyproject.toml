@@ -4,7 +4,7 @@
 [tool.poetry]
 name = "wa-fin-ctrl"
 version = "0.1.0"
-description = "Sistema de processamento de comprovantes financeiros"
+description = "Sistema web de processamento de comprovantes financeiros por WhatsApp"
 authors = ["Ricardo Malnati ricardomalnati@gmail.com"]
 readme = "README.md"
 packages = [{include = "wa-fin-ctrl", from = "src"}]
