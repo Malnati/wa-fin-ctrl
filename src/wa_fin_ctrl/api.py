@@ -29,6 +29,35 @@ app = FastAPI(
 
 # Monta arquivos estáticos
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/imgs", StaticFiles(directory="imgs"), name="imgs")
+
+@app.get("/")
+async def root():
+    """
+    Endpoint raiz - serve a página index.html dos relatórios.
+    """
+    try:
+        index_path = os.path.join(ATTR_FIN_DIR_DOCS, "index.html")
+        
+        if not os.path.exists(index_path):
+            raise HTTPException(
+                status_code=404,
+                detail="Página index.html não encontrada. Execute o processamento primeiro."
+            )
+        
+        # Retorna o arquivo index.html
+        return FileResponse(
+            path=index_path,
+            media_type="text/html"
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao servir página de relatórios: {str(e)}"
+        )
 
 @app.post("/fix")
 async def fix(
@@ -84,8 +113,6 @@ async def fix(
             status_code=500,
             detail=f"Erro interno: {str(e)}"
         )
-
-
 
 @app.post("/process")
 async def process(
@@ -162,7 +189,7 @@ async def upload(file: UploadFile = File(...)):
             detail=f"Erro ao fazer upload: {str(e)}"
         )
 
-@app.get("/reports", response_model=List[dict])
+@app.get("/api/reports", response_model=List[dict])
 async def list_reports():
     """
     Lista todos os relatórios HTML disponíveis no diretório docs/.
@@ -264,8 +291,7 @@ async def get_report(filename: str):
         # Retorna o arquivo HTML
         return FileResponse(
             path=file_path,
-            media_type="text/html",
-            filename=filename
+            media_type="text/html"
         )
         
     except HTTPException:
@@ -320,20 +346,22 @@ async def generate_reports(
             detail=f"Erro ao gerar relatórios: {str(e)}"
         )
 
-@app.get("/")
-async def root():
+@app.get("/api/info")
+async def api_info():
     """
-    Endpoint raiz com informações da API.
+    Endpoint com informações da API.
     """
     return {
         "message": "WA Fin Ctrl API",
         "version": "1.0.0",
         "endpoints": {
+            "GET /": "Página principal de relatórios (HTML)",
+            "GET /api/info": "Informações da API",
+            "GET /api/reports": "Lista todos os relatórios disponíveis (JSON)",
+            "GET /reports/{filename}": "Serve um relatório HTML específico",
             "POST /fix": "Corrige uma entrada específica",
             "POST /process": "Processa arquivos incrementalmente",
             "POST /upload": "Faz upload de arquivo ZIP",
-            "GET /reports": "Lista todos os relatórios disponíveis",
-            "GET /reports/{filename}": "Serve um relatório HTML específico",
             "POST /reports/generate": "Gera relatórios HTML sob demanda"
         }
     }
