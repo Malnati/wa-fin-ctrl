@@ -882,7 +882,7 @@ def diagnostico_erro_ocr(image_path, ocr_result):
         return "Falha no OCR"
     return "Sem diagnóstico detalhado"
 
-def processar_incremental(force=False, entry=None):
+def processar_incremental(force=False, entry=None, backup=False):
     """Função principal para processamento incremental ou forçado, agora com filtro opcional de entry (DATA HORA)"""
     print("=== INICIANDO PROCESSAMENTO {} ===".format("FORÇADO" if force else "INCREMENTAL"))
     if entry:
@@ -892,6 +892,12 @@ def processar_incremental(force=False, entry=None):
         except Exception:
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
+    
+    # Se backup foi solicitado, cria backups antes do processamento
+    if backup:
+        print("=== CRIANDO BACKUPS ===")
+        criar_backups_antes_processamento()
+    
     edits_json = carregar_edits_json()
     if edits_json:
         print(f"Edições encontradas em arquivos JSON de {ATTR_FIN_DIR_INPUT}/: aplicando após confirmação.")
@@ -946,8 +952,8 @@ def processar_incremental(force=False, entry=None):
         if not tem_arquivos:
             print("Nenhum arquivo novo para processar.")
             print("\n=== GERANDO RELATÓRIO HTML ===")
-            gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
-            gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+            gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
+            gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
             return
         print(f"\n=== PROCESSANDO DADOS DE {chat_file} ===")
         print("=== PROCESSANDO DADOS COMPLETOS ===")
@@ -1008,9 +1014,9 @@ def processar_incremental(force=False, entry=None):
                 df_calc.to_csv(ATTR_FIN_ARQ_CALCULO, index=False, quoting=1)
                 print(f"Edições aplicadas em {ATTR_FIN_ARQ_CALCULO}.")
     print("\n=== GERANDO RELATÓRIO HTML ===")
-    gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+    gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
-    gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+    gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
     df_all = pd.read_csv(ATTR_FIN_ARQ_CALCULO)
     df_all['DATA_DT'] = pd.to_datetime(df_all['DATA'], format='%d/%m/%Y', errors='coerce')
     df_all['ANO_MES'] = df_all['DATA_DT'].dt.to_period('M')
@@ -1026,7 +1032,7 @@ def processar_incremental(force=False, entry=None):
         nome_arquivo_impressao = f"impressao-{ano}-{mes:02d}-{nome_mes}.html"
         print(f"✅ HTML de impressão gerado: {nome_arquivo_impressao}")
 
-def processar_pdfs(force=False, entry=None):
+def processar_pdfs(force=False, entry=None, backup=False):
     """Processa apenas arquivos .pdf no diretório input/."""
     print("=== INICIANDO PROCESSAMENTO DE PDFs {} ===".format("FORÇADO" if force else "INCREMENTAL"))
     if entry:
@@ -1036,6 +1042,11 @@ def processar_pdfs(force=False, entry=None):
         except Exception:
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
+    
+    # Se backup foi solicitado, cria backups antes do processamento
+    if backup:
+        print("=== CRIANDO BACKUPS ===")
+        criar_backups_antes_processamento()
     
     input_dir = Path(ATTR_FIN_DIR_INPUT)
     
@@ -1083,7 +1094,7 @@ def processar_pdfs(force=False, entry=None):
     
     print("✅ Processamento de PDFs concluído!")
 
-def processar_imgs(force=False, entry=None):
+def processar_imgs(force=False, entry=None, backup=False):
     """Processa apenas arquivos de imagem (.jpg, .png, .jpeg) no diretório input/."""
     print("=== INICIANDO PROCESSAMENTO DE IMAGENS {} ===".format("FORÇADO" if force else "INCREMENTAL"))
     if entry:
@@ -1093,6 +1104,11 @@ def processar_imgs(force=False, entry=None):
         except Exception:
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
+    
+    # Se backup foi solicitado, cria backups antes do processamento
+    if backup:
+        print("=== CRIANDO BACKUPS ===")
+        criar_backups_antes_processamento()
     
     input_dir = Path(ATTR_FIN_DIR_INPUT)
     
@@ -1343,6 +1359,17 @@ def backup_arquivos_existentes():
             backup_nome = f"{arquivo}.backup_teste"
             shutil.copy2(arquivo, backup_nome)
             print(f"Backup criado: {backup_nome}")
+
+def criar_backups_antes_processamento():
+    """Cria backups dos arquivos principais antes do processamento"""
+    arquivos_backup = [ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_CALCULO]
+    
+    for arquivo in arquivos_backup:
+        if os.path.exists(arquivo):
+            timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+            backup_nome = f"{arquivo}.{timestamp}.bak"
+            shutil.copy2(arquivo, backup_nome)
+            print(f"📁 Backup criado: {backup_nome}")
 
 def restaurar_arquivos_backup():
     """Restaura arquivos do backup após os testes"""

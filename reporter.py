@@ -331,17 +331,20 @@ def _calcular_totalizadores_pessoas(rows):
         'rafael_float': total_rafael
     }
 
-def gerar_relatorio_html(csv_path):
+def gerar_relatorio_html(csv_path, backup=True):
     print(f"DEBUG: Iniciando gerar_relatorio_html com csv_path: {csv_path}")
     try:
         if not os.path.exists(csv_path):
             print(f"❌ O relatório report.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
             return
-        if os.path.exists("report.html"):
+        if os.path.exists("report.html") and backup:
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
             arquivo_backup = f"report-{timestamp}.bak"
             os.rename("report.html", arquivo_backup)
             print(f"📁 Relatório anterior renomeado para: {arquivo_backup}")
+        elif os.path.exists("report.html") and not backup:
+            os.remove("report.html")
+            print("🗑️ Relatório anterior removido (backup desabilitado)")
         print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
         
         # Carregar dados OCR
@@ -423,23 +426,17 @@ def gerar_relatorio_html(csv_path):
     except Exception as e:
         print(f"❌ Erro ao gerar relatório HTML: {str(e)}")
 
-def gerar_relatorios_mensais_html(csv_path):
+def gerar_relatorios_mensais_html(csv_path, backup=True):
     try:
         if not os.path.exists(csv_path):
             print(f"❌ Arquivo {csv_path} não encontrado para gerar relatórios mensais")
             return
-        print(f"📅 Gerando relatórios mensais baseados em {csv_path}...")
         
         # Carregar dados OCR
         ocr_map = _carregar_ocr_map()
         
         df = pd.read_csv(csv_path)
         df['DATA_DT'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
-        df = df.dropna(subset=['DATA_DT'])
-        if len(df) == 0:
-            print("⚠️  Nenhum dado com data válida encontrado")
-            return
-        
         df['ANO_MES'] = df['DATA_DT'].dt.to_period('M')
         grupos_mensais = df.groupby('ANO_MES')
         nomes_meses = {
@@ -457,11 +454,14 @@ def gerar_relatorios_mensais_html(csv_path):
             
             # Relatório mensal normal
             nome_arquivo = f"report-{ano}-{mes:02d}-{nome_mes}.html"
-            if os.path.exists(nome_arquivo):
+            if os.path.exists(nome_arquivo) and backup:
                 timestamp = pd.Timestamp.now().strftime('%Y%m%d')
                 arquivo_backup = f"report-{ano}-{mes:02d}-{nome_mes}-{timestamp}.bak"
                 os.rename(nome_arquivo, arquivo_backup)
                 print(f"📁 Relatório mensal anterior renomeado para: {arquivo_backup}")
+            elif os.path.exists(nome_arquivo) and not backup:
+                os.remove(nome_arquivo)
+                print(f"🗑️ Relatório mensal anterior removido: {nome_arquivo} (backup desabilitado)")
             
             tem_motivo = False  # Removendo a coluna "Motivo do Erro" de todos os relatórios
             rows = []
