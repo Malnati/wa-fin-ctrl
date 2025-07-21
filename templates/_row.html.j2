@@ -1,37 +1,41 @@
 {# Macro para renderizar uma linha da tabela #}
 {% macro render_row(row, loop_index, attrs, is_editable=false) %}
 <tr class="{{ row.row_class }}" data-row-id="{{ loop_index }}" {% if row.motivo %} data-motivo="{{ row.motivo }}"{% endif %} data-data-hora="{{ row.data_hora }}">
-  <td class="data-hora">{{ row.data_hora }}</td>
+  <td class="data-hora desktop-only">{{ row.data_hora }}</td>
   <td class="classificacao-cell">
     {% if row.classificacao and row.classificacao != 'nan' %}
       {% if row.classificacao.lower() == 'transferência' %}
-        <span class="classificacao transferencia {% if is_editable %}edit-field{% endif %}" 
+        <span class="form-control-plaintext form-control-sm clickable-field classificacao transferencia {% if is_editable %}edit-field{% endif %}" 
               {% if is_editable %}data-field="classificacao" 
               data-original="{{ row.classificacao }}"
-              title="Clique para editar a classificação"{% endif %}>
+              data-bs-toggle="tooltip" data-bs-placement="top" 
+              data-bs-title="Clique para editar a classificação"{% endif %}>
           {{ row.classificacao }}
         </span>
       {% elif row.classificacao.lower() == 'pagamento' %}
-        <span class="classificacao pagamento {% if is_editable %}edit-field{% endif %}" 
+        <span class="form-control-plaintext form-control-sm clickable-field classificacao pagamento {% if is_editable %}edit-field{% endif %}" 
               {% if is_editable %}data-field="classificacao" 
               data-original="{{ row.classificacao }}"
-              title="Clique para editar a classificação"{% endif %}>
+              data-bs-toggle="tooltip" data-bs-placement="top" 
+              data-bs-title="Clique para editar a classificação"{% endif %}>
           {{ row.classificacao }}
         </span>
       {% else %}
-        <span class="classificacao {% if is_editable %}edit-field{% endif %}" 
+        <span class="form-control-plaintext form-control-sm clickable-field classificacao {% if is_editable %}edit-field{% endif %}" 
               {% if is_editable %}data-field="classificacao" 
               data-original="{{ row.classificacao }}"
-              title="Clique para editar a classificação"{% endif %}>
+              data-bs-toggle="tooltip" data-bs-placement="top" 
+              data-bs-title="Clique para editar a classificação"{% endif %}>
           {{ row.classificacao }}
         </span>
       {% endif %}
     {% else %}
       {% if is_editable %}
-        <span class="classificacao edit-field empty-field" 
+        <span class="form-control-plaintext form-control-sm clickable-field classificacao edit-field empty-field" 
               data-field="classificacao" 
               data-original=""
-              title="Clique para editar a classificação">
+              data-bs-toggle="tooltip" data-bs-placement="top" 
+              data-bs-title="Clique para editar a classificação">
           Clique para editar
         </span>
       {% endif %}
@@ -94,7 +98,7 @@
       {% endif %}
     {% endif %}
   </td>
-  <td class="descricao-cell" style="text-align: left; font-size: 12px;">
+  <td class="descricao-cell optional-column" style="text-align: left; font-size: 12px;">
     {% if row.descricao and row.descricao != 'nan' %}
       <span class="{% if is_editable %}edit-field{% endif %}" 
             {% if is_editable %}data-field="descricao" 
@@ -113,7 +117,7 @@
       {% endif %}
     {% endif %}
   </td>
-  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+  <td class="ocr-cell optional-column desktop-only" style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
     {% if row.ocr and row.ocr != 'nan' %}
       {% if row.anexo and row.anexo.lower().endswith('.pdf') %}
         📄 

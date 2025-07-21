@@ -47,6 +47,52 @@
       color: #6c757d;
       margin-top: 5px;
     }
+    
+    /* Controles de colunas */
+    .column-controls {
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+    }
+    
+    .column-controls .form-check {
+      margin-right: 15px;
+      margin-bottom: 5px;
+    }
+    
+    .column-controls .form-check-input:checked + .form-check-label {
+      color: #0d6efd;
+      font-weight: 500;
+    }
+    
+    /* Classes de visibilidade */
+    .desktop-only {
+      display: table-cell;
+    }
+    
+    .optional-column {
+      display: table-cell;
+    }
+    
+    .optional-column.hidden {
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
+      .desktop-only {
+        display: none !important;
+      }
+      
+      .optional-column {
+        display: none;
+      }
+      
+      .optional-column.show-mobile {
+        display: table-cell;
+      }
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
@@ -91,11 +137,41 @@
       {% block header_buttons %}{% endblock %}
     </div>
     
+    <!-- Controles de colunas opcionais -->
+    <div class="column-controls">
+      <div class="row">
+        <div class="col-md-6">
+          <h6 class="mb-2">📊 Colunas Opcionais:</h6>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="toggle-descricao" checked>
+            <label class="form-check-label" for="toggle-descricao">
+              Descrição
+            </label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="toggle-ocr" checked>
+            <label class="form-check-label" for="toggle-ocr">
+              OCR
+            </label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <h6 class="mb-2">📱 Visualização Mobile:</h6>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="toggle-mobile-view">
+            <label class="form-check-label" for="toggle-mobile-view">
+              Simular Mobile
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <table>
       <thead>
         {% block table_head %}
           <tr>
-            <th>Data-Hora</th>
+            <th class="desktop-only">Data-Hora</th>
             <th>
               <button id="toggle-payments" class="toggle-payments-btn" aria-label="Alternar pagamentos">
                 {% block toggle_button_content %}⇄{% endblock %}
@@ -104,8 +180,8 @@
             <th>Ricardo (R$)</th>
             <th>Rafael (R$)</th>
             <th>Anexo</th>
-            <th>Descrição</th>
-            <th>OCR</th>
+            <th class="optional-column">Descrição</th>
+            <th class="optional-column desktop-only">OCR</th>
             {% if tem_motivo %}
               <th>Motivo do Erro</th>
             {% endif %}
