@@ -230,10 +230,19 @@ async function saveRowChanges(dataHora) {
     const formData = new FormData();
     formData.append('find', dataHora);
     
-    // Adicionar campos modificados
-    Object.entries(modifiedFields).forEach(([field, value]) => {
-      formData.append(field, value);
-    });
+    // Mapear campos modificados para parâmetros da API
+    if (modifiedFields.ricardo) {
+      formData.append('value', modifiedFields.ricardo);
+    }
+    if (modifiedFields.rafael) {
+      formData.append('value', modifiedFields.rafael);
+    }
+    if (modifiedFields.descricao) {
+      formData.append('desc', modifiedFields.descricao);
+    }
+    if (modifiedFields.classificacao) {
+      formData.append('class_', modifiedFields.classificacao);
+    }
     
     const response = await fetch('/fix', {
       method: 'POST',
@@ -571,3 +580,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 }); 
+
+// Exportar funções de edição globalmente para uso nos onclick dos botões
+window.startEditing = startEditing;
+window.finishEditing = finishEditing;
+window.cancelEditing = cancelEditing;
+window.saveRowChanges = saveRowChanges;
+window.cancelRowChanges = cancelRowChanges;
+window.dismissRow = dismissRow;
+window.rotateImage = rotateImage;
+window.reprocessAI = reprocessAI; 
