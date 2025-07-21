@@ -86,6 +86,19 @@ export ATTR_FIN_ARQ_MASSA_AUGUST=${VAR_FIN_ARQ_MASSA_AUGUST}
 export ATTR_FIN_ARQ_MASSA_SEPTEMBER=${VAR_FIN_ARQ_MASSA_SEPTEMBER}
 export ATTR_FIN_ARQ_MASSA_OCTOBER=${VAR_FIN_ARQ_MASSA_OCTOBER}
 
+# Verificar se Poetry está disponível
+check_poetry_installed:
+	@if ! command -v poetry &> /dev/null; then \
+		echo "❌ Poetry não está instalado. Instale o Poetry primeiro:"; \
+		echo "   curl -sSL https://install.python-poetry.org | python3 -"; \
+		exit 1; \
+	fi
+
+# Cria os diretórios necessários
+create-directories:
+	@echo "Criando diretórios: ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}, ${ATTR_FIN_DIR_MENSAGENS}, ${ATTR_FIN_DIR_OCR}, ${ATTR_FIN_DIR_DOCS}, ${ATTR_FIN_DIR_SRC}, ${ATTR_FIN_DIR_TEMPLATES}"
+	@mkdir -pv "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" "${ATTR_FIN_DIR_DOCS}" "${ATTR_FIN_DIR_SRC}" "${ATTR_FIN_DIR_TEMPLATES}"
+
 # Exibe as variáveis de ambiente
 show-variables:
 	@echo "VAR_FIN_OPENAI_API_KEY: ${VAR_FIN_OPENAI_API_KEY}"
@@ -149,20 +162,7 @@ show-variables:
 	@echo "ATTR_FIN_ARQ_MASSA_SEPTEMBER: ${ATTR_FIN_ARQ_MASSA_SEPTEMBER}"
 	@echo "ATTR_FIN_ARQ_MASSA_OCTOBER: ${ATTR_FIN_ARQ_MASSA_OCTOBER}"
 
-# Cria os diretórios necessários
-create-directories:
-	@echo "Criando diretórios: ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}, ${ATTR_FIN_DIR_MENSAGENS}, ${ATTR_FIN_DIR_OCR}, ${ATTR_FIN_DIR_DOCS}, ${ATTR_FIN_DIR_SRC}, ${ATTR_FIN_DIR_TEMPLATES}"
-	@mkdir -pv "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" "${ATTR_FIN_DIR_DOCS}" "${ATTR_FIN_DIR_SRC}" "${ATTR_FIN_DIR_TEMPLATES}"
-
-# Verificar se Poetry está disponível
-check_poetry_installed:
-	@if ! command -v poetry &> /dev/null; then \
-		echo "❌ Poetry não está instalado. Instale o Poetry primeiro:"; \
-		echo "   curl -sSL https://install.python-poetry.org | python3 -"; \
-		exit 1; \
-	fi
-
-# Adicionando a verificação de Poetry como dependência para todos os alvos
+# Dependências dos comandos principais
 install: check_poetry_installed create-directories
 run: check_poetry_installed install
 process: check_poetry_installed install
@@ -171,6 +171,116 @@ server: check_poetry_installed install
 copy: check_poetry_installed install
 copy-july-report: check_poetry_installed install
 copy-report: check_poetry_installed
+
+# =============================================================================
+# COMANDOS PRINCIPAIS (ORDEM ALFABÉTICA)
+# =============================================================================
+
+# Copia o arquivo de massa de Abril
+copy-april:
+	@cp -v "${ATTR_FIN_ARQ_MASSA_APRIL}" ${ATTR_FIN_DIR_INPUT}
+
+# Copia o arquivo de massa de Agosto
+copy-august:
+	@cp -v "${ATTR_FIN_ARQ_MASSA_AUGUST}" ${ATTR_FIN_DIR_INPUT}
+
+# Copia o arquivo de massa de Junho
+copy-june:
+	@cp -v "${ATTR_FIN_ARQ_MASSA_JUNE}" ${ATTR_FIN_DIR_INPUT}
+
+# Copia o arquivo de massa de Julho
+copy-july:
+	@cp -v "${ATTR_FIN_ARQ_MASSA_JULY}" ${ATTR_FIN_DIR_INPUT}
+
+# Copia o arquivo de massa de Maio
+copy-may:
+	@cp -v "${ATTR_FIN_ARQ_MASSA_MAY}" ${ATTR_FIN_DIR_INPUT}
+
+# Copia o arquivo de massa de Outubro
+copy-october:
+	@cp -v "${ATTR_FIN_ARQ_MASSA_OCTOBER}" ${ATTR_FIN_DIR_INPUT}
+
+# Copia o arquivo de massa de Setembro
+copy-september:
+	@cp -v "${ATTR_FIN_ARQ_MASSA_SEPTEMBER}" ${ATTR_FIN_DIR_INPUT}
+
+# Copia os arquivos do módulo wa_fin_ctrl para analise
+copy:
+	@mkdir -pv ${ATTR_FIN_DIR_TMP}
+	@echo "Copiando os arquivos do módulo wa_fin_ctrl para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/app.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/cli.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/helper.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/ia.py \
+	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/ocr.py \
+	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/env.py \
+	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/template.py \
+	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/reporter.py \
+	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/check.py >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@echo "✅ Conteúdo copiado para a área de transferência"
+
+# Copia o OCR para analise
+copy-ocr:
+	@mkdir -pv ${ATTR_FIN_DIR_OCR}
+	@echo "<!-- ${ATTR_FIN_ARQ_OCR_XML} -->" > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_OCR_XML} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@echo "✅ Conteúdo do OCR copiado para a área de transferência"
+
+# Copia o relatório report.html para analise
+copy-report:
+	@mkdir -pv ${ATTR_FIN_DIR_TMP}
+	@echo "Copiando o relatório report.html para analise..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_REPORT_HTML} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@echo "✅ Conteúdo do relatório report.html copiado para a área de transferência"
+
+# Copia o relatório de Julho para analise
+copy-july-report:
+	@mkdir -pv ${ATTR_FIN_DIR_TMP}
+	@echo "Copiando o relatório de Julho..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_REPORT_JULY} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@echo "Copiando o relatório editavel..." >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_REPORT_JULY_EDIT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@echo "✅ Conteúdo do relatório de Julho copiado para a área de transferência"
+
+# Copia os templates dos relatórios para analise
+copy-templates:
+	@mkdir -pv ${ATTR_FIN_DIR_TMP}
+	@echo "Copiando os templates dos relatórios para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_TEMPLATE_MONTHLY} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_TEMPLATE_PRINT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_TEMPLATE_REPORT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@echo "✅ Conteúdo dos templates copiado para a área de transferência"
+
+# Marca uma entrada como desconsiderada
+dismiss:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} dismiss "$(find)" 
+
+# Corrige uma entrada específica
+fix:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" 
+
+# Corrige uma entrada específica e marca como desconsiderada
+fix-dismiss:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --dismiss 
+
+# Corrige uma entrada específica e rotaciona
+fix-rotate:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --rotate "$(rotate)" 
+
+# Corrige uma entrada específica e rotaciona e usa IA
+fix-rotate-ia:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --rotate "$(rotate)" --ia 
+
+# Processa todos os arquivos (força reprocessamento, sem backup)
+force:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force 
+	
+# Processa todos os arquivos (força reprocessamento, com backup)
+force-backup:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force --backup
 
 # Exibe a mensagem de ajuda
 help:
@@ -197,29 +307,17 @@ help:
 	@echo "  server: Inicia o servidor HTTP local"
 	@echo "  copy: Copia a estrutura do projeto para a área de transferência"
 
+# Processa apenas imagens (sem backup)
+img:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} img
+
+# Processa apenas imagens (com backup)
+img-backup:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} img --backup
+
 # Instala as dependências do projeto
 install:
 	poetry install --no-interaction --no-root
-
-# Executa o script principal
-run:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} --help 
-
-# Processa arquivos incrementalmente (sem backup)
-process:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} processar 
-
-# Processa arquivos incrementalmente (com backup)
-process-backup:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --backup
-
-# Processa todos os arquivos (força reprocessamento, sem backup)
-force:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force 
-	
-# Processa todos os arquivos (força reprocessamento, com backup)
-force-backup:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force --backup
 
 # Processa apenas PDFs (sem backup)
 pdf:
@@ -229,115 +327,13 @@ pdf:
 pdf-backup:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} pdf --backup
 
-# Processa apenas imagens (sem backup)
-img:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} img
+# Processa arquivos incrementalmente (sem backup)
+process:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} processar 
 
-# Processa apenas imagens (com backup)
-img-backup:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} img --backup
-
-# Marca uma entrada como desconsiderada
-dismiss:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} dismiss "$(find)" 
-	
-# Corrige uma entrada específica
-fix:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" 
-
-# Corrige uma entrada específica e marca como desconsiderada
-fix-dismiss:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --dismiss 
-
-# Corrige uma entrada específica e rotaciona
-fix-rotate:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --rotate "$(rotate)" 
-
-# Corrige uma entrada específica e rotaciona e usa IA
-fix-rotate-ia:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --rotate "$(rotate)" --ia 
-
-# Inicia o servidor HTTP local
-server:
-	poetry run python -m http.server 8000 
-
-# Copia os arquivos do módulo wa_fin_ctrl para analise
-copy:
-	@mkdir -pv ${ATTR_FIN_DIR_TMP}
-	@echo "Copiando os arquivos do módulo wa_fin_ctrl para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/app.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/cli.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/helper.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/ia.py \
-	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/ocr.py \
-	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/env.py \
-	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/template.py \
-	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/reporter.py \
-	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/check.py >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo copiado para a área de transferência"
-
-# Copia o relatório de Julho para analise
-copy-july-report:
-	@mkdir -pv ${ATTR_FIN_DIR_TMP}
-	@echo "Copiando o relatório de Julho..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_REPORT_JULY} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "Copiando o relatório editavel..." >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_REPORT_JULY_EDIT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo do relatório de Julho copiado para a área de transferência"
-
-# Copia o relatório report.html para analise
-copy-report:
-	@mkdir -pv ${ATTR_FIN_DIR_TMP}
-	@echo "Copiando o relatório report.html para analise..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_REPORT_HTML} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo do relatório report.html copiado para a área de transferência"
-
-# Copia os templates dos relatórios para analise
-copy-templates:
-	@mkdir -pv ${ATTR_FIN_DIR_TMP}
-	@echo "Copiando os templates dos relatórios para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_TEMPLATE_MONTHLY} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_TEMPLATE_PRINT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_TEMPLATE_REPORT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo dos templates copiado para a área de transferência"
-
-# Copia o OCR para analise
-copy-ocr:
-	@mkdir -pv ${ATTR_FIN_DIR_OCR}
-	@echo "<!-- ${ATTR_FIN_ARQ_OCR_XML} -->" > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_OCR_XML} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo do OCR copiado para a área de transferência"
-
-# Remove os relatórios
-remove-reports:
-	@rm -rfv ${ATTR_FIN_DIR_DOCS}/*.html
-
-# Remove os backups
-remove-baks:
-	@rm -rfv ${ATTR_FIN_DIR_DOCS}/*.bak
-
-# Remove o OCR
-remove-ocr:
-	@rm -rfv ${ATTR_FIN_ARQ_OCR_XML}
-
-# Remove as mensagens
-remove-mensagens:
-	@rm -rfv ${ATTR_FIN_DIR_MENSAGENS}/*
-
-# Remove as imagens
-remove-imgs:
-	@rm -rfv ${ATTR_FIN_DIR_IMGS}/*
-
-# Remove os temporários
-remove-tmp:
-	@rm -rfv ${ATTR_FIN_DIR_TMP}/*
-
-# Remove o diretório de entrada
-remove-input:
-	@rm -rfv ${ATTR_FIN_DIR_INPUT}/*
+# Processa arquivos incrementalmente (com backup)
+process-backup:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --backup
 
 # Remove todos os arquivos
 remove-all:
@@ -349,32 +345,40 @@ remove-all:
 	@$(MAKE) remove-tmp
 	@$(MAKE) remove-input
 
-# Copia o arquivo de massa de Abril
-copy-april:
-	@cp -v "${ATTR_FIN_ARQ_MASSA_APRIL}" ${ATTR_FIN_DIR_INPUT}
+# Remove os backups
+remove-baks:
+	@rm -rfv ${ATTR_FIN_DIR_DOCS}/*.bak
 
-# Copia o arquivo de massa de Maio
-copy-may:
-	@cp -v "${ATTR_FIN_ARQ_MASSA_MAY}" ${ATTR_FIN_DIR_INPUT}
+# Remove as imagens
+remove-imgs:
+	@rm -rfv ${ATTR_FIN_DIR_IMGS}/*
 
-# Copia o arquivo de massa de Junho
-copy-june:
-	@cp -v "${ATTR_FIN_ARQ_MASSA_JUNE}" ${ATTR_FIN_DIR_INPUT}
+# Remove as mensagens
+remove-mensagens:
+	@rm -rfv ${ATTR_FIN_DIR_MENSAGENS}/*
 
-# Copia o arquivo de massa de Julho
-copy-july:
-	@cp -v "${ATTR_FIN_ARQ_MASSA_JULY}" ${ATTR_FIN_DIR_INPUT}
+# Remove o OCR
+remove-ocr:
+	@rm -rfv ${ATTR_FIN_ARQ_OCR_XML}
 
-# Copia o arquivo de massa de Agosto
-copy-august:
-	@cp -v "${ATTR_FIN_ARQ_MASSA_AUGUST}" ${ATTR_FIN_DIR_INPUT}
+# Remove os relatórios
+remove-reports:
+	@rm -rfv ${ATTR_FIN_DIR_DOCS}/*.html
 
-# Copia o arquivo de massa de Setembro
-copy-september:
-	@cp -v "${ATTR_FIN_ARQ_MASSA_SEPTEMBER}" ${ATTR_FIN_DIR_INPUT}
+# Remove o diretório de entrada
+remove-input:
+	@rm -rfv ${ATTR_FIN_DIR_INPUT}/*
 
-# Copia o arquivo de massa de Outubro
-copy-october:
-	@cp -v "${ATTR_FIN_ARQ_MASSA_OCTOBER}" ${ATTR_FIN_DIR_INPUT}
+# Remove os temporários
+remove-tmp:
+	@rm -rfv ${ATTR_FIN_DIR_TMP}/*
+
+# Executa o script principal
+run:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} --help 
+
+# Inicia o servidor HTTP local
+server:
+	poetry run python -m http.server 8000 
 
 .PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia
