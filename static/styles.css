@@ -274,7 +274,7 @@ tr:hover {
 
 .row-actions button {
   border: none;
-  background: none;
+  background: transparent;
   cursor: pointer;
   padding: 6px 8px;
   border-radius: 6px;
@@ -291,7 +291,7 @@ tr:hover {
 }
 
 .row-actions button:hover {
-  background-color: #f8f9fa;
+  background-color: rgba(248, 249, 250, 0.8);
   color: #495057;
   text-decoration: none;
   transform: translateY(-1px);
@@ -315,54 +315,54 @@ tr:hover {
   color: #6c757d;
 }
 
-/* Estilos específicos para cada botão */
+/* Estilos específicos para cada botão - Fundo transparente */
 .btn-save {
   color: #198754 !important;
-  background-color: #d1e7dd !important;
+  background-color: transparent !important;
 }
 
 .btn-save:hover {
-  background-color: #badbcc !important;
+  background-color: rgba(209, 231, 221, 0.3) !important;
   color: #0f5132 !important;
 }
 
 .btn-cancel {
   color: #dc3545 !important;
-  background-color: #f8d7da !important;
+  background-color: transparent !important;
 }
 
 .btn-cancel:hover {
-  background-color: #f1aeb5 !important;
+  background-color: rgba(248, 215, 218, 0.3) !important;
   color: #842029 !important;
 }
 
 .btn-dismiss {
   color: #6c757d !important;
-  background-color: #e9ecef !important;
+  background-color: transparent !important;
 }
 
 .btn-dismiss:hover {
-  background-color: #dee2e6 !important;
+  background-color: rgba(233, 236, 239, 0.3) !important;
   color: #495057 !important;
 }
 
 .btn-rotate {
   color: #0dcaf0 !important;
-  background-color: #cff4fc !important;
+  background-color: transparent !important;
 }
 
 .btn-rotate:hover {
-  background-color: #b6effb !important;
+  background-color: rgba(207, 244, 252, 0.3) !important;
   color: #055160 !important;
 }
 
 .btn-reprocess {
   color: #fd7e14 !important;
-  background-color: #fff3cd !important;
+  background-color: transparent !important;
 }
 
 .btn-reprocess:hover {
-  background-color: #ffeaa7 !important;
+  background-color: rgba(255, 243, 205, 0.3) !important;
   color: #664d03 !important;
 }
 
