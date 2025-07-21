@@ -10,6 +10,7 @@ VAR_FIN_DIR_MASSA=massa
 VAR_FIN_DIR_TMP=tmp
 VAR_FIN_DIR_MENSAGENS=mensagens
 VAR_FIN_DIR_OCR=ocr
+VAR_FIN_DIR_DOCS=docs
 VAR_FIN_ARQ_CALCULO=mensagens/calculo.csv
 VAR_FIN_ARQ_MENSAGENS=mensagens/mensagens.csv
 VAR_FIN_ARQ_DIAGNOSTICO=diagnostico.csv
@@ -24,6 +25,7 @@ export ATTR_FIN_DIR_MASSA=${VAR_FIN_DIR_MASSA}
 export ATTR_FIN_DIR_TMP=${VAR_FIN_DIR_TMP}
 export ATTR_FIN_DIR_MENSAGENS=${VAR_FIN_DIR_MENSAGENS}
 export ATTR_FIN_DIR_OCR=${VAR_FIN_DIR_OCR}
+export ATTR_FIN_DIR_DOCS=${VAR_FIN_DIR_DOCS}
 export ATTR_FIN_ARQ_CALCULO=${VAR_FIN_ARQ_CALCULO}
 export ATTR_FIN_ARQ_MENSAGENS=${VAR_FIN_ARQ_MENSAGENS}
 export ATTR_FIN_ARQ_DIAGNOSTICO=${VAR_FIN_ARQ_DIAGNOSTICO}
@@ -36,6 +38,9 @@ show-variables:
 	@echo "VAR_FIN_DIR_IMGS: ${VAR_FIN_DIR_IMGS}"
 	@echo "VAR_FIN_DIR_MASSA: ${VAR_FIN_DIR_MASSA}"
 	@echo "VAR_FIN_DIR_TMP: ${VAR_FIN_DIR_TMP}"
+	@echo "VAR_FIN_DIR_MENSAGENS: ${VAR_FIN_DIR_MENSAGENS}"
+	@echo "VAR_FIN_DIR_OCR: ${VAR_FIN_DIR_OCR}"
+	@echo "VAR_FIN_DIR_DOCS: ${VAR_FIN_DIR_DOCS}"
 	@echo "VAR_FIN_ARQ_CALCULO: ${VAR_FIN_ARQ_CALCULO}"
 	@echo "VAR_FIN_ARQ_MENSAGENS: ${VAR_FIN_ARQ_MENSAGENS}"
 	@echo "VAR_FIN_ARQ_DIAGNOSTICO: ${VAR_FIN_ARQ_DIAGNOSTICO}"
@@ -46,12 +51,15 @@ show-variables:
 	@echo "ATTR_FIN_DIR_IMGS: ${ATTR_FIN_DIR_IMGS}"
 	@echo "ATTR_FIN_DIR_MASSA: ${ATTR_FIN_DIR_MASSA}"
 	@echo "ATTR_FIN_DIR_TMP: ${ATTR_FIN_DIR_TMP}"
+	@echo "ATTR_FIN_DIR_MENSAGENS: ${ATTR_FIN_DIR_MENSAGENS}"
+	@echo "ATTR_FIN_DIR_OCR: ${ATTR_FIN_DIR_OCR}"
+	@echo "ATTR_FIN_DIR_DOCS: ${ATTR_FIN_DIR_DOCS}"
 	@echo "ATTR_FIN_ARQ_CALCULO: ${ATTR_FIN_ARQ_CALCULO}"
 	@echo "ATTR_FIN_ARQ_MENSAGENS: ${ATTR_FIN_ARQ_MENSAGENS}"
 
 create-directories:
-	@echo "Criando diretórios: ${ATTR_TEST} ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}, ${ATTR_FIN_DIR_MENSAGENS}, ${ATTR_FIN_DIR_OCR}"
-	@mkdir -p "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" || { echo "Erro ao criar diretórios"; exit 1; }
+	@echo "Criando diretórios: ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}, ${ATTR_FIN_DIR_MENSAGENS}, ${ATTR_FIN_DIR_OCR}, ${ATTR_FIN_DIR_DOCS}"
+	@mkdir -p "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" "${ATTR_FIN_DIR_DOCS}" || { echo "Erro ao criar diretórios"; exit 1; }
 
 # Verificar se Poetry está disponível
 check_poetry_installed:
@@ -167,7 +175,7 @@ copy-july-report:
 copy-report:
 	@mkdir -p tmp
 	@echo "Copiando o relatório report.html para analise..." > tmp/copy2chatgpt.txt
-	@cat report.html >> tmp/copy2chatgpt.txt
+	@cat docs/report.html >> tmp/copy2chatgpt.txt
 	@pbcopy < tmp/copy2chatgpt.txt
 	@echo "✅ Conteúdo do relatório report.html copiado para a área de transferência"
 
