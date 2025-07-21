@@ -450,9 +450,31 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   // Configurar controles de colunas opcionais
+  console.log('=== PROCURANDO ELEMENTOS DOS CONTROLES ===');
+  
   const toggleDescricao = document.getElementById('toggle-descricao');
   const toggleOcr = document.getElementById('toggle-ocr');
   const toggleMobileViewCheckbox = document.getElementById('toggle-mobile-view');
+  const columnControlsSection = document.getElementById('columnControlsSection');
+  const toggleButton = document.querySelector('[onclick="toggleColumnControls()"]');
+  
+  console.log('toggleDescricao encontrado:', !!toggleDescricao);
+  console.log('toggleOcr encontrado:', !!toggleOcr);
+  console.log('toggleMobileViewCheckbox encontrado:', !!toggleMobileViewCheckbox);
+  console.log('columnControlsSection encontrado:', !!columnControlsSection);
+  console.log('Botão toggle encontrado:', !!toggleButton);
+  
+  if (toggleButton) {
+    console.log('HTML do botão toggle:', toggleButton.outerHTML);
+  }
+  
+  if (toggleDescricao) {
+    console.log('HTML do checkbox Descrição:', toggleDescricao.outerHTML);
+  }
+  
+  if (toggleOcr) {
+    console.log('HTML do checkbox OCR:', toggleOcr.outerHTML);
+  }
   
   console.log('=== CONFIGURANDO CONTROLES DE COLUNAS ===');
   console.log('toggleDescricao encontrado:', !!toggleDescricao);
