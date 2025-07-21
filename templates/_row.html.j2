@@ -1,72 +1,78 @@
 {# Macro para renderizar uma linha da tabela #}
-{% macro render_row(row, loop_index, attrs) %}
+{% macro render_row(row, loop_index, attrs, is_editable=false) %}
 <tr class="{{ row.row_class }}" data-row-id="{{ loop_index }}" {% if row.motivo %} data-motivo="{{ row.motivo }}"{% endif %} data-data-hora="{{ row.data_hora }}">
   <td class="data-hora">{{ row.data_hora }}</td>
   <td class="classificacao-cell">
     {% if row.classificacao and row.classificacao != 'nan' %}
       {% if row.classificacao.lower() == 'transferência' %}
-        <span class="classificacao transferencia edit-field" 
-              data-field="classificacao" 
+        <span class="classificacao transferencia {% if is_editable %}edit-field{% endif %}" 
+              {% if is_editable %}data-field="classificacao" 
               data-original="{{ row.classificacao }}"
-              title="Clique para editar a classificação">
+              title="Clique para editar a classificação"{% endif %}>
           {{ row.classificacao }}
         </span>
       {% elif row.classificacao.lower() == 'pagamento' %}
-        <span class="classificacao pagamento edit-field" 
-              data-field="classificacao" 
+        <span class="classificacao pagamento {% if is_editable %}edit-field{% endif %}" 
+              {% if is_editable %}data-field="classificacao" 
               data-original="{{ row.classificacao }}"
-              title="Clique para editar a classificação">
+              title="Clique para editar a classificação"{% endif %}>
           {{ row.classificacao }}
         </span>
       {% else %}
-        <span class="classificacao edit-field" 
-              data-field="classificacao" 
+        <span class="classificacao {% if is_editable %}edit-field{% endif %}" 
+              {% if is_editable %}data-field="classificacao" 
               data-original="{{ row.classificacao }}"
-              title="Clique para editar a classificação">
+              title="Clique para editar a classificação"{% endif %}>
           {{ row.classificacao }}
         </span>
       {% endif %}
     {% else %}
-      <span class="classificacao edit-field empty-field" 
-            data-field="classificacao" 
-            data-original=""
-            title="Clique para editar a classificação">
-        Clique para editar
-      </span>
+      {% if is_editable %}
+        <span class="classificacao edit-field empty-field" 
+              data-field="classificacao" 
+              data-original=""
+              title="Clique para editar a classificação">
+          Clique para editar
+        </span>
+      {% endif %}
     {% endif %}
   </td>
   <td class="valor-cell">
     {% if row.ricardo and row.ricardo != 'nan' and row.ricardo != '' %}
-      <span class="valor edit-field" 
-            data-field="ricardo" 
+      <span class="valor {% if is_editable %}edit-field{% endif %}" 
+            {% if is_editable %}data-field="ricardo" 
             data-original="{{ row.ricardo }}"
-            title="Clique para editar o valor de Ricardo">
+            title="Clique para editar o valor de Ricardo"{% endif %}>
         {{ row.ricardo }}
       </span>
     {% else %}
-      <span class="valor edit-field empty-field" 
-            data-field="ricardo" 
-            data-original=""
-            title="Clique para editar o valor de Ricardo">
-        Clique para editar
-      </span>
+      {% if is_editable %}
+        <span class="valor edit-field empty-field" 
+              data-field="ricardo" 
+              data-original=""
+              title="Clique para editar o valor de Ricardo">
+          Clique para editar
+        </span>
+      {% endif %}
     {% endif %}
   </td>
   <td class="valor-cell">
     {% if row.rafael and row.rafael != 'nan' and row.rafael != '' %}
-      <span class="valor edit-field" 
-            data-field="rafael" 
+      <span class="valor {% if is_editable %}edit-field{% endif %}" 
+            {% if is_editable %}data-field="rafael" 
             data-original="{{ row.rafael }}"
-            title="Clique para editar o valor de Rafael">
+            title="Clique para editar o valor de Rafael"{% endif %}>
         {{ row.rafael }}
       </span>
     {% else %}
-      <span class="valor edit-field empty-field" 
-            data-field="rafael" 
-            data-original=""
-            title="Clique para editar o valor de Rafael">
-        Clique para editar
-      </span>
+      {% if is_editable %}
+        <span class="valor edit-field empty-field" 
+              data-field="rafael" 
+              data-original=""
+              title="Clique para editar o valor de Rafael">
+          Clique para editar
+        </span>
+      {% endif %}
     {% endif %}
   </td>
   <td>
@@ -90,19 +96,21 @@
   </td>
   <td class="descricao-cell" style="text-align: left; font-size: 12px;">
     {% if row.descricao and row.descricao != 'nan' %}
-      <span class="edit-field" 
-            data-field="descricao" 
+      <span class="{% if is_editable %}edit-field{% endif %}" 
+            {% if is_editable %}data-field="descricao" 
             data-original="{{ row.descricao }}"
-            title="Clique para editar a descrição">
+            title="Clique para editar a descrição"{% endif %}>
         {{ row.descricao }}
       </span>
     {% else %}
-      <span class="edit-field empty-field" 
-            data-field="descricao" 
-            data-original=""
-            title="Clique para editar a descrição">
-        Clique para editar
-      </span>
+      {% if is_editable %}
+        <span class="edit-field empty-field" 
+              data-field="descricao" 
+              data-original=""
+              title="Clique para editar a descrição">
+          Clique para editar
+        </span>
+      {% endif %}
     {% endif %}
   </td>
   <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
@@ -122,6 +130,7 @@
     {% endif %}
   </td>
   {% endif %}
+  {% if is_editable %}
   <td class="actions-cell">
     <div class="row-actions">
       <button class="btn-save" 
@@ -155,5 +164,6 @@
       </button>
     </div>
   </td>
+  {% endif %}
 </tr>
 {% endmacro %} 
