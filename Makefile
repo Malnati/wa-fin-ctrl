@@ -389,6 +389,6 @@ run:
 
 # Inicia o servidor HTTP local
 server:
-	poetry run python -m http.server 8000 
+	poetry run uvicorn src.wa_fin_ctrl.api:app --reload --port 8000 
 
 .PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia
