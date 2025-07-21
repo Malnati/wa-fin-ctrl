@@ -136,6 +136,195 @@ tr:hover {
   color: #f57c00; 
 }
 
+/* ===== Estilos para Edição ===== */
+.edit-field {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  padding: 2px 4px;
+  display: inline-block;
+  min-width: 60px;
+}
+
+.edit-field:hover {
+  background-color: #e3f2fd;
+  border: 1px solid #2196f3;
+}
+
+.edit-field.empty-field {
+  color: #999;
+  font-style: italic;
+  font-size: 11px;
+}
+
+.edit-field.editing {
+  background-color: #fff3cd;
+  border: 2px solid #ffc107;
+  outline: none;
+  padding: 4px 6px;
+  min-width: 80px;
+}
+
+.edit-field.editing:focus {
+  border-color: #2196f3;
+  box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+}
+
+/* ===== Botões de Ação ===== */
+.actions-cell {
+  width: 120px;
+  padding: 4px !important;
+}
+
+.row-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.row-actions button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  min-width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.row-actions button:hover {
+  background-color: #e3f2fd;
+  transform: scale(1.1);
+}
+
+.row-actions button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-save {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+.btn-save:hover {
+  background-color: #218838 !important;
+}
+
+.btn-cancel {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
+.btn-cancel:hover {
+  background-color: #c82333 !important;
+}
+
+.btn-dismiss {
+  background-color: #6c757d !important;
+  color: white !important;
+}
+
+.btn-dismiss:hover {
+  background-color: #5a6268 !important;
+}
+
+.btn-rotate {
+  background-color: #17a2b8 !important;
+  color: white !important;
+}
+
+.btn-rotate:hover {
+  background-color: #138496 !important;
+}
+
+.btn-reprocess {
+  background-color: #fd7e14 !important;
+  color: white !important;
+}
+
+.btn-reprocess:hover {
+  background-color: #e8690b !important;
+}
+
+/* ===== Estados de Edição ===== */
+.row-editing .edit-field {
+  background-color: #fff3cd;
+  border: 1px solid #ffc107;
+}
+
+.row-editing .row-actions .btn-save,
+.row-editing .row-actions .btn-cancel {
+  display: inline-flex !important;
+}
+
+.row-editing .row-actions .btn-dismiss,
+.row-editing .row-actions .btn-rotate,
+.row-editing .row-actions .btn-reprocess {
+  display: none !important;
+}
+
+/* ===== Feedback Visual ===== */
+.row-saving {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.row-saved {
+  animation: savedPulse 0.5s ease-in-out;
+}
+
+@keyframes savedPulse {
+  0% { background-color: #d4edda; }
+  50% { background-color: #c3e6cb; }
+  100% { background-color: transparent; }
+}
+
+.row-error {
+  animation: errorShake 0.5s ease-in-out;
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* ===== Loading States ===== */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 img.thumb { 
   max-height: 50px; 
   max-width: 80px; 
@@ -177,57 +366,64 @@ img.thumb:hover {
   width: 100vw; 
   height: 100vh; 
   overflow: auto; 
-  background-color: rgba(0,0,0,0.95); 
+  background-color: rgba(0,0,0,0.8); 
 }
 
 .modal-content { 
   margin: auto; 
   display: block; 
-  width: 100%; 
-  height: 100%; 
-  object-fit: contain; 
+  max-width: 90vw; 
+  max-height: 90vh; 
+  border-radius: 8px; 
+  box-shadow: 0 0 20px rgba(0,0,0,0.5); 
 }
 
 .modal.show { 
-  display: block; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
 }
 
 #loading-overlay { 
   position: fixed; 
   top: 0; 
   left: 0; 
-  width: 100vw; 
-  height: 100vh;
-  background: rgba(255,255,255,0.9); 
+  width: 100%; 
+  height: 100%; 
+  background-color: rgba(255,255,255,0.9); 
   display: flex; 
-  align-items: center;
   justify-content: center; 
+  align-items: center; 
   z-index: 9999; 
+  font-size: 18px; 
+  color: #333; 
 }
 
 .btn-edit {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  text-decoration: none;
   display: inline-block;
+  padding: 8px 16px;
+  background-color: #3498db;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  margin-left: 10px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
 }
 
 .btn-edit:hover {
-  background-color: #0056b3;
+  background-color: #2980b9;
 }
 
 .toggle-payments-btn {
   background: none;
   border: none;
+  color: white;
   cursor: pointer;
   font-size: 16px;
-  padding: 4px;
-  border-radius: 3px;
-  transition: background-color 0.2s;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
 }
 
 .toggle-payments-btn:hover {
@@ -236,106 +432,109 @@ img.thumb:hover {
 
 .toggle-payments-btn:focus {
   outline: 2px solid rgba(255,255,255,0.5);
+  outline-offset: 2px;
 }
 
-/* Responsividade */
 @media (max-width: 768px) {
   .container { 
     margin: 10px; 
     padding: 15px; 
   }
+  
   table { 
     font-size: 12px; 
   }
+  
   th, td { 
-    padding: 8px 4px; 
+    padding: 6px 4px; 
   }
+  
   h1 { 
-    font-size: 22px; 
+    font-size: 20px; 
   }
+  
   img.thumb { 
     max-height: 40px; 
     max-width: 60px; 
   }
+  
   img.thumb:hover { 
-    transform: scale(2.5); 
+    transform: scale(2); 
   }
   
-  /* Ajustes responsivos para colunas */
+  /* Ocultar colunas menos importantes em mobile */
   table th:nth-child(1), table td:nth-child(1) { 
-    font-size: 10px; 
-    white-space: normal; 
-    word-break: break-word; 
+    display: none; 
   }
+  
   table th:nth-child(2), table td:nth-child(2) { 
-    font-size: 0; 
-    width: 30px; 
-    position: relative; 
+    width: 80px; 
   }
+  
   table th:nth-child(2) button { 
-    font-size: 0; 
-    border: none; 
-    background: none; 
-    padding: 4px; 
-    display: block; 
-    width: 100%; 
-    height: 100%; 
-    cursor: pointer; 
+    font-size: 14px; 
+    padding: 2px 4px; 
   }
+  
+  /* Ajustar classificação para mobile */
   table th:nth-child(2) { 
-    position: relative; 
-    z-index: 1; 
-    cursor: pointer; 
+    font-size: 10px; 
   }
+  
   table th:nth-child(2)::after { 
-    display: none; 
+    content: "Tipo"; 
   }
+  
   span.classificacao.transferencia::before { 
-    content: "⇆"; 
+    content: "T"; 
   }
+  
   span.classificacao.pagamento::before { 
-    content: "💸"; 
+    content: "P"; 
   }
+  
   span.classificacao { 
-    font-size: 0; 
-    display: inline-block; 
-    width: 1em; 
-    height: 1em; 
+    font-size: 10px; 
+    padding: 2px 4px; 
   }
+  
   table th:nth-child(3)::after { 
-    content: "RI"; 
+    content: "R"; 
   }
+  
   table th:nth-child(4)::after { 
-    content: "RA"; 
+    content: "F"; 
   }
+  
   table th:nth-child(5)::after { 
-    content: "📎"; 
+    content: "Anexo"; 
   }
+  
   table th:nth-child(6), table td:nth-child(6) { 
-    display: none; 
+    max-width: 120px; 
+    font-size: 11px; 
+    word-break: break-word; 
   }
 }
 
-/* Estilos para modo de impressão */
 @media print {
-  @page { 
-    size: A4 portrait; 
-    margin: 2cm; 
-  }
-  
   body { 
-    font-size: 12px; 
+    background: white; 
     margin: 0; 
     padding: 0; 
+    font-size: 12px; 
   }
   
   .container { 
     box-shadow: none; 
     border: 1px solid #ccc; 
+    margin: 0; 
+    padding: 20px; 
   }
   
   h1 { 
     font-size: 18px; 
+    border-bottom: 2px solid #333; 
   }
   
   .btn-edit, .toggle-payments-btn, #loading-overlay, .modal { 
@@ -343,15 +542,16 @@ img.thumb:hover {
   }
   
   table { 
-    margin-bottom: 30px; 
+    margin-bottom: 20px; 
   }
   
   th, td { 
-    padding: 4px; 
+    padding: 6px 4px; 
+    border: 1px solid #ccc; 
   }
   
   .signature { 
-    margin-top: 40px; 
+    margin-top: 30px; 
   }
   
   .signature div { 
