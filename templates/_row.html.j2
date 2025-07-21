@@ -29,14 +29,6 @@
           {{ row.classificacao }}
         </span>
       {% endif %}
-    {% elif is_editable %}
-      <span class="form-control-plaintext form-control-sm clickable-field classificacao edit-field empty-field" 
-            data-field="classificacao" 
-            data-original=""
-            data-bs-toggle="tooltip" data-bs-placement="top" 
-            data-bs-title="Clique para editar a classificação">
-        Clique para editar
-      </span>
     {% endif %}
   </td>
   <td class="valor-cell align-middle text-center">
@@ -47,13 +39,6 @@
             title="Clique para editar o valor de Ricardo"{% endif %}>
         {{ row.ricardo }}
       </span>
-    {% elif is_editable %}
-      <span class="valor edit-field empty-field" 
-            data-field="ricardo" 
-            data-original=""
-            title="Clique para editar o valor de Ricardo">
-        Clique para editar
-      </span>
     {% endif %}
   </td>
   <td class="valor-cell align-middle text-center">
@@ -63,13 +48,6 @@
             data-original="{{ row.rafael }}"
             title="Clique para editar o valor de Rafael"{% endif %}>
         {{ row.rafael }}
-      </span>
-    {% elif is_editable %}
-      <span class="valor edit-field empty-field" 
-            data-field="rafael" 
-            data-original=""
-            title="Clique para editar o valor de Rafael">
-        Clique para editar
       </span>
     {% endif %}
   </td>
@@ -99,13 +77,6 @@
             data-original="{{ row.descricao }}"
             title="Clique para editar a descrição"{% endif %}>
         {{ row.descricao }}
-      </span>
-    {% elif is_editable %}
-      <span class="edit-field empty-field" 
-            data-field="descricao" 
-            data-original=""
-            title="Clique para editar a descrição">
-        Clique para editar
       </span>
     {% endif %}
   </td>
