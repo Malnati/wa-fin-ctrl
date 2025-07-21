@@ -19,20 +19,26 @@ function testJavaScript() {
   console.log('toggleColumn disponível:', typeof toggleColumn);
   console.log('toggleMobileView disponível:', typeof toggleMobileView);
   
-  // Testar se os elementos principais existem
+  // Verificar se estamos em um relatório editável
+  const isEditable = document.querySelector('[data-row-id]') !== null;
+  console.log('Relatório editável detectado:', isEditable);
+  
+  // Verificar elementos específicos
+  const columnControls = document.getElementById('columnControlsSection');
   const toggleDescricao = document.getElementById('toggle-descricao');
   const toggleOcr = document.getElementById('toggle-ocr');
-  const columnControlsSection = document.getElementById('columnControlsSection');
   
-  console.log('Elemento toggle-descricao encontrado:', !!toggleDescricao);
-  console.log('Elemento toggle-ocr encontrado:', !!toggleOcr);
-  console.log('Elemento columnControlsSection encontrado:', !!columnControlsSection);
+  console.log('columnControlsSection encontrado:', !!columnControls);
+  console.log('toggle-descricao encontrado:', !!toggleDescricao);
+  console.log('toggle-ocr encontrado:', !!toggleOcr);
   
-  if (toggleDescricao && toggleOcr) {
-    console.log('Estado inicial dos checkboxes:');
-    console.log('- Descrição:', toggleDescricao.checked);
-    console.log('- OCR:', toggleOcr.checked);
-  }
+  // Verificar se há botões de ação (indicativo de relatório editável)
+  const actionButtons = document.querySelectorAll('.btn-edit, .btn-delete, .btn-rotate, .btn-reprocess');
+  console.log('Botões de ação encontrados:', actionButtons.length);
+  
+  // Verificar se há linhas com data-row-id (indicativo de relatório editável)
+  const editableRows = document.querySelectorAll('[data-row-id]');
+  console.log('Linhas editáveis encontradas:', editableRows.length);
 }
 
 // Funções comuns para os relatórios
@@ -84,30 +90,29 @@ function toggleColumnControls() {
 
 // Função para alternar visibilidade de colunas
 function toggleColumn(columnClass, show) {
-  console.log(`=== toggleColumn CHAMADA ===`);
-  console.log(`Coluna: ${columnClass}`);
-  console.log(`Mostrar: ${show}`);
-  console.log(`Data/Hora: ${new Date().toLocaleString()}`);
+  console.log(`toggleColumn chamada: ${columnClass}, show: ${show}`);
   
-  const elements = document.querySelectorAll(`.${columnClass}`);
-  console.log(`Elementos encontrados com classe ${columnClass}:`, elements.length);
+  // Encontrar elementos das células (td)
+  const cellElements = document.querySelectorAll(`td.${columnClass}`);
+  console.log(`Elementos de células encontrados com classe ${columnClass}:`, cellElements.length);
   
-  if (elements.length === 0) {
-    console.warn(`⚠️ Nenhum elemento encontrado com classe: ${columnClass}`);
-    return;
-  }
+  // Encontrar elementos dos cabeçalhos (th) - usar o mesmo padrão de classe
+  const headerElements = document.querySelectorAll(`th.${columnClass}`);
+  console.log(`Elementos de cabeçalhos encontrados com classe ${columnClass}:`, headerElements.length);
   
-  elements.forEach((el, index) => {
+  // Combinar todos os elementos
+  const allElements = [...cellElements, ...headerElements];
+  console.log(`Total de elementos (células + cabeçalhos):`, allElements.length);
+  
+  allElements.forEach(el => {
     if (show) {
       el.classList.remove('hidden');
-      console.log(`✅ Removendo classe 'hidden' de elemento ${index + 1}:`, el);
+      console.log(`Removendo classe 'hidden' de elemento:`, el);
     } else {
       el.classList.add('hidden');
-      console.log(`❌ Adicionando classe 'hidden' a elemento ${index + 1}:`, el);
+      console.log(`Adicionando classe 'hidden' a elemento:`, el);
     }
   });
-  
-  console.log(`=== toggleColumn CONCLUÍDA ===`);
 }
 
 // Função para alternar visualização mobile
@@ -452,79 +457,64 @@ document.addEventListener('DOMContentLoaded', () => {
   // Configurar controles de colunas opcionais
   console.log('=== PROCURANDO ELEMENTOS DOS CONTROLES ===');
   
-  const toggleDescricao = document.getElementById('toggle-descricao');
-  const toggleOcr = document.getElementById('toggle-ocr');
-  const toggleMobileViewCheckbox = document.getElementById('toggle-mobile-view');
-  const columnControlsSection = document.getElementById('columnControlsSection');
-  const toggleButton = document.querySelector('[onclick="toggleColumnControls()"]');
-  
-  console.log('toggleDescricao encontrado:', !!toggleDescricao);
-  console.log('toggleOcr encontrado:', !!toggleOcr);
-  console.log('toggleMobileViewCheckbox encontrado:', !!toggleMobileViewCheckbox);
-  console.log('columnControlsSection encontrado:', !!columnControlsSection);
-  console.log('Botão toggle encontrado:', !!toggleButton);
-  
-  if (toggleButton) {
-    console.log('HTML do botão toggle:', toggleButton.outerHTML);
-  }
-  
-  if (toggleDescricao) {
-    console.log('HTML do checkbox Descrição:', toggleDescricao.outerHTML);
-  }
-  
-  if (toggleOcr) {
-    console.log('HTML do checkbox OCR:', toggleOcr.outerHTML);
-  }
-  
-  console.log('=== CONFIGURANDO CONTROLES DE COLUNAS ===');
-  console.log('toggleDescricao encontrado:', !!toggleDescricao);
-  console.log('toggleOcr encontrado:', !!toggleOcr);
-  console.log('toggleMobileViewCheckbox encontrado:', !!toggleMobileViewCheckbox);
-  
-  if (toggleDescricao) {
-    console.log('Estado inicial toggleDescricao:', toggleDescricao.checked);
-    // Inicializar estado da coluna descrição
-    toggleColumn('descricao-cell', toggleDescricao.checked);
+  // Aguardar um pouco para garantir que o DOM esteja completamente carregado
+  setTimeout(() => {
+    console.log('=== VERIFICAÇÃO TARDIA DOS ELEMENTOS ===');
     
-    toggleDescricao.addEventListener('change', (e) => {
-      console.log('=== CHECKBOX DESCRIÇÃO CLICADO ===');
-      console.log('Novo valor:', e.target.checked);
-      console.log('Data/Hora:', new Date().toLocaleString());
-      toggleColumn('descricao-cell', e.target.checked);
-    });
-    console.log('✅ Event listener adicionado ao checkbox Descrição');
-  } else {
-    console.error('❌ Checkbox Descrição não encontrado!');
-  }
-  
-  if (toggleOcr) {
-    console.log('Estado inicial toggleOcr:', toggleOcr.checked);
-    // Inicializar estado da coluna OCR
-    toggleColumn('ocr-cell', toggleOcr.checked);
+    const toggleDescricao = document.getElementById('toggle-descricao');
+    const toggleOcr = document.getElementById('toggle-ocr');
+    const toggleMobileViewCheckbox = document.getElementById('toggle-mobile-view');
+    const columnControlsSection = document.getElementById('columnControlsSection');
+    const toggleButton = document.querySelector('[onclick="toggleColumnControls()"]');
+    const toggleIcon = document.getElementById('columnControlsToggleIcon');
     
-    toggleOcr.addEventListener('change', (e) => {
-      console.log('=== CHECKBOX OCR CLICADO ===');
-      console.log('Novo valor:', e.target.checked);
-      console.log('Data/Hora:', new Date().toLocaleString());
-      toggleColumn('ocr-cell', e.target.checked);
-    });
-    console.log('✅ Event listener adicionado ao checkbox OCR');
-  } else {
-    console.error('❌ Checkbox OCR não encontrado!');
-  }
-  
-  if (toggleMobileViewCheckbox) {
-    console.log('Estado inicial toggleMobileViewCheckbox:', toggleMobileViewCheckbox.checked);
-    toggleMobileViewCheckbox.addEventListener('change', (e) => {
-      console.log('=== CHECKBOX MOBILE VIEW CLICADO ===');
-      console.log('Novo valor:', e.target.checked);
-      console.log('Data/Hora:', new Date().toLocaleString());
-      toggleMobileView();
-    });
-    console.log('✅ Event listener adicionado ao checkbox Mobile View');
-  } else {
-    console.error('❌ Checkbox Mobile View não encontrado!');
-  }
+    console.log('toggleDescricao encontrado:', !!toggleDescricao);
+    console.log('toggleOcr encontrado:', !!toggleOcr);
+    console.log('toggleMobileViewCheckbox encontrado:', !!toggleMobileViewCheckbox);
+    console.log('columnControlsSection encontrado:', !!columnControlsSection);
+    console.log('Botão toggle encontrado:', !!toggleButton);
+    console.log('toggleIcon encontrado:', !!toggleIcon);
+    
+    // Verificar se os elementos existem antes de configurar
+    if (toggleDescricao && toggleOcr && columnControlsSection) {
+      console.log('=== CONFIGURANDO CONTROLES DE COLUNAS ===');
+      console.log('Estado inicial toggleDescricao:', toggleDescricao.checked);
+      console.log('Estado inicial toggleOcr:', toggleOcr.checked);
+      
+      // Inicializar estado da coluna descrição
+      toggleColumn('descricao-cell', toggleDescricao.checked);
+      
+      toggleDescricao.addEventListener('change', (e) => {
+        console.log('=== EVENTO CHANGE toggleDescricao ===');
+        console.log('Novo estado:', e.target.checked);
+        toggleColumn('descricao-cell', e.target.checked);
+      });
+      
+      // Inicializar estado da coluna OCR
+      toggleColumn('ocr-cell', toggleOcr.checked);
+      
+      toggleOcr.addEventListener('change', (e) => {
+        console.log('=== EVENTO CHANGE toggleOcr ===');
+        console.log('Novo estado:', e.target.checked);
+        toggleColumn('ocr-cell', e.target.checked);
+      });
+      
+      console.log('Event listeners adicionados com sucesso!');
+    } else {
+      console.error('ERRO: Elementos dos controles não encontrados!');
+      console.log('toggleDescricao:', toggleDescricao);
+      console.log('toggleOcr:', toggleOcr);
+      console.log('columnControlsSection:', columnControlsSection);
+    }
+    
+    if (toggleMobileViewCheckbox) {
+      toggleMobileViewCheckbox.addEventListener('change', (e) => {
+        console.log('=== EVENTO CHANGE toggleMobileView ===');
+        console.log('Novo estado:', e.target.checked);
+        toggleMobileView();
+      });
+    }
+  }, 100); // Aguardar 100ms para garantir que o DOM esteja carregado
   
   // Toggle pagamentos
   let showPay = false;
