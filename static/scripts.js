@@ -394,6 +394,56 @@ async function reprocessAI(dataHora) {
   }
 }
 
+// Função para configurar WebSocket
+function setupWebSocket() {
+    const ws = new WebSocket(`ws://${window.location.host}/ws`);
+    
+    ws.onmessage = function(event) {
+        if (event.data === 'reload') {
+            console.log('Recebido comando de reload via WebSocket');
+            location.reload();
+        }
+    };
+    
+    ws.onclose = function() {
+        console.log('WebSocket fechado, tentando reconectar...');
+        setTimeout(setupWebSocket, 1000);
+    };
+    
+    ws.onerror = function(error) {
+        console.error('Erro no WebSocket:', error);
+    };
+}
+
+// Função para recarregar após comandos específicos
+async function processAndReload(force = false, backup = false) {
+    try {
+        const formData = new FormData();
+        formData.append('force', force);
+        formData.append('backup', backup);
+        
+        const response = await fetch('/process', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.data.reload_triggered) {
+                // Aguarda um pouco antes de recarregar
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        } else {
+            throw new Error(`HTTP ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Erro ao processar:', error);
+        alert('Erro ao processar arquivos');
+    }
+}
+
 // ===== INICIALIZAÇÃO =====
 
 // Inicialização comum
@@ -546,6 +596,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   }
+  
+  // Inicializa WebSocket quando a página carrega
+  setupWebSocket();
   
   console.log('Inicialização do relatório concluída');
 });
