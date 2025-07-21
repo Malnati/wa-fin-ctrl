@@ -228,7 +228,8 @@ def dismiss(data_hora):
 @click.option('--host', default='127.0.0.1', help='Host para servir a API (padrão: 127.0.0.1)')
 @click.option('--port', default=8000, help='Porta para servir a API (padrão: 8000)')
 @click.option('--reload', is_flag=True, help='Habilita reload automático durante desenvolvimento')
-def api(host, port, reload):
+@click.option('--auto-reload', is_flag=True, help='Força reload automático após comandos críticos')
+def api(host, port, reload, auto_reload):
     """Inicia o servidor da API REST FastAPI."""
     import uvicorn
     from .api import app
@@ -239,6 +240,8 @@ def api(host, port, reload):
     print(f"📊 Página principal: http://{host}:{port}/")
     print(f"📋 Lista de relatórios: http://{host}:{port}/api/reports")
     print(f"ℹ️  Info da API: http://{host}:{port}/api/info")
+    if auto_reload:
+        print(f"🔄 Auto-reload habilitado após comandos críticos")
     print("⏹️  Pressione Ctrl+C para parar o servidor")
     
     uvicorn.run(
