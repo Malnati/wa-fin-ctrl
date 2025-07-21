@@ -3,7 +3,7 @@
 <tr class="{{ row.row_class }}" data-row-id="{{ loop_index }}" {% if row.motivo %} data-motivo="{{ row.motivo }}"{% endif %} data-data-hora="{{ row.data_hora }}">
   <td class="data-hora data-hora-cell desktop-only align-middle text-center">{{ row.data_hora }}</td>
   <td class="classificacao-cell align-middle text-center">
-    {% if row.classificacao and row.classificacao != 'nan' %}
+    {% if row.classificacao and row.classificacao != 'nan' and row.classificacao != '' %}
       {% if row.classificacao.lower() == 'transferência' %}
         <span class="form-control-plaintext form-control-sm clickable-field classificacao transferencia {% if is_editable %}edit-field{% endif %}" 
               {% if is_editable %}data-field="classificacao" 
@@ -29,16 +29,14 @@
           {{ row.classificacao }}
         </span>
       {% endif %}
-    {% else %}
-      {% if is_editable %}
-        <span class="form-control-plaintext form-control-sm clickable-field classificacao edit-field empty-field" 
-              data-field="classificacao" 
-              data-original=""
-              data-bs-toggle="tooltip" data-bs-placement="top" 
-              data-bs-title="Clique para editar a classificação">
-          Clique para editar
-        </span>
-      {% endif %}
+    {% elif is_editable %}
+      <span class="form-control-plaintext form-control-sm clickable-field classificacao edit-field empty-field" 
+            data-field="classificacao" 
+            data-original=""
+            data-bs-toggle="tooltip" data-bs-placement="top" 
+            data-bs-title="Clique para editar a classificação">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
   <td class="valor-cell align-middle text-center">
@@ -49,15 +47,13 @@
             title="Clique para editar o valor de Ricardo"{% endif %}>
         {{ row.ricardo }}
       </span>
-    {% else %}
-      {% if is_editable %}
-        <span class="valor edit-field empty-field" 
-              data-field="ricardo" 
-              data-original=""
-              title="Clique para editar o valor de Ricardo">
-          Clique para editar
-        </span>
-      {% endif %}
+    {% elif is_editable %}
+      <span class="valor edit-field empty-field" 
+            data-field="ricardo" 
+            data-original=""
+            title="Clique para editar o valor de Ricardo">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
   <td class="valor-cell align-middle text-center">
@@ -68,15 +64,13 @@
             title="Clique para editar o valor de Rafael"{% endif %}>
         {{ row.rafael }}
       </span>
-    {% else %}
-      {% if is_editable %}
-        <span class="valor edit-field empty-field" 
-              data-field="rafael" 
-              data-original=""
-              title="Clique para editar o valor de Rafael">
-          Clique para editar
-        </span>
-      {% endif %}
+    {% elif is_editable %}
+      <span class="valor edit-field empty-field" 
+            data-field="rafael" 
+            data-original=""
+            title="Clique para editar o valor de Rafael">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
   <td class="align-middle text-center">
@@ -99,22 +93,20 @@
     {% endif %}
   </td>
   <td class="descricao-cell optional-column align-middle text-center" style="text-align: left; font-size: 12px;">
-    {% if row.descricao and row.descricao != 'nan' %}
+    {% if row.descricao and row.descricao != 'nan' and row.descricao != '' %}
       <span class="{% if is_editable %}edit-field{% endif %}" 
             {% if is_editable %}data-field="descricao" 
             data-original="{{ row.descricao }}"
             title="Clique para editar a descrição"{% endif %}>
         {{ row.descricao }}
       </span>
-    {% else %}
-      {% if is_editable %}
-        <span class="edit-field empty-field" 
-              data-field="descricao" 
-              data-original=""
-              title="Clique para editar a descrição">
-          Clique para editar
-        </span>
-      {% endif %}
+    {% elif is_editable %}
+      <span class="edit-field empty-field" 
+            data-field="descricao" 
+            data-original=""
+            title="Clique para editar a descrição">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
   <td class="ocr-cell optional-column desktop-only align-middle text-center" style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
