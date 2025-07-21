@@ -26,13 +26,13 @@
   <td>
     {% if row.row_class != 'total-row' and row.anexo and row.anexo != 'nan' and row.anexo != '' %}
       {% if row.anexo.lower().endswith(('.jpg', '.jpeg', '.png')) %}
-        <img src="imgs/{{ row.anexo }}" 
+        <img src="../imgs/{{ row.anexo }}" 
              class="thumb" 
              alt="Comprovante {{ row.anexo }}" 
              title="{{ row.anexo }}">
       {% elif row.anexo.lower().endswith('.pdf') %}
         {% if row.imagem_jpg %}
-          <img src="imgs/{{ row.imagem_jpg }}" 
+          <img src="../imgs/{{ row.imagem_jpg }}" 
                class="thumb" 
                alt="Comprovante {{ row.imagem_jpg }}" 
                title="{{ row.imagem_jpg }} (convertido de PDF)">
