@@ -4,11 +4,9 @@ __pycache__
 *.zip
 split/*
 tmp/*
-imgs/
+imgs/*
 input/*
 mensagens/*
-ocr/extract.xml
-docs/
-docs/*.html	
-ocr/extract.xml	
-data/	
+ocr/*
+docs/*
+data/*
