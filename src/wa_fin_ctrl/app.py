@@ -27,7 +27,7 @@ except ImportError:
 
 from .ocr import registrar_ocr_xml, process_image_ocr
 from .env import *
-from .app import convert_to_brazilian_format
+from .helper import convert_to_brazilian_format
 
 def extract_value_from_ocr(ocr_text):
     """Extrai valor monetário do texto OCR usando expressões regulares"""
@@ -1965,7 +1965,7 @@ def re_submeter_para_chatgpt(arquivo_anexo):
         print(f"🤖 Re-submetendo para ChatGPT: {os.path.basename(arquivo_path)}")
         
         # Processa OCR na imagem rotacionada
-        from ocr import process_image_ocr
+        from .ocr import process_image_ocr
         ocr_text = process_image_ocr(arquivo_path)
         
         if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
@@ -1975,7 +1975,7 @@ def re_submeter_para_chatgpt(arquivo_anexo):
         print(f"📝 Texto extraído via OCR: {ocr_text[:100]}...")
         
         # Re-submete para ChatGPT para extrair valor, descrição e classificação
-        from ia import extract_total_value_with_chatgpt, generate_payment_description_with_chatgpt, classify_transaction_type_with_chatgpt
+        from .ia import extract_total_value_with_chatgpt, generate_payment_description_with_chatgpt, classify_transaction_type_with_chatgpt
         
         # Extrai valor total
         valor_total = extract_total_value_with_chatgpt(ocr_text)
@@ -1999,7 +1999,7 @@ def re_submeter_para_chatgpt(arquivo_anexo):
             print(f"⚠️  IA não conseguiu classificar transação")
         
         # Atualiza o XML de OCR com o novo texto
-        from ocr import registrar_ocr_xml
+        from .ocr import registrar_ocr_xml
         registrar_ocr_xml(os.path.basename(arquivo_path), ocr_text)
         
         print(f"✅ Re-submissão para ChatGPT concluída com sucesso")
