@@ -263,7 +263,7 @@ server:
 
 # Copia os arquivos do módulo wa_fin_ctrl para analise
 copy:
-	@mkdir -p ${ATTR_FIN_DIR_TMP}
+	@mkdir -pv ${ATTR_FIN_DIR_TMP}
 	@echo "Copiando os arquivos do módulo wa_fin_ctrl para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@cat ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/app.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/cli.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/helper.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/ia.py \
 	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/ocr.py \
@@ -276,7 +276,7 @@ copy:
 
 # Copia o relatório de Julho para analise
 copy-july-report:
-	@mkdir -p ${ATTR_FIN_DIR_TMP}
+	@mkdir -pv ${ATTR_FIN_DIR_TMP}
 	@echo "Copiando o relatório de Julho..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@cat ${ATTR_FIN_ARQ_REPORT_JULY} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "Copiando o relatório editavel..." >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
@@ -286,7 +286,7 @@ copy-july-report:
 
 # Copia o relatório report.html para analise
 copy-report:
-	@mkdir -p ${ATTR_FIN_DIR_TMP}
+	@mkdir -pv ${ATTR_FIN_DIR_TMP}
 	@echo "Copiando o relatório report.html para analise..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@cat ${ATTR_FIN_ARQ_REPORT_HTML} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
@@ -294,7 +294,7 @@ copy-report:
 
 # Copia os templates dos relatórios para analise
 copy-templates:
-	@mkdir -p ${ATTR_FIN_DIR_TMP}
+	@mkdir -pv ${ATTR_FIN_DIR_TMP}
 	@echo "Copiando os templates dos relatórios para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@cat ${ATTR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@cat ${ATTR_FIN_ARQ_TEMPLATE_MONTHLY} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
@@ -305,7 +305,7 @@ copy-templates:
 
 # Copia o OCR para analise
 copy-ocr:
-	@mkdir -p ${ATTR_FIN_DIR_OCR}
+	@mkdir -pv ${ATTR_FIN_DIR_OCR}
 	@echo "<!-- ${ATTR_FIN_ARQ_OCR_XML} -->" > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@cat ${ATTR_FIN_ARQ_OCR_XML} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
@@ -313,31 +313,31 @@ copy-ocr:
 
 # Remove os relatórios
 remove-reports:
-	@rm -rf *.html
+	@rm -rfv ${ATTR_FIN_DIR_DOCS}/*.html
 
 # Remove os backups
 remove-baks:
-	@rm -rf *.bak
+	@rm -rfv ${ATTR_FIN_DIR_DOCS}/*.bak
 
 # Remove o OCR
 remove-ocr:
-	@rm -rf ${ATTR_FIN_ARQ_OCR_XML}
+	@rm -rfv ${ATTR_FIN_ARQ_OCR_XML}
 
 # Remove as mensagens
 remove-mensagens:
-	@rm -rf ${ATTR_FIN_DIR_MENSAGENS}/*
+	@rm -rfv ${ATTR_FIN_DIR_MENSAGENS}/*
 
 # Remove as imagens
 remove-imgs:
-	@rm -rf ${ATTR_FIN_DIR_IMGS}/*
+	@rm -rfv ${ATTR_FIN_DIR_IMGS}/*
 
 # Remove os temporários
 remove-tmp:
-	@rm -rf ${ATTR_FIN_DIR_TMP}/*
+	@rm -rfv ${ATTR_FIN_DIR_TMP}/*
 
 # Remove o diretório de entrada
 remove-input:
-	@rm -rf ${ATTR_FIN_DIR_INPUT}/*
+	@rm -rfv ${ATTR_FIN_DIR_INPUT}/*
 
 # Remove todos os arquivos
 remove-all:
