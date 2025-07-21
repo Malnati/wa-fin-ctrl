@@ -216,25 +216,25 @@
           <div class="col-md-6">
             <h6 class="mb-2">📊 Colunas Opcionais:</h6>
             <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" id="toggle-descricao" checked>
+              <input class="form-check-input" type="checkbox" id="toggle-descricao">
               <label class="form-check-label" for="toggle-descricao">
                 Descrição
               </label>
             </div>
             <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" id="toggle-ocr" checked>
+              <input class="form-check-input" type="checkbox" id="toggle-ocr">
               <label class="form-check-label" for="toggle-ocr">
                 OCR
               </label>
             </div>
             <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" id="toggle-data-hora" checked>
+              <input class="form-check-input" type="checkbox" id="toggle-data-hora">
               <label class="form-check-label" for="toggle-data-hora">
                 Data-Hora
               </label>
             </div>
             <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" id="toggle-classificacao" checked>
+              <input class="form-check-input" type="checkbox" id="toggle-classificacao">
               <label class="form-check-label" for="toggle-classificacao">
                 Classificação
               </label>
@@ -355,37 +355,33 @@
       // Inicializar estado das colunas
       if (toggleDescricao) {
         toggleColumn('descricao-cell', toggleDescricao.checked);
-        toggleDescricao.addEventListener('change', function(e) {
-          console.log('=== EVENTO CHANGE toggleDescricao ===');
-          console.log('Novo valor:', e.target.checked);
-          toggleColumn('descricao-cell', e.target.checked);
+        console.log('Estado inicial toggleDescricao:', toggleDescricao.checked);
+        toggleDescricao.addEventListener('change', function() {
+          toggleColumn('descricao-cell', this.checked);
         });
       }
       
       if (toggleOcr) {
         toggleColumn('ocr-cell', toggleOcr.checked);
-        toggleOcr.addEventListener('change', function(e) {
-          console.log('=== EVENTO CHANGE toggleOcr ===');
-          console.log('Novo valor:', e.target.checked);
-          toggleColumn('ocr-cell', e.target.checked);
+        console.log('Estado inicial toggleOcr:', toggleOcr.checked);
+        toggleOcr.addEventListener('change', function() {
+          toggleColumn('ocr-cell', this.checked);
         });
       }
       
       if (toggleDataHora) {
         toggleColumn('data-hora-cell', toggleDataHora.checked);
-        toggleDataHora.addEventListener('change', function(e) {
-          console.log('=== EVENTO CHANGE toggleDataHora ===');
-          console.log('Novo valor:', e.target.checked);
-          toggleColumn('data-hora-cell', e.target.checked);
+        console.log('Estado inicial toggleDataHora:', toggleDataHora.checked);
+        toggleDataHora.addEventListener('change', function() {
+          toggleColumn('data-hora-cell', this.checked);
         });
       }
       
       if (toggleClassificacao) {
         toggleColumn('classificacao-cell', toggleClassificacao.checked);
-        toggleClassificacao.addEventListener('change', function(e) {
-          console.log('=== EVENTO CHANGE toggleClassificacao ===');
-          console.log('Novo valor:', e.target.checked);
-          toggleColumn('classificacao-cell', e.target.checked);
+        console.log('Estado inicial toggleClassificacao:', toggleClassificacao.checked);
+        toggleClassificacao.addEventListener('change', function() {
+          toggleColumn('classificacao-cell', this.checked);
         });
       }
       
