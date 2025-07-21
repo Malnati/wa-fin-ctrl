@@ -73,8 +73,9 @@ def extract_value_from_ocr(ocr_text):
     valores_float = []
     for valor in valores_encontrados:
         try:
-            # Converte para float (formato brasileiro)
-            valor_float = float(valor.replace('.', '').replace(',', '.'))
+            from .helper import normalize_value_to_american_format
+            valor_americano = normalize_value_to_american_format(valor)
+            valor_float = float(valor_americano)
             valores_float.append(valor_float)
         except ValueError:
             continue
@@ -162,10 +163,11 @@ def extract_total_value_with_chatgpt(ocr_text):
         if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
             return ""
         
-        # Converte para formato brasileiro se necessário
-        valor_brasileiro = convert_to_brazilian_format(valor)
+        # Converte para formato americano padronizado
+        from .helper import normalize_value_to_american_format
+        valor_americano = normalize_value_to_american_format(valor)
         
-        return valor_brasileiro
+        return valor_americano
         
     except Exception as e:
         return ""
@@ -501,7 +503,9 @@ def adicionar_totalizacao_mensal(df):
         if pd.isna(value) or value == '':
             return 0.0
         try:
-            return float(str(value).replace(',', '.'))
+            from .helper import normalize_value_to_american_format
+            valor_americano = normalize_value_to_american_format(value)
+            return float(valor_americano)
         except:
             return 0.0
     
@@ -543,8 +547,8 @@ def adicionar_totalizacao_mensal(df):
                 'HORA': '23:59:00',
                 'REMETENTE': 'TOTAL MÊS',
                 'CLASSIFICACAO': 'TOTAL',
-                'RICARDO': f'{total_ricardo:.2f}'.replace('.', ',') if total_ricardo > 0 else '',
-                'RAFAEL': f'{total_rafael:.2f}'.replace('.', ',') if total_rafael > 0 else '',
+                'RICARDO': f'{total_ricardo:.2f}' if total_ricardo > 0 else '',
+                'RAFAEL': f'{total_rafael:.2f}' if total_rafael > 0 else '',
                 'ANEXO': f'TOTAL_{mes:02d}_{ano}',
                 'DESCRICAO': f'Total do mês {mes:02d}/{ano}',
                 'VALOR': '',
@@ -744,7 +748,9 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
         if pd.isna(value) or value == '':
             return 0.0
         try:
-            return float(str(value).replace(',', '.'))
+            from .helper import normalize_value_to_american_format
+            valor_americano = normalize_value_to_american_format(value)
+            return float(valor_americano)
         except:
             return 0.0
     
@@ -773,7 +779,9 @@ def verificar_totais(csv_file):
             if pd.isna(value) or value == '':
                 return 0.0
             try:
-                return float(str(value).replace(',', '.'))
+                from .helper import normalize_value_to_american_format
+                valor_americano = normalize_value_to_american_format(value)
+                return float(valor_americano)
             except:
                 return 0.0
 
@@ -1486,8 +1494,9 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                 print("❌ Formato de valor inválido. Use: 2,33 ou 2.33")
                 return False
             
-            # Converte valor para formato brasileiro
-            novo_valor = novo_valor.replace('.', '').replace(',', '.')
+            # Converte valor para formato americano padronizado
+            from .helper import parse_value_from_input
+            novo_valor = parse_value_from_input(novo_valor)
             try:
                 float(novo_valor)
             except ValueError:
@@ -1570,34 +1579,34 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                                 # Converte coluna para string se necessário
                                 if df['RICARDO'].dtype != object:
                                     df['RICARDO'] = df['RICARDO'].astype(str)
-                                df.at[idx, 'RICARDO'] = convert_to_brazilian_format(novo_valor)
+                                df.at[idx, 'RICARDO'] = novo_valor
                                 coluna_usada = 'RICARDO'
                             elif pd.isna(linha['RAFAEL']) or str(linha['RAFAEL']).lower() in ['nan', '']:
                                 # Converte coluna para string se necessário
                                 if df['RAFAEL'].dtype != object:
                                     df['RAFAEL'] = df['RAFAEL'].astype(str)
-                                df.at[idx, 'RAFAEL'] = convert_to_brazilian_format(novo_valor)
+                                df.at[idx, 'RAFAEL'] = novo_valor
                                 coluna_usada = 'RAFAEL'
                             else:
                                 # Se ambas estão vazias, usa RICARDO por padrão
                                 # Converte coluna para string se necessário
                                 if df['RICARDO'].dtype != object:
                                     df['RICARDO'] = df['RICARDO'].astype(str)
-                                df.at[idx, 'RICARDO'] = convert_to_brazilian_format(novo_valor)
+                                df.at[idx, 'RICARDO'] = novo_valor
                                 coluna_usada = 'RICARDO'
                         elif 'VALOR' in df.columns:
                             # Arquivo mensagens.csv
                             # Converte coluna para string se necessário
                             if df['VALOR'].dtype != object:
                                 df['VALOR'] = df['VALOR'].astype(str)
-                            df.at[idx, 'VALOR'] = convert_to_brazilian_format(novo_valor)
+                            df.at[idx, 'VALOR'] = novo_valor
                             coluna_usada = 'VALOR'
                         else:
                             print(f"⚠️  Estrutura de arquivo não reconhecida")
                             continue
                         
                         # Aplica as correções solicitadas para o caso de fix automático
-                        alteracoes = [f"valor: aplicado {convert_to_brazilian_format(novo_valor)} (sem valor anterior)"]
+                        alteracoes = [f"valor: aplicado {novo_valor} (sem valor anterior)"]
                         
                         # 2. Corrige classificação (se fornecida)
                         if nova_classificacao and 'CLASSIFICACAO' in df.columns:
@@ -1628,8 +1637,8 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                         print(f"✅ Alterações aplicadas: {', '.join(alteracoes)}")
                         continue
                     
-                    print(f" Valor original: R$ {convert_to_brazilian_format(valor_original)}")
-                    print(f"💰 Novo valor: R$ {convert_to_brazilian_format(novo_valor)}")
+                    print(f" Valor original: R$ {valor_original}")
+                    print(f"💰 Novo valor: R$ {novo_valor}")
                     
                     # Converte valor original para formato brasileiro para comparação (apenas se novo_valor foi fornecido)
                     if novo_valor:
@@ -1650,20 +1659,20 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                             # Converte coluna para string se necessário
                             if df['RICARDO'].dtype != object:
                                 df['RICARDO'] = df['RICARDO'].astype(str)
-                            df.at[idx, 'RICARDO'] = convert_to_brazilian_format(novo_valor)
-                            alteracoes.append(f"valor: {valor_original} → {convert_to_brazilian_format(novo_valor)}")
+                            df.at[idx, 'RICARDO'] = novo_valor
+                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
                         elif 'RAFAEL' in df.columns and linha['RAFAEL'] and str(linha['RAFAEL']).lower() not in ['nan', '']:
                             # Converte coluna para string se necessário
                             if df['RAFAEL'].dtype != object:
                                 df['RAFAEL'] = df['RAFAEL'].astype(str)
-                            df.at[idx, 'RAFAEL'] = convert_to_brazilian_format(novo_valor)
-                            alteracoes.append(f"valor: {valor_original} → {convert_to_brazilian_format(novo_valor)}")
+                            df.at[idx, 'RAFAEL'] = novo_valor
+                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
                         elif 'VALOR' in df.columns and linha['VALOR'] and str(linha['VALOR']).lower() not in ['nan', '']:
                             # Converte coluna para string se necessário
                             if df['VALOR'].dtype != object:
                                 df['VALOR'] = df['VALOR'].astype(str)
-                            df.at[idx, 'VALOR'] = convert_to_brazilian_format(novo_valor)
-                            alteracoes.append(f"valor: {valor_original} → {convert_to_brazilian_format(novo_valor)}")
+                            df.at[idx, 'VALOR'] = novo_valor
+                            alteracoes.append(f"valor: {valor_original} → {novo_valor}")
                     
                     # 2. Corrige classificação (se fornecida)
                     if nova_classificacao and 'CLASSIFICACAO' in df.columns:
