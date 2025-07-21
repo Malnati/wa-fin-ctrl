@@ -356,7 +356,7 @@ remove-all:
 
 # Remove os backups
 remove-baks:
-	@rm -rfv ${ATTR_FIN_DIR_DOCS}/*.bak
+	@rm -fv *.bak
 
 # Remove os data
 remove-data:
