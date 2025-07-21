@@ -337,13 +337,15 @@ def gerar_relatorio_html(csv_path, backup=True):
         if not os.path.exists(csv_path):
             print(f"❌ O relatório report.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
             return
-        if os.path.exists("report.html") and backup:
+        
+        report_path = os.path.join(ATTR_FIN_DIR_DOCS, "report.html")
+        if os.path.exists(report_path) and backup:
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
             arquivo_backup = f"report-{timestamp}.bak"
-            os.rename("report.html", arquivo_backup)
+            os.rename(report_path, arquivo_backup)
             print(f"📁 Relatório anterior renomeado para: {arquivo_backup}")
-        elif os.path.exists("report.html") and not backup:
-            os.remove("report.html")
+        elif os.path.exists(report_path) and not backup:
+            os.remove(report_path)
             print("🗑️ Relatório anterior removido (backup desabilitado)")
         print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
         
@@ -372,11 +374,11 @@ def gerar_relatorio_html(csv_path, backup=True):
             }
         }
         
-        print(f"DEBUG: Chamando TemplateRenderer.render com output_path: report.html")
+        print(f"DEBUG: Chamando TemplateRenderer.render com output_path: {report_path}")
         TemplateRenderer.render(
             template_name="unified_report.html.j2",
             context=context,
-            output_path="report.html"
+            output_path=report_path
         )
         print("✅ Relatório HTML gerado: report.html")
         
@@ -385,18 +387,20 @@ def gerar_relatorio_html(csv_path, backup=True):
         
         # Detecta relatórios mensais disponíveis
         monthly_reports = []
-        for file in os.listdir("."):
-            if file.startswith("report-") and file.endswith(".html"):
-                # Extrai informações do nome do arquivo: report-2025-04-Abril.html
-                match = re.match(r"report-(\d{4})-(\d{2})-(.+)\.html", file)
-                if match:
-                    year = match.group(1)
-                    month = match.group(3)
-                    display_name = f"📅 {month} {year}"
-                    monthly_reports.append({
-                        "filename": file,
-                        "display_name": display_name
-                    })
+        docs_dir = ATTR_FIN_DIR_DOCS
+        if os.path.exists(docs_dir):
+            for file in os.listdir(docs_dir):
+                if file.startswith("report-") and file.endswith(".html"):
+                    # Extrai informações do nome do arquivo: report-2025-04-Abril.html
+                    match = re.match(r"report-(\d{4})-(\d{2})-(.+)\.html", file)
+                    if match:
+                        year = match.group(1)
+                        month = match.group(3)
+                        display_name = f"📅 {month} {year}"
+                        monthly_reports.append({
+                            "filename": file,
+                            "display_name": display_name
+                        })
         
         # Ordena por data (mais recente primeiro)
         monthly_reports.sort(key=lambda x: x["filename"], reverse=True)
@@ -407,10 +411,11 @@ def gerar_relatorio_html(csv_path, backup=True):
         }
         
         # Renderiza o template
+        index_path = os.path.join(ATTR_FIN_DIR_DOCS, "index.html")
         TemplateRenderer.render(
             template_name="index.html.j2",
             context=index_context,
-            output_path="index.html"
+            output_path=index_path
         )
         print("✅ Página de entrada gerada: index.html")
         
@@ -454,13 +459,14 @@ def gerar_relatorios_mensais_html(csv_path, backup=True):
             
             # Relatório mensal normal
             nome_arquivo = f"report-{ano}-{mes:02d}-{nome_mes}.html"
-            if os.path.exists(nome_arquivo) and backup:
+            arquivo_path = os.path.join(ATTR_FIN_DIR_DOCS, nome_arquivo)
+            if os.path.exists(arquivo_path) and backup:
                 timestamp = pd.Timestamp.now().strftime('%Y%m%d')
                 arquivo_backup = f"report-{ano}-{mes:02d}-{nome_mes}-{timestamp}.bak"
-                os.rename(nome_arquivo, arquivo_backup)
+                os.rename(arquivo_path, arquivo_backup)
                 print(f"📁 Relatório mensal anterior renomeado para: {arquivo_backup}")
-            elif os.path.exists(nome_arquivo) and not backup:
-                os.remove(nome_arquivo)
+            elif os.path.exists(arquivo_path) and not backup:
+                os.remove(arquivo_path)
                 print(f"🗑️ Relatório mensal anterior removido: {nome_arquivo} (backup desabilitado)")
             
             tem_motivo = False  # Removendo a coluna "Motivo do Erro" de todos os relatórios
@@ -484,12 +490,13 @@ def gerar_relatorios_mensais_html(csv_path, backup=True):
                 }
             }
             
-            TemplateRenderer.render("unified_report.html.j2", context, nome_arquivo)
+            TemplateRenderer.render("unified_report.html.j2", context, arquivo_path)
             relatorios_gerados += 1
             print(f"✅ Relatório mensal gerado: {nome_arquivo}")
             
             # Relatório mensal editável (sem botão de edição)
             nome_arquivo_edit = f"report-edit-{ano}-{mes:02d}-{nome_mes}.html"
+            arquivo_edit_path = os.path.join(ATTR_FIN_DIR_DOCS, nome_arquivo_edit)
             context_edit = {
                 "periodo": f"{nome_mes} {ano}",
                 "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
@@ -502,7 +509,7 @@ def gerar_relatorios_mensais_html(csv_path, backup=True):
                     "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
                 }
             }
-            TemplateRenderer.render("unified_report.html.j2", context_edit, nome_arquivo_edit)
+            TemplateRenderer.render("unified_report.html.j2", context_edit, arquivo_edit_path)
             print(f"✅ Relatório mensal editável gerado: {nome_arquivo_edit}")
         
         print(f"📅 Total de relatórios mensais gerados: {relatorios_gerados}")

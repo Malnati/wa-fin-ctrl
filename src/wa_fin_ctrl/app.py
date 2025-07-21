@@ -1029,7 +1029,7 @@ def processar_incremental(force=False, entry=None, backup=False):
         ano = periodo.year
         mes = periodo.month
         nome_mes = nomes_meses.get(mes, str(mes))
-        nome_arquivo_impressao = f"impressao-{ano}-{mes:02d}-{nome_mes}.html"
+        nome_arquivo_impressao = os.path.join(ATTR_FIN_DIR_DOCS, f"impressao-{ano}-{mes:02d}-{nome_mes}.html")
         print(f"✅ HTML de impressão gerado: {nome_arquivo_impressao}")
 
 def processar_pdfs(force=False, entry=None, backup=False):
