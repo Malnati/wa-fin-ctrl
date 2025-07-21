@@ -77,8 +77,14 @@ help:
 	@echo "  help: Exibe esta mensagem de ajuda"
 	@echo "  install: Instala as dependências do projeto"
 	@echo "  run: Executa o script principal"
-	@echo "  process: Processa arquivos incrementalmente"
-	@echo "  force: Processa todos os arquivos (força reprocessamento)"
+	@echo "  process: Processa arquivos incrementalmente (sem backup)"
+	@echo "  process-backup: Processa arquivos incrementalmente (com backup)"
+	@echo "  force: Processa todos os arquivos (força reprocessamento, sem backup)"
+	@echo "  force-backup: Processa todos os arquivos (força reprocessamento, com backup)"
+	@echo "  pdf: Processa apenas PDFs (sem backup)"
+	@echo "  pdf-backup: Processa apenas PDFs (com backup)"
+	@echo "  img: Processa apenas imagens (sem backup)"
+	@echo "  img-backup: Processa apenas imagens (com backup)"
 	@echo "  dismiss: Marca uma entrada como desconsiderada"
 	@echo "    Exemplo: make dismiss find=\"21/04/2025 18:33:54\""
 	@echo "  fix: Corrige uma entrada específica"
@@ -98,9 +104,27 @@ run:
 process:
 	poetry run python cli.py processar 
 
+process-backup:
+	poetry run python cli.py processar --backup
+
 force:
 	poetry run python cli.py processar --force 
 	
+force-backup:
+	poetry run python cli.py processar --force --backup
+
+pdf:
+	poetry run python cli.py pdf
+
+pdf-backup:
+	poetry run python cli.py pdf --backup
+
+img:
+	poetry run python cli.py img
+
+img-backup:
+	poetry run python cli.py img --backup
+
 dismiss:
 	poetry run python cli.py dismiss "$(find)" 
 	
