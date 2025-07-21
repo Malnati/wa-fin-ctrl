@@ -95,56 +95,55 @@
   </div>
 
   <script>
-    // Função para detectar arquivos HTML disponíveis
-    async function detectReports() {
-      const reports = [];
-      
-      // Lista de possíveis arquivos para verificar
-      const possibleFiles = [
-        'report.html'
-      ];
-      
-      // Gera possibilidades para relatórios mensais dos últimos 12 meses
-      const currentDate = new Date();
-      for (let i = 0; i < 12; i++) {
-        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const monthName = date.toLocaleDateString('pt-BR', { month: 'long' });
-        const filename = `report-${year}-${month}-${monthName.charAt(0).toUpperCase() + monthName.slice(1)}.html`;
-        possibleFiles.push(filename);
-      }
-      
-      // Verifica quais arquivos existem
-      for (const file of possibleFiles) {
-        try {
-          const response = await fetch(file, { method: 'HEAD' });
-          if (response.ok) {
-            reports.push(file);
-          }
-        } catch (error) {
-          // Arquivo não existe, continua
+    // Função para buscar relatórios via API
+    async function fetchReports() {
+      try {
+        const response = await fetch('/api/reports');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const reports = await response.json();
+        return reports;
+      } catch (error) {
+        console.error('Erro ao buscar relatórios:', error);
+        throw error;
       }
-      
-      return reports;
     }
     
-    // Função para obter nome amigável do relatório
-    function getReportDisplayName(filename) {
-      if (filename === 'report.html') {
+    // Função para obter ícone baseado no tipo de relatório
+    function getReportIcon(report) {
+      switch (report.type) {
+        case 'index':
+          return '🏠';
+        case 'geral':
+          return '📊';
+        case 'mensal':
+          return '📅';
+        default:
+          return '📄';
+      }
+    }
+    
+    // Função para obter nome de exibição do relatório
+    function getReportDisplayName(report) {
+      if (report.display_name) {
+        return report.display_name;
+      }
+      
+      // Fallback para nomes antigos
+      if (report.filename === 'report.html') {
         return '📊 Relatório Geral';
       }
       
       // Para relatórios mensais: report-2025-04-Abril.html -> 📅 Abril 2025
-      const match = filename.match(/report-(\d{4})-(\d{2})-(.+)\.html/);
+      const match = report.filename.match(/report-(\d{4})-(\d{2})-(.+)\.html/);
       if (match) {
         const year = match[1];
         const month = match[3];
         return `📅 ${month} ${year}`;
       }
       
-      return filename;
+      return report.filename;
     }
     
     // Função principal
@@ -155,27 +154,40 @@
       const lastUpdateEl = document.getElementById('last-update');
       
       try {
-        const availableReports = await detectReports();
+        const reports = await fetchReports();
         
-        if (availableReports.length === 0) {
+        if (reports.length === 0) {
           loadingEl.style.display = 'none';
           emptyStateEl.style.display = 'block';
         } else {
-          // Limpa a lista existente (mantém apenas o Relatório Geral)
-          const generalReport = reportsListEl.querySelector('li:first-child');
+          // Limpa a lista existente
           reportsListEl.innerHTML = '';
-          reportsListEl.appendChild(generalReport);
           
-          // Adiciona relatórios mensais encontrados
-          for (const report of availableReports) {
-            if (report !== 'report.html') {
-              const li = document.createElement('li');
-              const a = document.createElement('a');
-              a.href = report;
-              a.textContent = getReportDisplayName(report);
-              li.appendChild(a);
-              reportsListEl.appendChild(li);
+          // Filtra apenas relatórios de visualização (não editáveis)
+          const filteredReports = reports.filter(report => {
+            // Pula o index.html pois já estamos na página principal
+            if (report.filename === 'index.html') {
+              return false;
             }
+            
+            // Inclui apenas relatórios de visualização (não editáveis)
+            // - report.html (relatório geral)
+            // - report-YYYY-MM-Mês.html (relatórios mensais de visualização)
+            // Exclui: report-edit-*.html (relatórios editáveis)
+            return !report.filename.startsWith('report-edit-');
+          });
+          
+          // Adiciona os relatórios filtrados
+          for (const report of filteredReports) {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            
+            // Usa a URL do relatório fornecida pela API
+            a.href = report.url;
+            a.textContent = getReportDisplayName(report);
+            
+            li.appendChild(a);
+            reportsListEl.appendChild(li);
           }
           
           loadingEl.style.display = 'none';
@@ -186,9 +198,16 @@
         lastUpdateEl.textContent = new Date().toLocaleString('pt-BR');
         
       } catch (error) {
-        console.error('Erro ao detectar relatórios:', error);
+        console.error('Erro ao carregar relatórios:', error);
         loadingEl.style.display = 'none';
         emptyStateEl.style.display = 'block';
+        
+        // Mostra mensagem de erro mais específica
+        emptyStateEl.innerHTML = `
+          <strong>❌ Erro ao carregar relatórios</strong><br>
+          Não foi possível conectar com a API.<br>
+          Verifique se o servidor está rodando em <code>http://localhost:8000</code>
+        `;
       }
     }
     
