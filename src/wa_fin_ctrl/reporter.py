@@ -190,7 +190,8 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         if not valor:
             return ''
         valor = str(valor).replace('R$', '').replace(' ', '')
-        # Se já é um número float válido, apenas formata
+        
+        # Se já é um número float válido (formato americano), apenas formata
         try:
             float_valor = float(valor)
             return f"{float_valor:.2f}"
