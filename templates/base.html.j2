@@ -168,18 +168,6 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <!-- Botão de teste para verificar se JavaScript está funcionando -->
-  <div class="container mt-3">
-    <div class="alert alert-info">
-      <h5>🧪 Teste de JavaScript</h5>
-      <p>Clique no botão abaixo para verificar se o JavaScript está funcionando:</p>
-      <button id="testButton" class="btn btn-primary" onclick="testJavaScript()">
-        Testar JavaScript
-      </button>
-      <div id="testResult" class="mt-2"></div>
-    </div>
-  </div>
-
   <div class="container">
     <h1>{% block header_title %}Relatório de Prestação de Contas{% endblock %}</h1>
     <div class="info">Gerado automaticamente em {{ timestamp }}</div>
@@ -239,6 +227,18 @@
                 OCR
               </label>
             </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="toggle-data-hora" checked>
+              <label class="form-check-label" for="toggle-data-hora">
+                Data-Hora
+              </label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="toggle-classificacao" checked>
+              <label class="form-check-label" for="toggle-classificacao">
+                Classificação
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -248,8 +248,8 @@
       <thead>
         {% block table_head %}
           <tr>
-            <th class="desktop-only">Data-Hora</th>
-            <th>
+            <th class="desktop-only data-hora-cell">Data-Hora</th>
+            <th class="classificacao-cell">
               <button id="toggle-payments" class="toggle-payments-btn" aria-label="Alternar pagamentos">
                 {% block toggle_button_content %}⇄{% endblock %}
               </button>
@@ -309,7 +309,7 @@
   </script>
   
   <!-- Custom JavaScript -->
-  <script src="/static/scripts.js"></script>
+  <script src="../static/scripts.js"></script>
   
   <script>
     // Garantir que as funções estejam disponíveis após o carregamento
@@ -343,18 +343,18 @@
       
       const toggleDescricao = document.getElementById('toggle-descricao');
       const toggleOcr = document.getElementById('toggle-ocr');
+      const toggleDataHora = document.getElementById('toggle-data-hora');
+      const toggleClassificacao = document.getElementById('toggle-classificacao');
       const toggleMobileViewCheckbox = document.getElementById('toggle-mobile-view');
       
       console.log('toggleDescricao encontrado:', !!toggleDescricao);
       console.log('toggleOcr encontrado:', !!toggleOcr);
-      console.log('toggleMobileViewCheckbox encontrado:', !!toggleMobileViewCheckbox);
+      console.log('toggleDataHora encontrado:', !!toggleDataHora);
+      console.log('toggleClassificacao encontrado:', !!toggleClassificacao);
       
+      // Inicializar estado das colunas
       if (toggleDescricao) {
-        console.log('Adicionando event listener para toggleDescricao');
-        console.log('Estado inicial toggleDescricao:', toggleDescricao.checked);
-        // Inicializar estado da coluna descrição
         toggleColumn('descricao-cell', toggleDescricao.checked);
-        
         toggleDescricao.addEventListener('change', function(e) {
           console.log('=== EVENTO CHANGE toggleDescricao ===');
           console.log('Novo valor:', e.target.checked);
@@ -363,15 +363,29 @@
       }
       
       if (toggleOcr) {
-        console.log('Adicionando event listener para toggleOcr');
-        console.log('Estado inicial toggleOcr:', toggleOcr.checked);
-        // Inicializar estado da coluna OCR
         toggleColumn('ocr-cell', toggleOcr.checked);
-        
         toggleOcr.addEventListener('change', function(e) {
           console.log('=== EVENTO CHANGE toggleOcr ===');
           console.log('Novo valor:', e.target.checked);
           toggleColumn('ocr-cell', e.target.checked);
+        });
+      }
+      
+      if (toggleDataHora) {
+        toggleColumn('data-hora-cell', toggleDataHora.checked);
+        toggleDataHora.addEventListener('change', function(e) {
+          console.log('=== EVENTO CHANGE toggleDataHora ===');
+          console.log('Novo valor:', e.target.checked);
+          toggleColumn('data-hora-cell', e.target.checked);
+        });
+      }
+      
+      if (toggleClassificacao) {
+        toggleColumn('classificacao-cell', toggleClassificacao.checked);
+        toggleClassificacao.addEventListener('change', function(e) {
+          console.log('=== EVENTO CHANGE toggleClassificacao ===');
+          console.log('Novo valor:', e.target.checked);
+          toggleColumn('classificacao-cell', e.target.checked);
         });
       }
       

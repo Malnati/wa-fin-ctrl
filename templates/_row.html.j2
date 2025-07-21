@@ -1,7 +1,7 @@
 {# Macro para renderizar uma linha da tabela #}
 {% macro render_row(row, loop_index, attrs, is_editable=false) %}
 <tr class="{{ row.row_class }}" data-row-id="{{ loop_index }}" {% if row.motivo %} data-motivo="{{ row.motivo }}"{% endif %} data-data-hora="{{ row.data_hora }}">
-  <td class="data-hora desktop-only align-middle text-center">{{ row.data_hora }}</td>
+  <td class="data-hora data-hora-cell desktop-only align-middle text-center">{{ row.data_hora }}</td>
   <td class="classificacao-cell align-middle text-center">
     {% if row.classificacao and row.classificacao != 'nan' %}
       {% if row.classificacao.lower() == 'transferência' %}
