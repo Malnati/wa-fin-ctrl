@@ -1732,11 +1732,15 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
         try:
             from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
             from .env import ATTR_FIN_ARQ_CALCULO
+            print(f"🔄 Regenerando relatório principal...")
             gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+            print(f"🔄 Regenerando relatórios mensais...")
             gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
             print("✅ Relatórios regenerados com sucesso!")
         except Exception as e:
             print(f"⚠️  Erro ao regenerar relatórios: {str(e)}")
+            import traceback
+            traceback.print_exc()
         
         return True
         

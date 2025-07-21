@@ -78,8 +78,12 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     print(f"DEBUG: Valor original: '{valor}'")
     
     # Se o valor não está nas colunas RICARDO ou RAFAEL, extrair do texto OCR
-    if (not ricardo or ricardo.lower() in ['nan', '']) and (not rafael or rafael.lower() in ['nan', '']):
-        print(f"DEBUG: Campos RICARDO e RAFAEL estão vazios, tentando extrair do OCR")
+    # MAS apenas se não houver um valor já corrigido na coluna VALOR
+    valor_corrigido = str(row.get('VALOR', '')).strip()
+    tem_valor_corrigido = valor_corrigido and valor_corrigido.lower() not in ['nan', '']
+    
+    if (not ricardo or ricardo.lower() in ['nan', '']) and (not rafael or rafael.lower() in ['nan', '']) and not tem_valor_corrigido:
+        print(f"DEBUG: Campos RICARDO e RAFAEL estão vazios e não há valor corrigido, tentando extrair do OCR")
         # Tentar extrair valor do texto OCR
         import re
         valor_ocr = None
@@ -176,14 +180,28 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         print(f"DEBUG: Campos RICARDO ou RAFAEL já têm valores")
     
     # Após toda a lógica de atribuição, garantir que ricardo/rafael recebam o valor extraído
-    # Se o remetente for Ricardo e ricardo está vazio, mas valor foi extraído, atribuir
-    if remetente == 'ricardo' and (not ricardo or ricardo.lower() in ['nan', '']):
-        if valor and valor.lower() not in ['nan', '']:
-            ricardo = valor
-    # Se o remetente for Rafael e rafael está vazio, mas valor foi extraído, atribuir
-    if remetente == 'rafael' and (not rafael or rafael.lower() in ['nan', '']):
-        if valor and valor.lower() not in ['nan', '']:
-            rafael = valor
+    # MAS priorizar valores já corrigidos na coluna VALOR
+    if tem_valor_corrigido:
+        # Se há um valor corrigido, usar ele para a coluna apropriada
+        if remetente == 'ricardo':
+            ricardo = valor_corrigido
+            print(f"DEBUG: Valor corrigido {valor_corrigido} atribuído à coluna RICARDO")
+        elif remetente == 'rafael':
+            rafael = valor_corrigido
+            print(f"DEBUG: Valor corrigido {valor_corrigido} atribuído à coluna RAFAEL")
+        else:
+            # Se não conseguiu identificar remetente, usar o valor corrigido
+            valor = valor_corrigido
+            print(f"DEBUG: Valor corrigido {valor_corrigido} usado como valor geral")
+    else:
+        # Se não há valor corrigido, usar a lógica original
+        if remetente == 'ricardo' and (not ricardo or ricardo.lower() in ['nan', '']):
+            if valor and valor.lower() not in ['nan', '']:
+                ricardo = valor
+        # Se o remetente for Rafael e rafael está vazio, mas valor foi extraído, atribuir
+        if remetente == 'rafael' and (not rafael or rafael.lower() in ['nan', '']):
+            if valor and valor.lower() not in ['nan', '']:
+                rafael = valor
     
     # Função utilitária para limpar valores monetários
     def limpar_valor(valor):
