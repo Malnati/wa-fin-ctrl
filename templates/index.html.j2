@@ -76,9 +76,9 @@
     </div>
     
     <ul id="reports-list" class="reports" style="display: none;">
-      <li><a href="../report.html">📊 Relatório Geral</a></li>
+      <li><a href="report.html">📊 Relatório Geral</a></li>
       {% for report in monthly_reports %}
-      <li><a href="../{{ report.filename }}">{{ report.display_name }}</a></li>
+      <li><a href="{{ report.filename }}">{{ report.display_name }}</a></li>
       {% endfor %}
     </ul>
     
@@ -101,7 +101,7 @@
       
       // Lista de possíveis arquivos para verificar
       const possibleFiles = [
-        '../report.html'
+        'report.html'
       ];
       
       // Gera possibilidades para relatórios mensais dos últimos 12 meses
@@ -111,7 +111,7 @@
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const monthName = date.toLocaleDateString('pt-BR', { month: 'long' });
-        const filename = `../report-${year}-${month}-${monthName.charAt(0).toUpperCase() + monthName.slice(1)}.html`;
+        const filename = `report-${year}-${month}-${monthName.charAt(0).toUpperCase() + monthName.slice(1)}.html`;
         possibleFiles.push(filename);
       }
       
@@ -132,7 +132,7 @@
     
     // Função para obter nome amigável do relatório
     function getReportDisplayName(filename) {
-      if (filename === '../report.html') {
+      if (filename === 'report.html') {
         return '📊 Relatório Geral';
       }
       
@@ -168,7 +168,7 @@
           
           // Adiciona relatórios mensais encontrados
           for (const report of availableReports) {
-            if (report !== '../report.html') {
+            if (report !== 'report.html') {
               const li = document.createElement('li');
               const a = document.createElement('a');
               a.href = report;
