@@ -1,26 +1,32 @@
 {# Macro para renderizar uma linha da tabela #}
 {% macro render_row(row, loop_index, attrs) %}
-<tr class="{{ row.row_class }}" data-row-id="{{ loop_index }}" {% if row.motivo %} data-motivo="{{ row.motivo }}"{% endif %}>
+<tr class="{{ row.row_class }}" data-row-id="{{ loop_index }}" {% if row.motivo %} data-motivo="{{ row.motivo }}"{% endif %} data-data-hora="{{ row.data_hora }}">
   <td class="data-hora">{{ row.data_hora }}</td>
-  <td>
+  <td class="classificacao-cell">
     {% if row.classificacao and row.classificacao != 'nan' %}
       {% if row.classificacao.lower() == 'transferência' %}
-        <span class="classificacao transferencia">{{ row.classificacao }}</span>
+        <span class="classificacao transferencia edit-field" data-field="classificacao" data-original="{{ row.classificacao }}">{{ row.classificacao }}</span>
       {% elif row.classificacao.lower() == 'pagamento' %}
-        <span class="classificacao pagamento">{{ row.classificacao }}</span>
+        <span class="classificacao pagamento edit-field" data-field="classificacao" data-original="{{ row.classificacao }}">{{ row.classificacao }}</span>
       {% else %}
-        <span class="classificacao">{{ row.classificacao }}</span>
+        <span class="classificacao edit-field" data-field="classificacao" data-original="{{ row.classificacao }}">{{ row.classificacao }}</span>
       {% endif %}
+    {% else %}
+      <span class="classificacao edit-field empty-field" data-field="classificacao" data-original="">Clique para editar</span>
     {% endif %}
   </td>
-  <td>
+  <td class="valor-cell">
     {% if row.ricardo and row.ricardo != 'nan' and row.ricardo != '' %}
-      <span class="valor">{{ row.ricardo }}</span>
+      <span class="valor edit-field" data-field="ricardo" data-original="{{ row.ricardo }}">{{ row.ricardo }}</span>
+    {% else %}
+      <span class="valor edit-field empty-field" data-field="ricardo" data-original="">Clique para editar</span>
     {% endif %}
   </td>
-  <td>
+  <td class="valor-cell">
     {% if row.rafael and row.rafael != 'nan' and row.rafael != '' %}
-      <span class="valor">{{ row.rafael }}</span>
+      <span class="valor edit-field" data-field="rafael" data-original="{{ row.rafael }}">{{ row.rafael }}</span>
+    {% else %}
+      <span class="valor edit-field empty-field" data-field="rafael" data-original="">Clique para editar</span>
     {% endif %}
   </td>
   <td>
@@ -42,9 +48,11 @@
       {% endif %}
     {% endif %}
   </td>
-  <td style="text-align: left; font-size: 12px;">
+  <td class="descricao-cell" style="text-align: left; font-size: 12px;">
     {% if row.descricao and row.descricao != 'nan' %}
-      {{ row.descricao }}
+      <span class="edit-field" data-field="descricao" data-original="{{ row.descricao }}">{{ row.descricao }}</span>
+    {% else %}
+      <span class="edit-field empty-field" data-field="descricao" data-original="">Clique para editar</span>
     {% endif %}
   </td>
   <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
@@ -64,5 +72,14 @@
     {% endif %}
   </td>
   {% endif %}
+  <td class="actions-cell">
+    <div class="row-actions">
+      <button class="btn-save" onclick="saveRowChanges('{{ row.data_hora }}')" style="display: none;">💾</button>
+      <button class="btn-cancel" onclick="cancelRowChanges('{{ row.data_hora }}')" style="display: none;">❌</button>
+      <button class="btn-dismiss" onclick="dismissRow('{{ row.data_hora }}')" title="Marcar como desconsiderado">🚫</button>
+      <button class="btn-rotate" onclick="rotateImage('{{ row.data_hora }}')" title="Rotacionar imagem" {% if not row.anexo or row.anexo == 'nan' or row.anexo == '' %}disabled{% endif %}>🔄</button>
+      <button class="btn-reprocess" onclick="reprocessAI('{{ row.data_hora }}')" title="Reprocessar com IA" {% if not row.anexo or row.anexo == 'nan' or row.anexo == '' %}disabled{% endif %}>🤖</button>
+    </div>
+  </td>
 </tr>
 {% endmacro %} 
