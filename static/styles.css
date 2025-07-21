@@ -205,6 +205,11 @@ tr:hover {
   color: #721c24; 
 }
 
+.desconhecido { 
+  background-color: #fff3cd; 
+  color: #856404; 
+}
+
 /* ===== Campos Editáveis - Estilo Bootstrap ===== */
 .edit-field {
   cursor: pointer;
