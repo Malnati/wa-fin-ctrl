@@ -14,8 +14,7 @@ from typing import Optional
 from .env import ATTR_FIN_DIR_INPUT
 from .app import (
     processar_incremental,
-    fix_entry,
-    dismiss_entry
+    fix_entry
 )
 
 app = FastAPI(
@@ -79,79 +78,7 @@ async def fix(
             detail=f"Erro interno: {str(e)}"
         )
 
-@app.post("/dismiss")
-async def dismiss(find: str = Form(...)):
-    """
-    Marca uma entrada como desconsiderada (dismiss) em todos os arquivos CSV.
-    Equivalente ao comando: make dismiss
-    """
-    try:
-        # Chama a função existente do app.py
-        sucesso = dismiss_entry(find)
-        
-        if sucesso:
-            return JSONResponse(
-                status_code=200,
-                content={
-                    "success": True,
-                    "message": f"Entrada {find} marcada como desconsiderada",
-                    "data": {
-                        "find": find
-                    }
-                }
-            )
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Falha ao marcar entrada {find} como desconsiderada"
-            )
-            
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro interno: {str(e)}"
-        )
 
-@app.post("/rotate")
-async def rotate(
-    find: str = Form(...),
-    rotate: str = Form(...)
-):
-    """
-    Rotaciona uma imagem específica.
-    Equivalente ao comando: make fix-rotate
-    """
-    try:
-        # Chama a função existente do app.py com apenas rotação
-        sucesso = fix_entry(
-            data_hora=find,
-            rotate=rotate,
-            ia=False
-        )
-        
-        if sucesso:
-            return JSONResponse(
-                status_code=200,
-                content={
-                    "success": True,
-                    "message": f"Imagem da entrada {find} rotacionada com sucesso",
-                    "data": {
-                        "find": find,
-                        "rotate": rotate
-                    }
-                }
-            )
-        else:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Falha ao rotacionar imagem da entrada {find}"
-            )
-            
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Erro interno: {str(e)}"
-        )
 
 @app.post("/process")
 async def process(
@@ -184,8 +111,8 @@ async def process(
             detail=f"Erro durante o processamento: {str(e)}"
         )
 
-@app.post("/upload-zip")
-async def upload_zip(file: UploadFile = File(...)):
+@app.post("/upload")
+async def upload(file: UploadFile = File(...)):
     """
     Faz upload de um arquivo ZIP para o diretório de entrada.
     """
@@ -238,10 +165,8 @@ async def root():
         "version": "1.0.0",
         "endpoints": {
             "POST /fix": "Corrige uma entrada específica",
-            "POST /dismiss": "Marca uma entrada como desconsiderada",
-            "POST /rotate": "Rotaciona uma imagem",
             "POST /process": "Processa arquivos incrementalmente",
-            "POST /upload-zip": "Faz upload de arquivo ZIP"
+            "POST /upload": "Faz upload de arquivo ZIP"
         }
     }
 
