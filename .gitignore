@@ -12,3 +12,5 @@ ocr/extract.xml
 !docs/
 docs/*.html	
 ocr/extract.xml	
+# Exceção para data/ - manter no controle de versão
+!data/	
