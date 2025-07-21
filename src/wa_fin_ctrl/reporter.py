@@ -8,8 +8,8 @@ import subprocess
 import xml.etree.ElementTree as ET
 import re
 from pathlib import Path
-from env import *
-from template import TemplateRenderer
+from .env import *
+from .template import TemplateRenderer
 
 def _carregar_ocr_map():
     """Carrega o mapeamento de arquivos para textos OCR do arquivo extract.xml."""
@@ -510,7 +510,7 @@ def gerar_relatorios_mensais_html(csv_path, backup=True):
         # Validação OCR
         print("🔍 Validando conformidade OCR...")
         try:
-            subprocess.run(['python', 'check.py', csv_path], check=True)
+            subprocess.run(['python', 'src/wa_fin_ctrl/check.py', csv_path], check=True)
             print("✅ Validação OCR concluída com sucesso")
         except subprocess.CalledProcessError:
             print("❌ Falha na validação OCR - verifique as linhas sem OCR")

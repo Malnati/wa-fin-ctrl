@@ -5,7 +5,7 @@ import re
 import os
 import pandas as pd
 import shutil
-from env import *
+from .env import *
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""

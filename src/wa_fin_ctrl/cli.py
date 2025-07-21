@@ -10,8 +10,8 @@ Utiliza o pacote click para gerenciar argumentos e subcomandos.
 import click
 import os
 import shutil
-from env import *
-from app import (
+from .env import *
+from .app import (
     processar_incremental, 
     verificar_totais, 
     corrigir_totalizadores_duplicados, 
@@ -55,7 +55,7 @@ def processar_pdf(force, entry, backup):
     - Extrai texto via OCR e registra em ocr-extract.xml
     - Atualiza {ATTR_FIN_ARQ_CALCULO} (somente entradas PDF)
     """
-    from app import processar_pdfs
+    from .app import processar_pdfs
     processar_pdfs(force=force, entry=entry, backup=backup)
 
 @cli.command('img')
@@ -68,7 +68,7 @@ def processar_img(force, entry, backup):
     - Extrai texto via OCR e registra em ocr-extract.xml
     - Atualiza {ATTR_FIN_ARQ_CALCULO} (somente entradas IMG)
     """
-    from app import processar_imgs
+    from .app import processar_imgs
     processar_imgs(force=force, entry=entry, backup=backup)
 
 @cli.command()
@@ -87,7 +87,7 @@ def corrigir(csv_file):
 @cli.command()
 def teste():
     """Executa testes automatizados de ponta a ponta."""
-    from test import executar_todos_testes
+    from .test import executar_todos_testes
     sucesso = executar_todos_testes()
     exit(0 if sucesso else 1)
 

@@ -16,7 +16,7 @@ from openai import OpenAI
 import base64
 from pathlib import Path
 import json
-from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html, gerar_html_impressao
+from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html, gerar_html_impressao
 # Adiciona imports para PDF
 try:
     import pdfplumber
@@ -25,8 +25,8 @@ except ImportError:
     pdfplumber = None
     convert_from_path = None
 
-from ocr import registrar_ocr_xml, process_image_ocr
-from env import *
+from .ocr import registrar_ocr_xml, process_image_ocr
+from .env import *
 
 def convert_to_brazilian_format(valor):
     """Converte valor do formato americano para brasileiro se necessário"""

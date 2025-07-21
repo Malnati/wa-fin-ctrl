@@ -10,12 +10,12 @@ from pathlib import Path
 # Adiciona o diretório atual ao path para importar módulos
 sys.path.insert(0, str(Path(__file__).parent))
 
-from app import (
+from .app import (
     ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_MASSA,
     ATTR_FIN_OPENAI_API_KEY, process_image_ocr, extract_total_value_with_chatgpt,
     generate_payment_description_with_chatgpt, classify_transaction_type_with_chatgpt
 )
-from ocr import process_image_ocr as ocr_process_image
+from .ocr import process_image_ocr as ocr_process_image
 
 
 def testar_ocr_individual():

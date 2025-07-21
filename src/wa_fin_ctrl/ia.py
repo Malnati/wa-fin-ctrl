@@ -4,8 +4,8 @@
 import os
 import re
 from openai import OpenAI
-from helper import convert_to_brazilian_format
-from env import *
+from .helper import convert_to_brazilian_format
+from .env import *
 
 def extract_total_value_with_chatgpt(ocr_text):
     try:

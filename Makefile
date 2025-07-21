@@ -99,60 +99,59 @@ install:
 	poetry install --no-interaction --no-root
 
 run:
-	poetry run python cli.py --help 
+	poetry run python wa-fin.py --help 
 
 process:
-	poetry run python cli.py processar 
+	poetry run python wa-fin.py processar 
 
 process-backup:
-	poetry run python cli.py processar --backup
+	poetry run python wa-fin.py processar --backup
 
 force:
-	poetry run python cli.py processar --force 
+	poetry run python wa-fin.py processar --force 
 	
 force-backup:
-	poetry run python cli.py processar --force --backup
+	poetry run python wa-fin.py processar --force --backup
 
 pdf:
-	poetry run python cli.py pdf
+	poetry run python wa-fin.py pdf
 
 pdf-backup:
-	poetry run python cli.py pdf --backup
+	poetry run python wa-fin.py pdf --backup
 
 img:
-	poetry run python cli.py img
+	poetry run python wa-fin.py img
 
 img-backup:
-	poetry run python cli.py img --backup
+	poetry run python wa-fin.py img --backup
 
 dismiss:
-	poetry run python cli.py dismiss "$(find)" 
+	poetry run python wa-fin.py dismiss "$(find)" 
 	
 fix:
-	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" 
+	poetry run python wa-fin.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" 
 
 fix-dismiss:
-	poetry run python cli.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --dismiss 
+	poetry run python wa-fin.py fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --dismiss 
 
 fix-rotate:
-	poetry run python cli.py fix "$(find)" --rotate "$(rotate)" 
+	poetry run python wa-fin.py fix "$(find)" --rotate "$(rotate)" 
 
 fix-rotate-ia:
-	poetry run python cli.py fix "$(find)" --rotate "$(rotate)" --ia 
+	poetry run python wa-fin.py fix "$(find)" --rotate "$(rotate)" --ia 
 
 server:
 	poetry run python -m http.server 8000 
 
 copy:
 	@mkdir -p tmp
-	@echo "Copiando os arquivos ocr.py, app.py, env.py, template.py, reporter.py, check.py para analise. " > tmp/copy2chatgpt.txt
-	@cat app.py cli.py helper.py ia.py \
-	ocr.py \
-	app.sh \
-	env.py \
-	template.py \
-	reporter.py \
-	check.py >> tmp/copy2chatgpt.txt
+	@echo "Copiando os arquivos do módulo wa_fin_ctrl para analise. " > tmp/copy2chatgpt.txt
+	@cat src/wa_fin_ctrl/app.py src/wa_fin_ctrl/cli.py src/wa_fin_ctrl/helper.py src/wa_fin_ctrl/ia.py \
+	src/wa_fin_ctrl/ocr.py \
+	src/wa_fin_ctrl/env.py \
+	src/wa_fin_ctrl/template.py \
+	src/wa_fin_ctrl/reporter.py \
+	src/wa_fin_ctrl/check.py >> tmp/copy2chatgpt.txt
 	@pbcopy < tmp/copy2chatgpt.txt
 	@echo "✅ Conteúdo copiado para a área de transferência"
 
