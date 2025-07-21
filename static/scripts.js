@@ -156,6 +156,13 @@ function finishEditing(field, input) {
   const newValue = input.value.trim();
   const originalValue = field.dataset.original;
   
+  console.log('finishEditing chamada:', {
+    field: field.dataset.field,
+    newValue: newValue,
+    originalValue: originalValue,
+    changed: newValue !== originalValue
+  });
+  
   // Remover input
   input.remove();
   field.style.display = '';
@@ -165,6 +172,7 @@ function finishEditing(field, input) {
     field.textContent = newValue;
     field.classList.add('modified');
     field.dataset.original = newValue;
+    console.log('Campo marcado como modificado:', field.dataset.field);
   }
   
   // Verificar se há outras modificações na linha
@@ -214,11 +222,20 @@ async function saveRowChanges(dataHora) {
   
   // Coletar campos modificados
   const modifiedFields = {};
-  row.querySelectorAll('.edit-field.modified').forEach(field => {
-    modifiedFields[field.dataset.field] = field.textContent.trim();
+  const modifiedElements = row.querySelectorAll('.edit-field.modified');
+  console.log('Elementos modificados encontrados:', modifiedElements.length);
+  
+  modifiedElements.forEach(field => {
+    const fieldName = field.dataset.field;
+    const fieldValue = field.textContent.trim();
+    modifiedFields[fieldName] = fieldValue;
+    console.log(`Campo modificado: ${fieldName} = "${fieldValue}"`);
   });
   
+  console.log('Campos modificados coletados:', modifiedFields);
+  
   if (Object.keys(modifiedFields).length === 0) {
+    console.log('Nenhum campo modificado encontrado, finalizando edição');
     finishRowEditing(row);
     return;
   }
@@ -244,21 +261,37 @@ async function saveRowChanges(dataHora) {
       formData.append('class_', modifiedFields.classificacao);
     }
     
+    console.log('Enviando dados para API:', {
+      find: dataHora,
+      modifiedFields: modifiedFields
+    });
+    
     const response = await fetch('/fix', {
       method: 'POST',
       body: formData
     });
     
+    console.log('Resposta da API:', response.status, response.statusText);
+    
     if (response.ok) {
+      const result = await response.json();
+      console.log('Resultado da API:', result);
       // Sucesso
       row.classList.add('row-saved');
+      console.log('Alterações salvas com sucesso, aguardando recarregamento...');
+      
+      // Aguarda um pouco para o WebSocket processar e depois recarrega
       setTimeout(() => {
         row.classList.remove('row-saved');
         finishRowEditing(row);
         
         // Limpar valores originais
         delete originalValues[dataHora];
-      }, 500);
+        
+        // Recarrega a página para mostrar as mudanças
+        console.log('Recarregando página para mostrar alterações...');
+        location.reload();
+      }, 1000);
     } else {
       throw new Error(`HTTP ${response.status}`);
     }
@@ -266,6 +299,9 @@ async function saveRowChanges(dataHora) {
     console.error('Erro ao salvar:', error);
     row.classList.add('row-error');
     setTimeout(() => row.classList.remove('row-error'), 500);
+    
+    // Mostra erro mais detalhado
+    alert(`Erro ao salvar alterações: ${error.message}`);
   } finally {
     row.classList.remove('row-saving');
   }
@@ -314,6 +350,12 @@ async function dismissRow(dataHora) {
     if (response.ok) {
       row.classList.add('dismiss-row');
       row.querySelector('.descricao-cell').textContent = 'desconsiderado';
+      console.log('Linha marcada como desconsiderada, recarregando página...');
+      
+      // Aguarda um pouco e recarrega a página
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
     } else {
       throw new Error(`HTTP ${response.status}`);
     }
