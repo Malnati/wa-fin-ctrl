@@ -11,3 +11,4 @@ ocr/extract.xml
 # Exceção para docs/ - manter no controle de versão
 !docs/
 docs/*.html	
+ocr/extract.xml	
