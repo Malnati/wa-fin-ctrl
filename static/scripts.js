@@ -24,6 +24,9 @@ function toggleColumnControls() {
   }
 }
 
+// Garantir que a função esteja disponível globalmente
+window.toggleColumnControls = toggleColumnControls;
+
 // ===== FUNCIONALIDADES DE EDIÇÃO =====
 
 // Estado global para controle de edição
