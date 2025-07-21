@@ -109,7 +109,9 @@
             {% if tem_motivo %}
               <th>Motivo do Erro</th>
             {% endif %}
-            <th>Ações</th>
+            {% if is_editable %}
+              <th>Ações</th>
+            {% endif %}
           </tr>
         {% endblock %}
       </thead>
