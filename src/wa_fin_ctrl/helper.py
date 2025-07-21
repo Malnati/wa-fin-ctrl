@@ -7,30 +7,170 @@ import pandas as pd
 import shutil
 from .env import *
 
-def convert_to_brazilian_format(valor):
-    """Converte valor do formato americano para brasileiro se necessário"""
-    if not valor or not re.match(r'^\d+([.,]\d+)?$', valor):
-        return valor
-    if '.' in valor and ',' not in valor:
-        partes = valor.split('.')
+def normalize_value_to_american_format(valor):
+    """
+    Converte qualquer formato de valor para o formato americano (ponto como decimal).
+    Esta é a função principal para padronizar valores no sistema.
+    
+    Args:
+        valor: Valor em qualquer formato (string, float, int)
+        
+    Returns:
+        str: Valor no formato americano (ex: "9.99", "1234.56")
+    """
+    if not valor:
+        return ""
+    
+    valor_str = str(valor).strip()
+    
+    # Remove símbolos de moeda e espaços
+    valor_str = re.sub(r'[R$\s]', '', valor_str)
+    
+    # Se já é um número válido sem vírgula nem ponto, retorna como está
+    if valor_str.replace('.', '').isdigit():
+        return valor_str
+    
+    # Se tem vírgula e ponto, assume que vírgula é decimal e ponto é milhares
+    if ',' in valor_str and '.' in valor_str:
+        # Remove pontos (milhares) e substitui vírgula por ponto (decimal)
+        valor_limpo = valor_str.replace('.', '').replace(',', '.')
+        try:
+            float_valor = float(valor_limpo)
+            return f"{float_valor:.2f}"
+        except ValueError:
+            return valor_str
+    
+    # Se só tem vírgula, assume que é decimal
+    if ',' in valor_str and '.' not in valor_str:
+        valor_limpo = valor_str.replace(',', '.')
+        try:
+            float_valor = float(valor_limpo)
+            return f"{float_valor:.2f}"
+        except ValueError:
+            return valor_str
+    
+    # Se só tem ponto, verifica se é decimal ou milhares
+    if '.' in valor_str and ',' not in valor_str:
+        partes = valor_str.split('.')
         if len(partes) == 2:
-            if len(partes[1]) == 2:
-                inteira = partes[0]
-                decimal = partes[1]
-                if len(inteira) > 3:
-                    inteira_formatada = ""
-                    for i, digito in enumerate(inteira[::-1]):
-                        if i > 0 and i % 3 == 0:
-                            inteira_formatada = "." + inteira_formatada
-                        inteira_formatada = digito + inteira_formatada
-                    return f"{inteira_formatada},{decimal}"
-                else:
-                    return f"{inteira},{decimal}"
+            # Se a parte decimal tem 1 ou 2 dígitos, é provavelmente decimal
+            if len(partes[1]) <= 2:
+                try:
+                    float_valor = float(valor_str)
+                    return f"{float_valor:.2f}"
+                except ValueError:
+                    return valor_str
+            # Se tem 3 dígitos decimais, pode ser milhares
             elif len(partes[1]) == 3:
-                return valor
-    if ',' in valor:
+                try:
+                    float_valor = float(valor_str)
+                    # Se o valor é menor que 1000, provavelmente é decimal
+                    if float_valor < 1000:
+                        return f"{float_valor:.2f}"
+                    else:
+                        # É milhares, mantém como está
+                        return valor_str
+                except ValueError:
+                    return valor_str
+            else:
+                # Mais de 3 dígitos decimais, provavelmente milhares
+                return valor_str
+    
+    # Se não tem ponto nem vírgula, tenta converter para float
+    try:
+        float_valor = float(valor_str)
+        return f"{float_valor:.2f}"
+    except ValueError:
+        return valor_str
+
+def convert_to_brazilian_format(valor):
+    """
+    Converte valor do formato americano para brasileiro para exibição.
+    Esta função é usada apenas para formatação de exibição, não para armazenamento.
+    
+    Args:
+        valor: Valor no formato americano (ex: "9.99", "1234.56")
+        
+    Returns:
+        str: Valor no formato brasileiro (ex: "9,99", "1.234,56")
+    """
+    if not valor:
         return valor
-    return valor
+    
+    # Primeiro normaliza para formato americano
+    valor_americano = normalize_value_to_american_format(valor)
+    
+    if not valor_americano:
+        return valor
+    
+    try:
+        float_valor = float(valor_americano)
+        
+        # Formata para 2 casas decimais
+        valor_formatado = f"{float_valor:.2f}"
+        
+        # Converte para formato brasileiro
+        partes = valor_formatado.split('.')
+        inteira = partes[0]
+        decimal = partes[1]
+        
+        # Adiciona pontos de milhares na parte inteira
+        if len(inteira) > 3:
+            inteira_formatada = ""
+            for i, digito in enumerate(inteira[::-1]):
+                if i > 0 and i % 3 == 0:
+                    inteira_formatada = "." + inteira_formatada
+                inteira_formatada = digito + inteira_formatada
+            return f"{inteira_formatada},{decimal}"
+        else:
+            return f"{inteira},{decimal}"
+            
+    except (ValueError, IndexError):
+        return valor
+
+def parse_value_from_input(valor_input):
+    """
+    Converte valor de entrada do usuário para formato americano padronizado.
+    Usado quando o usuário digita valores no frontend.
+    
+    Args:
+        valor_input: Valor digitado pelo usuário (pode ser "9.99", "9,99", "999", etc.)
+        
+    Returns:
+        str: Valor no formato americano para armazenamento
+    """
+    if not valor_input:
+        return ""
+    
+    valor_str = str(valor_input).strip()
+    
+    # Remove símbolos de moeda e espaços
+    valor_str = re.sub(r'[R$\s]', '', valor_str)
+    
+    # Se tem vírgula, assume formato brasileiro
+    if ',' in valor_str:
+        # Remove pontos (milhares) e substitui vírgula por ponto
+        valor_limpo = valor_str.replace('.', '').replace(',', '.')
+        try:
+            float_valor = float(valor_limpo)
+            return f"{float_valor:.2f}"
+        except ValueError:
+            return valor_str
+    
+    # Se só tem ponto, pode ser formato americano
+    if '.' in valor_str:
+        try:
+            float_valor = float(valor_str)
+            return f"{float_valor:.2f}"
+        except ValueError:
+            return valor_str
+    
+    # Se não tem ponto nem vírgula, assume que é um número inteiro
+    try:
+        float_valor = float(valor_str)
+        return f"{float_valor:.2f}"
+    except ValueError:
+        return valor_str
 
 def normalize_sender(remetente):
     if not remetente or pd.isna(remetente):
@@ -50,7 +190,8 @@ def adicionar_totalizacao_mensal(df):
         if pd.isna(value) or value == '':
             return 0.0
         try:
-            return float(str(value).replace(',', '.'))
+            valor_americano = normalize_value_to_american_format(value)
+            return float(valor_americano)
         except:
             return 0.0
     df['DATA_DT'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
@@ -72,8 +213,8 @@ def adicionar_totalizacao_mensal(df):
                 'HORA': '23:59:00',
                 'REMETENTE': 'TOTAL MÊS',
                 'CLASSIFICACAO': 'TOTAL',
-                'RICARDO': f'{total_ricardo:.2f}'.replace('.', ',') if total_ricardo > 0 else '',
-                'RAFAEL': f'{total_rafael:.2f}'.replace('.', ',') if total_rafael > 0 else '',
+                'RICARDO': f'{total_ricardo:.2f}' if total_ricardo > 0 else '',
+                'RAFAEL': f'{total_rafael:.2f}' if total_rafael > 0 else '',
                 'ANEXO': f'TOTAL_{mes:02d}_{ano}',
                 'DESCRICAO': f'Total do mês {mes:02d}/{ano}',
                 'VALOR': '',
