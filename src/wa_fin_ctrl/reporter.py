@@ -276,7 +276,13 @@ def _preparar_linhas_impressao(df_mes):
             receitas = f"{valor:.2f}"
             despesas = ''
             saldo += valor
+        elif classificacao.lower() == 'desconhecido':
+            # Registros desconhecidos são tratados como despesas (pagamentos não identificados)
+            receitas = ''
+            despesas = f"{valor:.2f}"
+            saldo -= valor
         else:
+            # Pagamentos e outros tipos
             receitas = ''
             despesas = f"{valor:.2f}"
             saldo -= valor
