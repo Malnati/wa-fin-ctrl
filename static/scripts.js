@@ -1,26 +1,38 @@
 // Funções comuns para os relatórios
 function showModal(src) {
+  console.log('showModal chamada com src:', src);
   document.getElementById('modal-img').src = src;
   document.getElementById('modal').classList.add('show');
 }
 
 function hideModal() {
+  console.log('hideModal chamada');
   document.getElementById('modal').classList.remove('show');
 }
 
 // Alternar exibição dos controles de colunas opcionais
 function toggleColumnControls() {
+  console.log('toggleColumnControls chamada');
   const configSection = document.getElementById('columnControlsSection');
   const toggleIcon = document.getElementById('columnControlsToggleIcon');
   
-  if (configSection.classList.contains('show')) {
-    configSection.classList.remove('show');
-    configSection.style.display = 'none';
-    toggleIcon.className = 'bi bi-chevron-down ms-auto';
+  console.log('configSection encontrado:', !!configSection);
+  console.log('toggleIcon encontrado:', !!toggleIcon);
+  
+  if (configSection && toggleIcon) {
+    if (configSection.classList.contains('show')) {
+      configSection.classList.remove('show');
+      configSection.style.display = 'none';
+      toggleIcon.className = 'bi bi-chevron-down ms-auto';
+      console.log('Controles de colunas ocultados');
+    } else {
+      configSection.classList.add('show');
+      configSection.style.display = 'block';
+      toggleIcon.className = 'bi bi-chevron-up ms-auto';
+      console.log('Controles de colunas exibidos');
+    }
   } else {
-    configSection.classList.add('show');
-    configSection.style.display = 'block';
-    toggleIcon.className = 'bi bi-chevron-up ms-auto';
+    console.error('Elementos columnControlsSection ou columnControlsToggleIcon não encontrados');
   }
 }
 
@@ -315,36 +327,48 @@ async function reprocessAI(dataHora) {
 
 // ===== CONTROLE DE COLUNAS OPCIONAIS =====
 
-// Função para alternar visibilidade de colunas
+// Alternar visibilidade de colunas opcionais
 function toggleColumn(columnClass, show) {
-  console.log(`toggleColumn chamada: ${columnClass}, show: ${show}`);
-  const elements = document.querySelectorAll(`.${columnClass}`);
-  console.log(`Elementos encontrados com classe ${columnClass}:`, elements.length);
+  console.log(`=== toggleColumn chamada ===`);
+  console.log(`Classe da coluna: ${columnClass}`);
+  console.log(`Mostrar: ${show}`);
   
-  elements.forEach(el => {
+  const elements = document.querySelectorAll(`.${columnClass}`);
+  console.log(`Elementos encontrados com classe '${columnClass}':`, elements.length);
+  
+  if (elements.length === 0) {
+    console.warn(`Nenhum elemento encontrado com a classe '${columnClass}'`);
+    return;
+  }
+  
+  elements.forEach((el, index) => {
+    console.log(`Processando elemento ${index + 1}:`, el);
+    console.log(`Classes atuais:`, el.className);
+    
     if (show) {
       el.classList.remove('hidden');
-      console.log(`Removendo classe 'hidden' de elemento:`, el);
+      console.log(`✅ Removida classe 'hidden' do elemento ${index + 1}`);
     } else {
       el.classList.add('hidden');
-      console.log(`Adicionando classe 'hidden' a elemento:`, el);
+      console.log(`❌ Adicionada classe 'hidden' ao elemento ${index + 1}`);
     }
+    
+    console.log(`Classes após mudança:`, el.className);
+    console.log(`Display atual:`, window.getComputedStyle(el).display);
   });
+  
+  console.log(`=== Fim toggleColumn ===`);
 }
 
-// Função para simular visualização mobile
-function toggleMobileView(enable) {
-  const container = document.querySelector('.container');
-  if (enable) {
-    container.style.maxWidth = '100%';
-    container.style.margin = '5px';
-    container.style.padding = '10px';
-    document.body.classList.add('mobile-simulation');
+// Simular visualização mobile
+function toggleMobileView() {
+  console.log('toggleMobileView chamada');
+  const table = document.querySelector('table');
+  if (table) {
+    table.classList.toggle('mobile-view');
+    console.log('Classe mobile-view alternada na tabela');
   } else {
-    container.style.maxWidth = '';
-    container.style.margin = '';
-    container.style.padding = '';
-    document.body.classList.remove('mobile-simulation');
+    console.error('Tabela não encontrada');
   }
 }
 
@@ -399,7 +423,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (toggleMobileViewCheckbox) {
     toggleMobileViewCheckbox.addEventListener('change', (e) => {
-      toggleMobileView(e.target.checked);
+      toggleMobileView();
     });
   }
   
