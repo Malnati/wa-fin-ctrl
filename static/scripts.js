@@ -8,6 +8,22 @@ function hideModal() {
   document.getElementById('modal').classList.remove('show');
 }
 
+// Alternar exibição dos controles de colunas opcionais
+function toggleColumnControls() {
+  const configSection = document.getElementById('columnControlsSection');
+  const toggleIcon = document.getElementById('columnControlsToggleIcon');
+  
+  if (configSection.classList.contains('show')) {
+    configSection.classList.remove('show');
+    configSection.style.display = 'none';
+    toggleIcon.className = 'bi bi-chevron-down ms-auto';
+  } else {
+    configSection.classList.add('show');
+    configSection.style.display = 'block';
+    toggleIcon.className = 'bi bi-chevron-up ms-auto';
+  }
+}
+
 // ===== FUNCIONALIDADES DE EDIÇÃO =====
 
 // Estado global para controle de edição
