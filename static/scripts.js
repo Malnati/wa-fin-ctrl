@@ -1,3 +1,40 @@
+// Função de teste para verificar se JavaScript está funcionando
+function testJavaScript() {
+  console.log('=== TESTE: Função testJavaScript chamada ===');
+  
+  const resultDiv = document.getElementById('testResult');
+  if (resultDiv) {
+    resultDiv.innerHTML = `
+      <div class="alert alert-success">
+        <strong>✅ JavaScript está funcionando!</strong><br>
+        Data/Hora: ${new Date().toLocaleString()}<br>
+        Navegador: ${navigator.userAgent}<br>
+        Console: Verifique o console do navegador (F12) para mais detalhes
+      </div>
+    `;
+  }
+  
+  // Testar se as funções principais estão disponíveis
+  console.log('toggleColumnControls disponível:', typeof toggleColumnControls);
+  console.log('toggleColumn disponível:', typeof toggleColumn);
+  console.log('toggleMobileView disponível:', typeof toggleMobileView);
+  
+  // Testar se os elementos principais existem
+  const toggleDescricao = document.getElementById('toggle-descricao');
+  const toggleOcr = document.getElementById('toggle-ocr');
+  const columnControlsSection = document.getElementById('columnControlsSection');
+  
+  console.log('Elemento toggle-descricao encontrado:', !!toggleDescricao);
+  console.log('Elemento toggle-ocr encontrado:', !!toggleOcr);
+  console.log('Elemento columnControlsSection encontrado:', !!columnControlsSection);
+  
+  if (toggleDescricao && toggleOcr) {
+    console.log('Estado inicial dos checkboxes:');
+    console.log('- Descrição:', toggleDescricao.checked);
+    console.log('- OCR:', toggleOcr.checked);
+  }
+}
+
 // Funções comuns para os relatórios
 function showModal(src) {
   console.log('showModal chamada com src:', src);

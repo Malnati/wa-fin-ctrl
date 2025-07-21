@@ -1,16 +1,29 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Relatório de Prestação de Contas{% endblock %}</title>
+  <title>{% block title %}Relatório Financeiro{% endblock %}</title>
   
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="../static/styles.css">
+  <link rel="stylesheet" href="/static/styles.css">
   
+  <!-- Script de teste para verificar se JavaScript está funcionando -->
+  <script>
+    console.log('=== TESTE: JavaScript está carregando ===');
+    console.log('Data/Hora do carregamento:', new Date().toISOString());
+    
+    // Teste simples para verificar se DOM está disponível
+    if (document.readyState === 'loading') {
+      console.log('DOM ainda carregando...');
+    } else {
+      console.log('DOM já carregado!');
+    }
+  </script>
   <style>
     {% block extra_styles %}{% endblock %}
     .totalizadores {
@@ -97,12 +110,18 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <!-- Verificação de paths de imagens -->
-  
-  <div id="loading-overlay">
-    <div style="font-size:18px;color:#333;font-family:sans-serif;">Carregando relatório, aguarde...</div>
+  <!-- Botão de teste para verificar se JavaScript está funcionando -->
+  <div class="container mt-3">
+    <div class="alert alert-info">
+      <h5>🧪 Teste de JavaScript</h5>
+      <p>Clique no botão abaixo para verificar se o JavaScript está funcionando:</p>
+      <button id="testButton" class="btn btn-primary" onclick="testJavaScript()">
+        Testar JavaScript
+      </button>
+      <div id="testResult" class="mt-2"></div>
+    </div>
   </div>
-  
+
   <div class="container">
     <h1>{% block header_title %}Relatório de Prestação de Contas{% endblock %}</h1>
     <div class="info">Gerado automaticamente em {{ timestamp }}</div>
