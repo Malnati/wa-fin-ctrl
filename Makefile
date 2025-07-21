@@ -166,9 +166,9 @@ copy:
 copy-july-report:
 	@mkdir -p tmp
 	@echo "Copiando o relatório de Julho..." > tmp/copy2chatgpt.txt
-	@cat report-2025-07-Julho.html >> tmp/copy2chatgpt.txt
+	@cat docs/report-2025-07-Julho.html >> tmp/copy2chatgpt.txt
 	@echo "Copiando o relatório editavel..." >> tmp/copy2chatgpt.txt
-	@cat report-edit-2025-07-Julho.html >> tmp/copy2chatgpt.txt
+	@cat docs/report-edit-2025-07-Julho.html >> tmp/copy2chatgpt.txt
 	@pbcopy < tmp/copy2chatgpt.txt
 	@echo "✅ Conteúdo do relatório de Julho copiado para a área de transferência"
 
