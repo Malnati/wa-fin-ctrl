@@ -38,7 +38,7 @@ function startEditing(field) {
   // Criar input para edição
   const input = document.createElement('input');
   input.type = 'text';
-  input.className = 'edit-field editing';
+  input.className = 'edit-field editing form-control form-control-sm';
   input.value = field.textContent === 'Clique para editar' ? '' : field.textContent;
   input.dataset.field = field.dataset.field;
   
@@ -356,6 +356,14 @@ async function reprocessAI(dataHora) {
 // Inicialização comum
 document.addEventListener('DOMContentLoaded', () => {
   console.log('JavaScript carregado - inicializando relatório...');
+  
+  // Inicializar tooltips do Bootstrap
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+  const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl, {
+      trigger: 'hover'
+    });
+  });
   
   // Configurar modal para thumbnails
   document.querySelectorAll('tbody tr').forEach(r => {
