@@ -317,12 +317,17 @@ async function reprocessAI(dataHora) {
 
 // Função para alternar visibilidade de colunas
 function toggleColumn(columnClass, show) {
+  console.log(`toggleColumn chamada: ${columnClass}, show: ${show}`);
   const elements = document.querySelectorAll(`.${columnClass}`);
+  console.log(`Elementos encontrados com classe ${columnClass}:`, elements.length);
+  
   elements.forEach(el => {
     if (show) {
       el.classList.remove('hidden');
+      console.log(`Removendo classe 'hidden' de elemento:`, el);
     } else {
       el.classList.add('hidden');
+      console.log(`Adicionando classe 'hidden' a elemento:`, el);
     }
   });
 }
@@ -372,22 +377,28 @@ document.addEventListener('DOMContentLoaded', () => {
   // Configurar controles de colunas opcionais
   const toggleDescricao = document.getElementById('toggle-descricao');
   const toggleOcr = document.getElementById('toggle-ocr');
-  const toggleMobileView = document.getElementById('toggle-mobile-view');
+  const toggleMobileViewCheckbox = document.getElementById('toggle-mobile-view');
   
   if (toggleDescricao) {
+    // Inicializar estado da coluna descrição
+    toggleColumn('descricao-cell', toggleDescricao.checked);
+    
     toggleDescricao.addEventListener('change', (e) => {
       toggleColumn('descricao-cell', e.target.checked);
     });
   }
   
   if (toggleOcr) {
+    // Inicializar estado da coluna OCR
+    toggleColumn('ocr-cell', toggleOcr.checked);
+    
     toggleOcr.addEventListener('change', (e) => {
       toggleColumn('ocr-cell', e.target.checked);
     });
   }
   
-  if (toggleMobileView) {
-    toggleMobileView.addEventListener('change', (e) => {
+  if (toggleMobileViewCheckbox) {
+    toggleMobileViewCheckbox.addEventListener('change', (e) => {
       toggleMobileView(e.target.checked);
     });
   }
