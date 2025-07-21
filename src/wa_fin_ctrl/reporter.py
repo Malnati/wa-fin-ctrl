@@ -142,10 +142,10 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         for padrao in padroes_valor:
             match = re.search(padrao, texto_ocr, re.IGNORECASE)
             if match:
-                valor_encontrado = match.group(1).replace('.', '').replace(',', '.')
+                valor_encontrado = match.group(1)
                 try:
-                    float(valor_encontrado)
-                    valor_ocr = valor_encontrado
+                    from .helper import normalize_value_to_american_format
+                    valor_ocr = normalize_value_to_american_format(valor_encontrado)
                     print(f"DEBUG: Valor extraído '{valor_ocr}' do texto OCR para remetente '{remetente}'")
                     break
                 except ValueError:
@@ -207,34 +207,10 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     def limpar_valor(valor):
         if not valor:
             return ''
-        valor = str(valor).replace('R$', '').replace(' ', '')
         
-        # Se já é um número float válido (formato americano), apenas formata
-        try:
-            float_valor = float(valor)
-            return f"{float_valor:.2f}"
-        except ValueError:
-            # Se não é float válido, tenta converter formato brasileiro
-            try:
-                # Remove pontos de milhares e converte vírgula para ponto
-                valor_limpo = valor.replace('.', '').replace(',', '.')
-                float_valor = float(valor_limpo)
-                return f"{float_valor:.2f}"
-            except Exception:
-                # Se ainda não conseguiu, tenta outros formatos
-                try:
-                    # Remove todos os caracteres não numéricos exceto ponto e vírgula
-                    valor_limpo = re.sub(r'[^\d.,]', '', valor)
-                    if ',' in valor_limpo and '.' in valor_limpo:
-                        # Se tem ambos, assume que vírgula é decimal e ponto é milhares
-                        valor_limpo = valor_limpo.replace('.', '').replace(',', '.')
-                    elif ',' in valor_limpo:
-                        # Se só tem vírgula, assume que é decimal
-                        valor_limpo = valor_limpo.replace(',', '.')
-                    float_valor = float(valor_limpo)
-                    return f"{float_valor:.2f}"
-                except Exception:
-                    return valor
+        from .helper import normalize_value_to_american_format
+        valor_limpo = normalize_value_to_american_format(valor)
+        return valor_limpo
 
     ricardo = limpar_valor(ricardo)
     rafael = limpar_valor(rafael)
@@ -280,7 +256,9 @@ def _preparar_linhas_impressao(df_mes):
     """Prepara os dados para o template de impressão."""
     def to_float(v):
         try:
-            return float(str(v).replace('.', '').replace(',', '.'))
+            from .helper import normalize_value_to_american_format
+            valor_americano = normalize_value_to_american_format(v)
+            return float(valor_americano)
         except:
             return 0.0
     
@@ -321,9 +299,9 @@ def _calcular_totalizadores_pessoas(rows):
         if not valor_str or valor_str.lower() in ['nan', '']:
             return 0.0
         try:
-            # Remove R$ e espaços, converte vírgula para ponto
-            valor_limpo = str(valor_str).replace('R$', '').replace(' ', '').replace(',', '.')
-            return float(valor_limpo)
+            from .helper import normalize_value_to_american_format
+            valor_americano = normalize_value_to_american_format(valor_str)
+            return float(valor_americano)
         except (ValueError, TypeError):
             return 0.0
     
