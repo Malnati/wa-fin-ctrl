@@ -49,7 +49,9 @@ function hideModal() {
 
 // Alternar exibição dos controles de colunas opcionais
 function toggleColumnControls() {
-  console.log('toggleColumnControls chamada');
+  console.log('=== toggleColumnControls CHAMADA ===');
+  console.log('Data/Hora:', new Date().toLocaleString());
+  
   const configSection = document.getElementById('columnControlsSection');
   const toggleIcon = document.getElementById('columnControlsToggleIcon');
   
@@ -57,19 +59,78 @@ function toggleColumnControls() {
   console.log('toggleIcon encontrado:', !!toggleIcon);
   
   if (configSection && toggleIcon) {
-    if (configSection.classList.contains('show')) {
+    const isCurrentlyVisible = configSection.classList.contains('show');
+    console.log('Estado atual - visível:', isCurrentlyVisible);
+    
+    if (isCurrentlyVisible) {
+      console.log('Ocultando controles de colunas...');
       configSection.classList.remove('show');
       configSection.style.display = 'none';
       toggleIcon.className = 'bi bi-chevron-down ms-auto';
-      console.log('Controles de colunas ocultados');
+      console.log('✅ Controles de colunas OCULTADOS');
     } else {
+      console.log('Mostrando controles de colunas...');
       configSection.classList.add('show');
       configSection.style.display = 'block';
       toggleIcon.className = 'bi bi-chevron-up ms-auto';
-      console.log('Controles de colunas exibidos');
+      console.log('✅ Controles de colunas MOSTRADOS');
     }
   } else {
-    console.error('Elementos columnControlsSection ou columnControlsToggleIcon não encontrados');
+    console.error('❌ Elementos não encontrados!');
+    console.error('configSection:', configSection);
+    console.error('toggleIcon:', toggleIcon);
+  }
+}
+
+// Função para alternar visibilidade de colunas
+function toggleColumn(columnClass, show) {
+  console.log(`=== toggleColumn CHAMADA ===`);
+  console.log(`Coluna: ${columnClass}`);
+  console.log(`Mostrar: ${show}`);
+  console.log(`Data/Hora: ${new Date().toLocaleString()}`);
+  
+  const elements = document.querySelectorAll(`.${columnClass}`);
+  console.log(`Elementos encontrados com classe ${columnClass}:`, elements.length);
+  
+  if (elements.length === 0) {
+    console.warn(`⚠️ Nenhum elemento encontrado com classe: ${columnClass}`);
+    return;
+  }
+  
+  elements.forEach((el, index) => {
+    if (show) {
+      el.classList.remove('hidden');
+      console.log(`✅ Removendo classe 'hidden' de elemento ${index + 1}:`, el);
+    } else {
+      el.classList.add('hidden');
+      console.log(`❌ Adicionando classe 'hidden' a elemento ${index + 1}:`, el);
+    }
+  });
+  
+  console.log(`=== toggleColumn CONCLUÍDA ===`);
+}
+
+// Função para alternar visualização mobile
+function toggleMobileView() {
+  console.log('=== toggleMobileView CHAMADA ===');
+  console.log('Data/Hora:', new Date().toLocaleString());
+  
+  const table = document.querySelector('table');
+  if (table) {
+    const isMobile = table.classList.contains('mobile-view');
+    console.log('Estado atual - mobile:', isMobile);
+    
+    if (isMobile) {
+      console.log('Removendo visualização mobile...');
+      table.classList.remove('mobile-view');
+      console.log('✅ Visualização mobile REMOVIDA');
+    } else {
+      console.log('Aplicando visualização mobile...');
+      table.classList.add('mobile-view');
+      console.log('✅ Visualização mobile APLICADA');
+    }
+  } else {
+    console.error('❌ Tabela não encontrada!');
   }
 }
 
@@ -362,53 +423,6 @@ async function reprocessAI(dataHora) {
   }
 }
 
-// ===== CONTROLE DE COLUNAS OPCIONAIS =====
-
-// Alternar visibilidade de colunas opcionais
-function toggleColumn(columnClass, show) {
-  console.log(`=== toggleColumn chamada ===`);
-  console.log(`Classe da coluna: ${columnClass}`);
-  console.log(`Mostrar: ${show}`);
-  
-  const elements = document.querySelectorAll(`.${columnClass}`);
-  console.log(`Elementos encontrados com classe '${columnClass}':`, elements.length);
-  
-  if (elements.length === 0) {
-    console.warn(`Nenhum elemento encontrado com a classe '${columnClass}'`);
-    return;
-  }
-  
-  elements.forEach((el, index) => {
-    console.log(`Processando elemento ${index + 1}:`, el);
-    console.log(`Classes atuais:`, el.className);
-    
-    if (show) {
-      el.classList.remove('hidden');
-      console.log(`✅ Removida classe 'hidden' do elemento ${index + 1}`);
-    } else {
-      el.classList.add('hidden');
-      console.log(`❌ Adicionada classe 'hidden' ao elemento ${index + 1}`);
-    }
-    
-    console.log(`Classes após mudança:`, el.className);
-    console.log(`Display atual:`, window.getComputedStyle(el).display);
-  });
-  
-  console.log(`=== Fim toggleColumn ===`);
-}
-
-// Simular visualização mobile
-function toggleMobileView() {
-  console.log('toggleMobileView chamada');
-  const table = document.querySelector('table');
-  if (table) {
-    table.classList.toggle('mobile-view');
-    console.log('Classe mobile-view alternada na tabela');
-  } else {
-    console.error('Tabela não encontrada');
-  }
-}
-
 // ===== INICIALIZAÇÃO =====
 
 // Inicialização comum
@@ -440,28 +454,54 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleOcr = document.getElementById('toggle-ocr');
   const toggleMobileViewCheckbox = document.getElementById('toggle-mobile-view');
   
+  console.log('=== CONFIGURANDO CONTROLES DE COLUNAS ===');
+  console.log('toggleDescricao encontrado:', !!toggleDescricao);
+  console.log('toggleOcr encontrado:', !!toggleOcr);
+  console.log('toggleMobileViewCheckbox encontrado:', !!toggleMobileViewCheckbox);
+  
   if (toggleDescricao) {
+    console.log('Estado inicial toggleDescricao:', toggleDescricao.checked);
     // Inicializar estado da coluna descrição
     toggleColumn('descricao-cell', toggleDescricao.checked);
     
     toggleDescricao.addEventListener('change', (e) => {
+      console.log('=== CHECKBOX DESCRIÇÃO CLICADO ===');
+      console.log('Novo valor:', e.target.checked);
+      console.log('Data/Hora:', new Date().toLocaleString());
       toggleColumn('descricao-cell', e.target.checked);
     });
+    console.log('✅ Event listener adicionado ao checkbox Descrição');
+  } else {
+    console.error('❌ Checkbox Descrição não encontrado!');
   }
   
   if (toggleOcr) {
+    console.log('Estado inicial toggleOcr:', toggleOcr.checked);
     // Inicializar estado da coluna OCR
     toggleColumn('ocr-cell', toggleOcr.checked);
     
     toggleOcr.addEventListener('change', (e) => {
+      console.log('=== CHECKBOX OCR CLICADO ===');
+      console.log('Novo valor:', e.target.checked);
+      console.log('Data/Hora:', new Date().toLocaleString());
       toggleColumn('ocr-cell', e.target.checked);
     });
+    console.log('✅ Event listener adicionado ao checkbox OCR');
+  } else {
+    console.error('❌ Checkbox OCR não encontrado!');
   }
   
   if (toggleMobileViewCheckbox) {
+    console.log('Estado inicial toggleMobileViewCheckbox:', toggleMobileViewCheckbox.checked);
     toggleMobileViewCheckbox.addEventListener('change', (e) => {
+      console.log('=== CHECKBOX MOBILE VIEW CLICADO ===');
+      console.log('Novo valor:', e.target.checked);
+      console.log('Data/Hora:', new Date().toLocaleString());
       toggleMobileView();
     });
+    console.log('✅ Event listener adicionado ao checkbox Mobile View');
+  } else {
+    console.error('❌ Checkbox Mobile View não encontrado!');
   }
   
   // Toggle pagamentos
