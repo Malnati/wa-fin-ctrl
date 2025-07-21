@@ -559,7 +559,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   // Configurar campos editáveis
-  document.querySelectorAll('.edit-field').forEach(field => {
+  const editFields = document.querySelectorAll('.edit-field');
+  console.log('Campos editáveis encontrados:', editFields.length);
+  editFields.forEach(field => {
+    console.log('Campo editável:', field.dataset.field, field.textContent);
     field.addEventListener('click', () => startEditing(field));
   });
   
