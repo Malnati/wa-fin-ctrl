@@ -236,7 +236,9 @@ def api(host, port, reload):
     print(f"🚀 Iniciando API REST em http://{host}:{port}")
     print(f"📚 Documentação: http://{host}:{port}/docs")
     print(f"🔍 Health check: http://{host}:{port}/health")
-    print(f"📊 Relatórios: http://{host}:{port}/reports")
+    print(f"📊 Página principal: http://{host}:{port}/")
+    print(f"📋 Lista de relatórios: http://{host}:{port}/api/reports")
+    print(f"ℹ️  Info da API: http://{host}:{port}/api/info")
     print("⏹️  Pressione Ctrl+C para parar o servidor")
     
     uvicorn.run(
