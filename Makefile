@@ -5,6 +5,8 @@
 
 # Configuração de ambiente
 VAR_FIN_OPENAI_API_KEY=${OPENAI_API_KEY}
+# Diretórios de dados
+VAR_FIN_DIR_DATA=data
 # Diretórios de entrada e saída
 VAR_FIN_DIR_INPUT=input
 # Diretórios de imagens
@@ -56,6 +58,7 @@ VAR_FIN_ARQ_MASSA_OCTOBER=massa/10 WhatsApp Chat - NFs e comprovantes tia Claudi
 # Configuração de ambiente
 # Exporta as variáveis de ambiente para o shell
 export ATTR_FIN_OPENAI_API_KEY=${VAR_FIN_OPENAI_API_KEY}
+export ATTR_FIN_DIR_DATA=${VAR_FIN_DIR_DATA}
 export ATTR_FIN_DIR_INPUT=${VAR_FIN_DIR_INPUT}
 export ATTR_FIN_DIR_IMGS=${VAR_FIN_DIR_IMGS}
 export ATTR_FIN_DIR_MASSA=${VAR_FIN_DIR_MASSA}
@@ -102,6 +105,7 @@ create-directories:
 # Exibe as variáveis de ambiente
 show-variables:
 	@echo "VAR_FIN_OPENAI_API_KEY: ${VAR_FIN_OPENAI_API_KEY}"
+	@echo "VAR_FIN_DIR_DATA: ${VAR_FIN_DIR_DATA}"
 	@echo "VAR_FIN_DIR_INPUT: ${VAR_FIN_DIR_INPUT}"
 	@echo "VAR_FIN_DIR_IMGS: ${VAR_FIN_DIR_IMGS}"
 	@echo "VAR_FIN_DIR_MASSA: ${VAR_FIN_DIR_MASSA}"
@@ -132,6 +136,7 @@ show-variables:
 	@echo "VAR_FIN_ARQ_MASSA_SEPTEMBER: ${VAR_FIN_ARQ_MASSA_SEPTEMBER}"
 	@echo "VAR_FIN_ARQ_MASSA_OCTOBER: ${VAR_FIN_ARQ_MASSA_OCTOBER}"
 	@echo "ATTR_FIN_OPENAI_API_KEY: ${ATTR_FIN_OPENAI_API_KEY}"
+	@echo "ATTR_FIN_DIR_DATA: ${ATTR_FIN_DIR_DATA}"
 	@echo "ATTR_FIN_DIR_INPUT: ${ATTR_FIN_DIR_INPUT}"
 	@echo "ATTR_FIN_DIR_IMGS: ${ATTR_FIN_DIR_IMGS}"
 	@echo "ATTR_FIN_DIR_MASSA: ${ATTR_FIN_DIR_MASSA}"
@@ -344,10 +349,15 @@ remove-all:
 	@$(MAKE) remove-imgs
 	@$(MAKE) remove-tmp
 	@$(MAKE) remove-input
+	@$(MAKE) remove-data
 
 # Remove os backups
 remove-baks:
 	@rm -rfv ${ATTR_FIN_DIR_DOCS}/*.bak
+
+# Remove os data
+remove-data:
+	@rm -rfv ${ATTR_FIN_DIR_DATA}/*.json
 
 # Remove as imagens
 remove-imgs:
