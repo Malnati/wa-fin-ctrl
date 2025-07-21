@@ -396,4 +396,8 @@ server:
 api:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} api --reload --auto-reload
 
+rebuild: remove-all copy-july process api
+
+reload: process api
+
 .PHONY: help install run server api copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia
