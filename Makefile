@@ -152,48 +152,48 @@ server:
 	poetry run python -m http.server 8000 
 
 copy:
-	@mkdir -p tmp
-	@echo "Copiando os arquivos do módulo wa_fin_ctrl para analise. " > tmp/copy2chatgpt.txt
+	@mkdir -p ${ATTR_FIN_DIR_TMP}
+	@echo "Copiando os arquivos do módulo wa_fin_ctrl para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@cat src/wa_fin_ctrl/app.py src/wa_fin_ctrl/cli.py src/wa_fin_ctrl/helper.py src/wa_fin_ctrl/ia.py \
 	src/wa_fin_ctrl/ocr.py \
 	src/wa_fin_ctrl/env.py \
 	src/wa_fin_ctrl/template.py \
 	src/wa_fin_ctrl/reporter.py \
-	src/wa_fin_ctrl/check.py >> tmp/copy2chatgpt.txt
-	@pbcopy < tmp/copy2chatgpt.txt
+	src/wa_fin_ctrl/check.py >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo copiado para a área de transferência"
 
 copy-july-report:
-	@mkdir -p tmp
-	@echo "Copiando o relatório de Julho..." > tmp/copy2chatgpt.txt
-	@cat docs/report-2025-07-Julho.html >> tmp/copy2chatgpt.txt
-	@echo "Copiando o relatório editavel..." >> tmp/copy2chatgpt.txt
-	@cat docs/report-edit-2025-07-Julho.html >> tmp/copy2chatgpt.txt
-	@pbcopy < tmp/copy2chatgpt.txt
+	@mkdir -p ${ATTR_FIN_DIR_TMP}
+	@echo "Copiando o relatório de Julho..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_DIR_DOCS}/report-2025-07-Julho.html >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@echo "Copiando o relatório editavel..." >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_DIR_DOCS}/report-edit-2025-07-Julho.html >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo do relatório de Julho copiado para a área de transferência"
 
 copy-report:
-	@mkdir -p tmp
-	@echo "Copiando o relatório report.html para analise..." > tmp/copy2chatgpt.txt
-	@cat docs/report.html >> tmp/copy2chatgpt.txt
-	@pbcopy < tmp/copy2chatgpt.txt
+	@mkdir -p ${ATTR_FIN_DIR_TMP}
+	@echo "Copiando o relatório report.html para analise..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_DIR_DOCS}/report.html >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo do relatório report.html copiado para a área de transferência"
 
 copy-templates:
-	@mkdir -p tmp
-	@echo "Copiando os templates dos relatórios para analise. " > tmp/copy2chatgpt.txt
-	@cat templates/monthly_report_editable.html.j2 >> tmp/copy2chatgpt.txt
-	@cat templates/monthly_report.html.j2 >> tmp/copy2chatgpt.txt
-	@cat templates/print_report.html.j2 >> tmp/copy2chatgpt.txt
-	@cat templates/report.html.j2 >> tmp/copy2chatgpt.txt
-	@pbcopy < tmp/copy2chatgpt.txt
+	@mkdir -p ${ATTR_FIN_DIR_TMP}
+	@echo "Copiando os templates dos relatórios para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat templates/monthly_report_editable.html.j2 >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat templates/monthly_report.html.j2 >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat templates/print_report.html.j2 >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat templates/report.html.j2 >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo dos templates copiado para a área de transferência"
 
 copy-ocr:
-	@mkdir -p ocr
-	@echo "<!-- ocr/extract.xml -->" > tmp/copy2chatgpt.txt
-	@cat ocr/extract.xml >> tmp/copy2chatgpt.txt
-	@pbcopy < tmp/copy2chatgpt.txt
+	@mkdir -p ${ATTR_FIN_DIR_OCR}
+	@echo "<!-- ${ATTR_FIN_ARQ_OCR_XML} -->" > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_OCR_XML} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo do OCR copiado para a área de transferência"
 
 remove-reports:
@@ -203,19 +203,19 @@ remove-baks:
 	@rm -rf *.bak
 
 remove-ocr:
-	@rm -rf ocr/extract.xml
+	@rm -rf ${ATTR_FIN_ARQ_OCR_XML}
 
 remove-mensagens:
-	@rm -rf mensagens/*
+	@rm -rf ${ATTR_FIN_DIR_MENSAGENS}/*
 
 remove-imgs:
-	@rm -rf imgs/*
+	@rm -rf ${ATTR_FIN_DIR_IMGS}/*
 
 remove-tmp:
-	@rm -rf tmp/*
+	@rm -rf ${ATTR_FIN_DIR_TMP}/*
 
 remove-input:
-	@rm -rf input/*
+	@rm -rf ${ATTR_FIN_DIR_INPUT}/*
 
 remove-all:
 	@$(MAKE) remove-reports
@@ -228,24 +228,24 @@ remove-all:
 
 
 copy-april:
-	@cp -v "massa/04 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+	@cp -v "${ATTR_FIN_DIR_MASSA}/04 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" ${ATTR_FIN_DIR_INPUT}
 
 copy-may:
-	@cp -v "massa/05 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+	@cp -v "${ATTR_FIN_DIR_MASSA}/05 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" ${ATTR_FIN_DIR_INPUT}
 
 copy-june:
-	@cp -v "massa/06 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+	@cp -v "${ATTR_FIN_DIR_MASSA}/06 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" ${ATTR_FIN_DIR_INPUT}
 
 copy-july:
-	@cp -v "massa/07 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+	@cp -v "${ATTR_FIN_DIR_MASSA}/07 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" ${ATTR_FIN_DIR_INPUT}
 
 copy-august:
-	@cp -v "massa/08 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+	@cp -v "${ATTR_FIN_DIR_MASSA}/08 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" ${ATTR_FIN_DIR_INPUT}
 
 copy-september:
-	@cp -v "massa/09 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+	@cp -v "${ATTR_FIN_DIR_MASSA}/09 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" ${ATTR_FIN_DIR_INPUT}
 
 copy-october:
-	@cp -v "massa/10 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" input
+	@cp -v "${ATTR_FIN_DIR_MASSA}/10 WhatsApp Chat - NFs e comprovantes tia Claudia.zip" ${ATTR_FIN_DIR_INPUT}
 
 .PHONY: help install run server copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia
