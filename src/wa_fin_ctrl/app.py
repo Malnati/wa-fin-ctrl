@@ -1567,25 +1567,37 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                         if 'RICARDO' in df.columns and 'RAFAEL' in df.columns:
                             # Arquivo calculo.csv - verifica qual coluna está vazia
                             if pd.isna(linha['RICARDO']) or str(linha['RICARDO']).lower() in ['nan', '']:
-                                df.at[idx, 'RICARDO'] = novo_valor
+                                # Converte coluna para string se necessário
+                                if df['RICARDO'].dtype != object:
+                                    df['RICARDO'] = df['RICARDO'].astype(str)
+                                df.at[idx, 'RICARDO'] = convert_to_brazilian_format(novo_valor)
                                 coluna_usada = 'RICARDO'
                             elif pd.isna(linha['RAFAEL']) or str(linha['RAFAEL']).lower() in ['nan', '']:
-                                df.at[idx, 'RAFAEL'] = novo_valor
+                                # Converte coluna para string se necessário
+                                if df['RAFAEL'].dtype != object:
+                                    df['RAFAEL'] = df['RAFAEL'].astype(str)
+                                df.at[idx, 'RAFAEL'] = convert_to_brazilian_format(novo_valor)
                                 coluna_usada = 'RAFAEL'
                             else:
                                 # Se ambas estão vazias, usa RICARDO por padrão
-                                df.at[idx, 'RICARDO'] = novo_valor
+                                # Converte coluna para string se necessário
+                                if df['RICARDO'].dtype != object:
+                                    df['RICARDO'] = df['RICARDO'].astype(str)
+                                df.at[idx, 'RICARDO'] = convert_to_brazilian_format(novo_valor)
                                 coluna_usada = 'RICARDO'
                         elif 'VALOR' in df.columns:
                             # Arquivo mensagens.csv
-                            df.at[idx, 'VALOR'] = novo_valor
+                            # Converte coluna para string se necessário
+                            if df['VALOR'].dtype != object:
+                                df['VALOR'] = df['VALOR'].astype(str)
+                            df.at[idx, 'VALOR'] = convert_to_brazilian_format(novo_valor)
                             coluna_usada = 'VALOR'
                         else:
                             print(f"⚠️  Estrutura de arquivo não reconhecida")
                             continue
                         
                         # Aplica as correções solicitadas para o caso de fix automático
-                        alteracoes = [f"valor: aplicado {novo_valor} (sem valor anterior)"]
+                        alteracoes = [f"valor: aplicado {convert_to_brazilian_format(novo_valor)} (sem valor anterior)"]
                         
                         # 2. Corrige classificação (se fornecida)
                         if nova_classificacao and 'CLASSIFICACAO' in df.columns:
@@ -1635,12 +1647,21 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                     # 1. Corrige valor (se fornecido)
                     if novo_valor:
                         if 'RICARDO' in df.columns and linha['RICARDO'] and str(linha['RICARDO']).lower() not in ['nan', '']:
+                            # Converte coluna para string se necessário
+                            if df['RICARDO'].dtype != object:
+                                df['RICARDO'] = df['RICARDO'].astype(str)
                             df.at[idx, 'RICARDO'] = convert_to_brazilian_format(novo_valor)
                             alteracoes.append(f"valor: {valor_original} → {convert_to_brazilian_format(novo_valor)}")
                         elif 'RAFAEL' in df.columns and linha['RAFAEL'] and str(linha['RAFAEL']).lower() not in ['nan', '']:
+                            # Converte coluna para string se necessário
+                            if df['RAFAEL'].dtype != object:
+                                df['RAFAEL'] = df['RAFAEL'].astype(str)
                             df.at[idx, 'RAFAEL'] = convert_to_brazilian_format(novo_valor)
                             alteracoes.append(f"valor: {valor_original} → {convert_to_brazilian_format(novo_valor)}")
                         elif 'VALOR' in df.columns and linha['VALOR'] and str(linha['VALOR']).lower() not in ['nan', '']:
+                            # Converte coluna para string se necessário
+                            if df['VALOR'].dtype != object:
+                                df['VALOR'] = df['VALOR'].astype(str)
                             df.at[idx, 'VALOR'] = convert_to_brazilian_format(novo_valor)
                             alteracoes.append(f"valor: {valor_original} → {convert_to_brazilian_format(novo_valor)}")
                     
