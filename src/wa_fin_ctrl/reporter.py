@@ -510,7 +510,11 @@ def gerar_relatorios_mensais_html(csv_path, backup=True):
         # Validação OCR
         print("🔍 Validando conformidade OCR...")
         try:
-            subprocess.run(['python', 'src/wa_fin_ctrl/check.py', csv_path], check=True)
+            # Executa o check.py usando o caminho correto
+            import sys
+            from pathlib import Path
+            check_script = Path(__file__).parent / 'check.py'
+            subprocess.run([sys.executable, str(check_script), csv_path], check=True)
             print("✅ Validação OCR concluída com sucesso")
         except subprocess.CalledProcessError:
             print("❌ Falha na validação OCR - verifique as linhas sem OCR")
