@@ -2,12 +2,12 @@
 # Caminho relativo ao projeto: pyproject.toml
 # Configuração do Poetry para gerenciamento de dependências do projeto
 [tool.poetry]
-name = "gastos-tia-claudia"
+name = "wa-fin-ctrl"
 version = "0.1.0"
 description = "Sistema de processamento de comprovantes financeiros"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["Ricardo Malnati ricardomalnati@gmail.com"]
 readme = "README.md"
-packages = [{include = "gastos_tia_claudia", from = "src"}]
+packages = [{include = "wa-fin-ctrl", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
