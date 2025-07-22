@@ -309,8 +309,12 @@ help:
 	@echo "    Exemplo com dismiss: make fix find=\"24/04/2025 11:57:45\" dismiss=1"
 	@echo "    Exemplo com rotação: make fix find=\"24/04/2025 11:57:45\" rotate=\"90\""
 	@echo "    Exemplo com rotação e IA: make fix find=\"24/04/2025 11:57:45\" rotate=\"90\" ia=1"
-	@echo "  server: Inicia o servidor HTTP local"
-	@echo "  api: Inicia a API REST (localhost:8000)"
+	@echo "  Django:"
+	@echo "    migrate: Executa migrações do banco de dados"
+	@echo "    makemigrations: Cria novas migrações"
+	@echo "    collectstatic: Coleta arquivos estáticos"
+	@echo "    server: Inicia o servidor Django (localhost:8000)"
+	@echo "    api: Inicia a API REST Django (localhost:8000)"
 	@echo "  copy: Copia a estrutura do projeto para a área de transferência"
 
 # Processa apenas imagens (sem backup)
@@ -388,13 +392,23 @@ remove-tmp:
 run:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} --help 
 
-# Inicia o servidor HTTP local
-server:
-	poetry run uvicorn src.wa_fin_ctrl.api:app --reload --port 8000 
+# Comandos Django
+migrate:
+	poetry run python manage.py migrate
 
-# Inicia a API REST
+makemigrations:
+	poetry run python manage.py makemigrations
+
+collectstatic:
+	poetry run python manage.py collectstatic --noinput
+
+# Inicia o servidor Django
+server:
+	poetry run python manage.py runserver 0.0.0.0:8000
+
+# Inicia a API REST (Django)
 api:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} api --reload --auto-reload
+	poetry run python manage.py runserver 0.0.0.0:8000
 
 rebuild: remove-all copy-july process api
 
