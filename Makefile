@@ -410,6 +410,9 @@ server:
 api:
 	poetry run python manage.py runserver 0.0.0.0:8000
 
+front:
+	cd frontend && npm run dev &
+
 rebuild: remove-all copy-july process api
 
 reload: process api
