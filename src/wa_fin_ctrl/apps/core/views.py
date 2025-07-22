@@ -386,3 +386,146 @@ def health(request):
         "timestamp": time.time(),
         "service": "wa-fin-ctrl"
     })
+
+
+@require_http_methods(["GET"])
+def api_entries(request):
+    """
+    Retorna entradas financeiras em formato JSON.
+    Aceita parâmetro de query opcional 'month' no formato YYYY-MM.
+    """
+    try:
+        from .env import ATTR_FIN_ARQ_CALCULO
+        import pandas as pd
+        from datetime import datetime
+        
+        if not os.path.exists(ATTR_FIN_ARQ_CALCULO):
+            return JsonResponse(
+                {"error": "Arquivo de cálculo não encontrado. Execute o processamento primeiro."},
+                status=404
+            )
+        
+        # Carrega o CSV
+        df = pd.read_csv(ATTR_FIN_ARQ_CALCULO, dtype=str)
+        
+        # Filtra por mês se especificado
+        month = request.GET.get('month')
+        if month:
+            try:
+                # Converte o parâmetro month (YYYY-MM) para filtro
+                year, month_num = month.split('-')
+                df['DATA_DT'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
+                df = df[
+                    (df['DATA_DT'].dt.year == int(year)) & 
+                    (df['DATA_DT'].dt.month == int(month_num))
+                ]
+            except (ValueError, AttributeError):
+                return JsonResponse(
+                    {"error": "Formato de mês inválido. Use YYYY-MM (ex: 2024-01)"},
+                    status=400
+                )
+        
+        # Converte DataFrame para lista de dicionários
+        rows = []
+        for index, row in df.iterrows():
+            data = str(row.get("DATA", ""))
+            hora = str(row.get("HORA", ""))
+            data_hora = f"{data} {hora}" if data != "nan" and hora != "nan" else ""
+            
+            # Determina se é linha de total
+            remetente = str(row.get("REMETENTE", ""))
+            is_total_row = remetente == "TOTAL MÊS"
+            
+            # Prepara dados da linha
+            row_data = {
+                "identificador_unico": f"{index}_{data}_{hora}",
+                "data_hora": data_hora,
+                "classificacao": str(row.get("CLASSIFICACAO", "")),
+                "ricardo": str(row.get("RICARDO", "")),
+                "rafael": str(row.get("RAFAEL", "")),
+                "anexo": str(row.get("ANEXO", "")),
+                "descricao": str(row.get("DESCRICAO", "")),
+                "ocr": str(row.get("OCR", "")),
+                "motivo": str(row.get("MOTIVO", "")),
+                "row_class": "total-row" if is_total_row else "normal-row",
+                "data": data,
+                "receitas": "",
+                "despesas": "",
+                "saldo": ""
+            }
+            
+            # Para impressão, calcula receitas/despesas/saldo
+            if not is_total_row:
+                valor = str(row.get("VALOR", "0"))
+                try:
+                    from .helper import normalize_value_to_brazilian_format
+                    valor_float = float(normalize_value_to_brazilian_format(valor).replace(",", "."))
+                except:
+                    valor_float = 0.0
+                
+                classificacao = str(row.get("CLASSIFICACAO", "")).lower()
+                if classificacao == "transferência":
+                    row_data["receitas"] = f"{valor_float:.2f}".replace(".", ",")
+                else:
+                    row_data["despesas"] = f"{valor_float:.2f}".replace(".", ",")
+            
+            rows.append(row_data)
+        
+        # Calcula totalizadores
+        totalizadores = _calcular_totalizadores_pessoas(rows)
+        
+        # Prepara resposta
+        response_data = {
+            "rows": rows,
+            "totalizadores": totalizadores,
+            "timestamp": datetime.now().isoformat(),
+            "is_editable": True,
+            "tem_motivo": any(row.get("motivo") and row.get("motivo") != "nan" for row in rows),
+            "periodo": month if month else "Todos os períodos"
+        }
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        return JsonResponse(
+            {"error": f"Erro ao carregar entradas: {str(e)}"},
+            status=500
+        )
+
+
+def _calcular_totalizadores_pessoas(rows):
+    """Calcula totalizadores por pessoa, excluindo registros com 'dismiss'."""
+    
+    def parse_valor(valor_str):
+        """Converte string de valor para float."""
+        if not valor_str or valor_str.lower() in ["nan", ""]:
+            return 0.0
+        try:
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(valor_str)
+            return float(valor_brasileiro.replace(",", "."))
+        except (ValueError, TypeError):
+            return 0.0
+    
+    total_ricardo = 0.0
+    total_rafael = 0.0
+    
+    for row in rows:
+        # Pula registros marcados como dismiss
+        if row.get("row_class", "").find("dismiss-row") != -1:
+            continue
+        
+        # Soma valores de Ricardo
+        valor_ricardo = parse_valor(row.get("ricardo", ""))
+        total_ricardo += valor_ricardo
+        
+        # Soma valores de Rafael
+        valor_rafael = parse_valor(row.get("rafael", ""))
+        total_rafael += valor_rafael
+    
+    return {
+        "ricardo": f"{total_ricardo:.2f}".replace(".", ","),
+        "rafael": f"{total_rafael:.2f}".replace(".", ","),
+        "ricardo_float": total_ricardo,
+        "rafael_float": total_rafael,
+    }

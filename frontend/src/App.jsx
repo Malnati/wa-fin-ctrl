@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useParams } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useParams, useNavigate } from 'react-router-dom';
 import Report from './components/Report';
 import PrintableReport from './components/PrintableReport';
+import PeriodSelector from './components/PeriodSelector';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './App.css';
 
@@ -10,16 +11,30 @@ const ReportPage = () => {
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState('');
   const { filename } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Se há um filename na URL, usa ele como período selecionado
+    if (filename) {
+      setSelectedPeriod(filename);
+    }
+  }, [filename]);
 
   useEffect(() => {
     const fetchReportData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/reports/${filename || ''}`);
+        
+        // Usa o período selecionado ou o filename da URL
+        const month = selectedPeriod || filename || null;
+        
+        // Usa o novo endpoint de entradas
+        const response = await fetch(`/api/entries${month ? `?month=${month}` : ''}`);
         if (!response.ok) {
           // Fallback para dados mock se a API não estiver disponível
-          const mockResponse = await fetch(`/report-${filename || '2024-01'}.json`);
+          const mockResponse = await fetch('/entries-mock.json');
           if (mockResponse.ok) {
             const mockData = await mockResponse.json();
             setReportData(mockData);
@@ -38,7 +53,17 @@ const ReportPage = () => {
     };
 
     fetchReportData();
-  }, [filename]);
+  }, [selectedPeriod, filename]);
+
+  const handlePeriodChange = (period) => {
+    setSelectedPeriod(period);
+    // Atualiza a URL quando o período muda
+    if (period) {
+      navigate(`/report/${period}`);
+    } else {
+      navigate('/report');
+    }
+  };
 
   if (loading) {
     return (
@@ -84,17 +109,23 @@ const ReportPage = () => {
   }
 
   return (
-    <Report
-      periodo={reportData.periodo}
-      rows={reportData.rows || []}
-      attrs={reportData.attrs || {}}
-      editLink={reportData.edit_link}
-      printLink={reportData.print_link}
-      totalizadores={reportData.totalizadores}
-      timestamp={reportData.timestamp}
-      isEditable={reportData.is_editable || false}
-      temMotivo={reportData.tem_motivo || false}
-    />
+    <div>
+      <PeriodSelector 
+        selectedPeriod={selectedPeriod}
+        onPeriodChange={handlePeriodChange}
+      />
+      <Report
+        periodo={reportData.periodo}
+        rows={reportData.rows || []}
+        attrs={reportData.attrs || {}}
+        editLink={reportData.edit_link}
+        printLink={reportData.print_link}
+        totalizadores={reportData.totalizadores}
+        timestamp={reportData.timestamp}
+        isEditable={reportData.is_editable || false}
+        temMotivo={reportData.tem_motivo || false}
+      />
+    </div>
   );
 };
 
@@ -109,10 +140,15 @@ const PrintPage = () => {
     const fetchReportData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/reports/${filename || ''}`);
+        
+        // Extrai o mês do filename (ex: "2024-01" -> "2024-01")
+        const month = filename || null;
+        
+        // Usa o novo endpoint de entradas
+        const response = await fetch(`/api/entries${month ? `?month=${month}` : ''}`);
         if (!response.ok) {
           // Fallback para dados mock se a API não estiver disponível
-          const mockResponse = await fetch(`/report-${filename || '2024-01'}.json`);
+          const mockResponse = await fetch('/entries-mock.json');
           if (mockResponse.ok) {
             const mockData = await mockResponse.json();
             setReportData(mockData);

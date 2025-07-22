@@ -1,0 +1,78 @@
+{
+  "rows": [
+    {
+      "identificador_unico": "0_15/01/2024_10:30:00",
+      "data_hora": "15/01/2024 10:30:00",
+      "classificacao": "Pagamento",
+      "ricardo": "100.00",
+      "rafael": "50.00",
+      "anexo": "comprovante1.jpg",
+      "descricao": "Pagamento de conta de luz",
+      "ocr": "Comprovante de pagamento da conta de energia elétrica referente ao mês de janeiro de 2024",
+      "motivo": "",
+      "row_class": "normal-row",
+      "data": "15/01/2024",
+      "receitas": "",
+      "despesas": "150.00",
+      "saldo": "-150.00"
+    },
+    {
+      "identificador_unico": "1_20/01/2024_15:45:00",
+      "data_hora": "20/01/2024 15:45:00",
+      "classificacao": "Transferência",
+      "ricardo": "200.00",
+      "rafael": "0.00",
+      "anexo": "transferencia1.pdf",
+      "descricao": "Transferência bancária",
+      "ocr": "Comprovante de transferência bancária realizada entre contas",
+      "motivo": "",
+      "row_class": "normal-row",
+      "data": "20/01/2024",
+      "receitas": "200.00",
+      "despesas": "",
+      "saldo": "50.00"
+    },
+    {
+      "identificador_unico": "2_25/01/2024_09:15:00",
+      "data_hora": "25/01/2024 09:15:00",
+      "classificacao": "Pagamento",
+      "ricardo": "0.00",
+      "rafael": "75.00",
+      "anexo": "comprovante2.jpg",
+      "descricao": "Pagamento de internet",
+      "ocr": "Comprovante de pagamento da conta de internet e telefone",
+      "motivo": "",
+      "row_class": "normal-row",
+      "data": "25/01/2024",
+      "receitas": "",
+      "despesas": "75.00",
+      "saldo": "-25.00"
+    },
+    {
+      "identificador_unico": "3_31/01/2024_23:59:00",
+      "data_hora": "31/01/2024 23:59:00",
+      "classificacao": "TOTAL",
+      "ricardo": "300.00",
+      "rafael": "125.00",
+      "anexo": "TOTAL_01_2024",
+      "descricao": "Total do mês 01/2024",
+      "ocr": "",
+      "motivo": "",
+      "row_class": "total-row",
+      "data": "31/01/2024",
+      "receitas": "",
+      "despesas": "",
+      "saldo": ""
+    }
+  ],
+  "totalizadores": {
+    "ricardo": "300.00",
+    "rafael": "125.00",
+    "ricardo_float": 300.0,
+    "rafael_float": 125.0
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "is_editable": true,
+  "tem_motivo": false,
+  "periodo": "2024-01"
+} 

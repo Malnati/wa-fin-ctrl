@@ -14,6 +14,7 @@ urlpatterns = [
     # API endpoints
     path('api/status/', views.get_status, name='api_status'),
     path('api/reports/', views.list_reports, name='api_reports'),
+    path('api/entries/', views.api_entries, name='api_entries'),
     path('api/info/', views.api_info, name='api_info'),
     path('health/', views.health, name='health'),
     
