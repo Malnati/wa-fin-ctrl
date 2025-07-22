@@ -119,4 +119,24 @@ async def broadcast_reload():
             'type': 'reload_message',
             'message': 'reload'
         }
-    ) 
+    )
+
+
+def broadcast_reload_sync():
+    """
+    Versão síncrona para enviar comando de reload.
+    """
+    try:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "notifications",
+            {
+                'type': 'reload_message',
+                'message': 'reload'
+            }
+        )
+    except Exception as e:
+        print(f"Erro ao enviar notificação WebSocket síncrona: {e}") 

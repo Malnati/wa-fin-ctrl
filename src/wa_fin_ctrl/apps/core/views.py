@@ -109,8 +109,7 @@ def fix_entry_view(request):
 
             # Notifica clientes via WebSocket
             try:
-                import asyncio
-                asyncio.create_task(broadcast_reload())
+                broadcast_reload_sync()
             except Exception as e:
                 print(f"Erro ao enviar notificação WebSocket: {e}")
 
@@ -162,8 +161,7 @@ def process_files(request):
 
             # Notifica clientes via WebSocket
             try:
-                import asyncio
-                asyncio.create_task(broadcast_reload())
+                broadcast_reload_sync()
             except Exception as e:
                 print(f"Erro ao enviar notificação WebSocket: {e}")
 
