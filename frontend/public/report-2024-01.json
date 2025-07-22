@@ -1,0 +1,60 @@
+{
+  "periodo": "Janeiro 2024",
+  "rows": [
+    {
+      "data_hora": "2024-01-15 10:30",
+      "classificacao": "Pagamento",
+      "ricardo": "100.00",
+      "rafael": "50.00",
+      "anexo": "comprovante1.jpg",
+      "descricao": "Pagamento de conta de luz",
+      "ocr": "Comprovante de pagamento da conta de energia elétrica referente ao mês de janeiro de 2024",
+      "row_class": "normal-row"
+    },
+    {
+      "data_hora": "2024-01-20 15:45",
+      "classificacao": "Transferência",
+      "ricardo": "200.00",
+      "rafael": "0.00",
+      "anexo": "transferencia1.pdf",
+      "descricao": "Transferência bancária",
+      "ocr": "Comprovante de transferência bancária realizada entre contas",
+      "row_class": "normal-row"
+    },
+    {
+      "data_hora": "2024-01-25 09:15",
+      "classificacao": "Pagamento",
+      "ricardo": "0.00",
+      "rafael": "75.00",
+      "anexo": "comprovante2.jpg",
+      "descricao": "Pagamento de internet",
+      "ocr": "Comprovante de pagamento da conta de internet e telefone",
+      "row_class": "normal-row"
+    },
+    {
+      "data_hora": "",
+      "classificacao": "Total",
+      "ricardo": "300.00",
+      "rafael": "125.00",
+      "anexo": "",
+      "descricao": "",
+      "ocr": "",
+      "row_class": "total-row"
+    }
+  ],
+  "totalizadores": {
+    "ricardo": "300.00",
+    "ricardo_float": 300.0,
+    "rafael": "125.00",
+    "rafael_float": 125.0
+  },
+  "timestamp": "2024-01-15T10:30:00Z",
+  "is_editable": true,
+  "tem_motivo": false,
+  "edit_link": "/edit/report/2024-01",
+  "print_link": "/print/report/2024-01",
+  "attrs": {
+    "ricardo": "Ricardo",
+    "rafael": "Rafael"
+  }
+} 
