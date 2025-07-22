@@ -1,3 +1,4 @@
+# src/wa_fin_ctrl/settings.py
 """
 Django settings for wa_fin_ctrl project.
 
