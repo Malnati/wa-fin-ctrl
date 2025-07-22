@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "channels",
     "wa_fin_ctrl.apps.core",
 ]
 
@@ -72,6 +73,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "wa_fin_ctrl.wsgi.application"
+ASGI_APPLICATION = "wa_fin_ctrl.asgi.application"
 
 
 # Database
@@ -147,3 +149,10 @@ ATTR_FIN_ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'mensagens/diag
 ATTR_FIN_ARQ_CHAT = os.getenv('ATTR_FIN_ARQ_CHAT', '_chat.txt')
 ATTR_FIN_ARQ_OCR_XML = os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/extract.xml')
 ATTR_FIN_ARQ_HISTORY = os.getenv('ATTR_FIN_ARQ_HISTORY', 'data/history.json')
+
+# Configurações do Channels para WebSocket
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}

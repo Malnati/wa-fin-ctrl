@@ -19,6 +19,9 @@ from django.core.files.base import ContentFile
 from wa_fin_ctrl.app import processar_incremental, fix_entry
 from wa_fin_ctrl.env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
 
+# Importa funções para WebSocket
+from .consumers import broadcast_reload_sync
+
 # Variável global para controlar o status
 _last_update_time = time.time()
 
@@ -62,7 +65,7 @@ def get_status(request):
         "status": "healthy",
         "last_update": _last_update_time,
         "timestamp": time.time(),
-        "websocket_available": False,  # Django não tem WebSocket nativo
+        "websocket_available": True,  # WebSocket disponível via Channels
     })
 
 
@@ -104,6 +107,13 @@ def fix_entry_view(request):
             # Atualiza timestamp
             update_last_modified()
 
+            # Notifica clientes via WebSocket
+            try:
+                import asyncio
+                asyncio.create_task(broadcast_reload())
+            except Exception as e:
+                print(f"Erro ao enviar notificação WebSocket: {e}")
+
             return JsonResponse({
                 "success": True,
                 "message": f"Entrada {find} corrigida com sucesso",
@@ -115,6 +125,7 @@ def fix_entry_view(request):
                     "rotate": rotate,
                     "ia": ia,
                     "dismiss": dismiss,
+                    "last_update": _last_update_time,
                 }
             })
         else:
@@ -149,13 +160,21 @@ def process_files(request):
             # Atualiza timestamp
             update_last_modified()
 
+            # Notifica clientes via WebSocket
+            try:
+                import asyncio
+                asyncio.create_task(broadcast_reload())
+            except Exception as e:
+                print(f"Erro ao enviar notificação WebSocket: {e}")
+
             return JsonResponse({
                 "success": True,
                 "message": "Processamento concluído com sucesso",
                 "data": {
                     "force": force,
                     "backup": backup,
-                    "resultado": resultado
+                    "resultado": resultado,
+                    "last_update": _last_update_time,
                 }
             })
         else:
@@ -293,13 +312,27 @@ def generate_reports(request):
 
         # Importa a função de geração de relatórios
         from wa_fin_ctrl.reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+        from wa_fin_ctrl.env import ATTR_FIN_ARQ_CALCULO
+
+        # Verifica se o arquivo de cálculo existe
+        if not os.path.exists(ATTR_FIN_ARQ_CALCULO):
+            return JsonResponse(
+                {"error": "Arquivo de cálculo não encontrado. Execute o processamento primeiro."},
+                status=400
+            )
 
         # Gera os relatórios
-        resultado = gerar_relatorio_html()
-        resultado_mensal = gerar_relatorios_mensais_html()
+        resultado = gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
+        resultado_mensal = gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
 
         # Atualiza timestamp
         update_last_modified()
+
+        # Notifica clientes via WebSocket
+        try:
+            broadcast_reload_sync()
+        except Exception as e:
+            print(f"Erro ao enviar notificação WebSocket: {e}")
 
         return JsonResponse({
             "success": True,
@@ -308,7 +341,8 @@ def generate_reports(request):
                 "force": force,
                 "backup": backup,
                 "relatorio_geral": resultado,
-                "relatorios_mensais": resultado_mensal
+                "relatorios_mensais": resultado_mensal,
+                "last_update": _last_update_time,
             }
         })
 
