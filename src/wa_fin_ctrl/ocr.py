@@ -8,7 +8,7 @@ import pytesseract
 import numpy as np
 import xml.etree.ElementTree as ET
 from threading import Lock
-from env import *
+from .env import *
 
 ocr_xml_lock = Lock()
 

@@ -1,53 +1,115 @@
 {# Macro para renderizar uma linha da tabela #}
-{% macro render_row(row, loop_index, attrs) %}
-<tr class="{{ row.row_class }}" data-row-id="{{ loop_index }}" {% if row.motivo %} data-motivo="{{ row.motivo }}"{% endif %}>
-  <td class="data-hora">{{ row.data_hora }}</td>
-  <td>
-    {% if row.classificacao and row.classificacao != 'nan' %}
+{% macro render_row(row, loop_index, attrs, is_editable=false) %}
+<tr class="{{ row.row_class }}" data-row-id="{{ loop_index }}" {% if row.motivo %} data-motivo="{{ row.motivo }}"{% endif %} data-data-hora="{{ row.data_hora }}">
+  <td class="data-hora data-hora-cell desktop-only align-middle text-center">{{ row.data_hora }}</td>
+  <td class="classificacao-cell align-middle text-center">
+    {% if row.classificacao and row.classificacao != 'nan' and row.classificacao != '' %}
       {% if row.classificacao.lower() == 'transferência' %}
-        <span class="classificacao transferencia">{{ row.classificacao }}</span>
+        <span class="form-control-plaintext form-control-sm clickable-field classificacao transferencia {% if is_editable %}edit-field{% endif %}" 
+              {% if is_editable %}data-field="classificacao" 
+              data-original="{{ row.classificacao }}"
+              data-bs-toggle="tooltip" data-bs-placement="top" 
+              data-bs-title="Clique para editar a classificação"{% endif %}>
+          {{ row.classificacao }}
+        </span>
       {% elif row.classificacao.lower() == 'pagamento' %}
-        <span class="classificacao pagamento">{{ row.classificacao }}</span>
+        <span class="form-control-plaintext form-control-sm clickable-field classificacao pagamento {% if is_editable %}edit-field{% endif %}" 
+              {% if is_editable %}data-field="classificacao" 
+              data-original="{{ row.classificacao }}"
+              data-bs-toggle="tooltip" data-bs-placement="top" 
+              data-bs-title="Clique para editar a classificação"{% endif %}>
+          {{ row.classificacao }}
+        </span>
       {% else %}
-        <span class="classificacao">{{ row.classificacao }}</span>
+        <span class="form-control-plaintext form-control-sm clickable-field classificacao {% if is_editable %}edit-field{% endif %}" 
+              {% if is_editable %}data-field="classificacao" 
+              data-original="{{ row.classificacao }}"
+              data-bs-toggle="tooltip" data-bs-placement="top" 
+              data-bs-title="Clique para editar a classificação"{% endif %}>
+          {{ row.classificacao }}
+        </span>
       {% endif %}
+    {% elif is_editable %}
+      <span class="form-control-plaintext form-control-sm clickable-field classificacao edit-field empty-field" 
+            data-field="classificacao" 
+            data-original=""
+            data-bs-toggle="tooltip" data-bs-placement="top" 
+            data-bs-title="Clique para editar a classificação">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
-  <td>
+  <td class="valor-cell align-middle text-center">
     {% if row.ricardo and row.ricardo != 'nan' and row.ricardo != '' %}
-      <span class="valor">{{ row.ricardo }}</span>
+      <span class="valor {% if is_editable %}edit-field{% endif %}" 
+            {% if is_editable %}data-field="ricardo" 
+            data-original="{{ row.ricardo }}"
+            title="Clique para editar o valor de Ricardo"{% endif %}>
+        {{ row.ricardo }}
+      </span>
+    {% elif is_editable %}
+      <span class="valor edit-field empty-field" 
+            data-field="ricardo" 
+            data-original=""
+            title="Clique para editar o valor de Ricardo">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
-  <td>
+  <td class="valor-cell align-middle text-center">
     {% if row.rafael and row.rafael != 'nan' and row.rafael != '' %}
-      <span class="valor">{{ row.rafael }}</span>
+      <span class="valor {% if is_editable %}edit-field{% endif %}" 
+            {% if is_editable %}data-field="rafael" 
+            data-original="{{ row.rafael }}"
+            title="Clique para editar o valor de Rafael"{% endif %}>
+        {{ row.rafael }}
+      </span>
+    {% elif is_editable %}
+      <span class="valor edit-field empty-field" 
+            data-field="rafael" 
+            data-original=""
+            title="Clique para editar o valor de Rafael">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
-  <td>
+  <td class="align-middle text-center">
     {% if row.row_class != 'total-row' and row.anexo and row.anexo != 'nan' and row.anexo != '' %}
       {% if row.anexo.lower().endswith(('.jpg', '.jpeg', '.png')) %}
-        <img src="imgs/{{ row.anexo }}" 
+        <img src="../imgs/{{ row.anexo }}" 
              class="thumb" 
              alt="Comprovante {{ row.anexo }}" 
              title="{{ row.anexo }}">
       {% elif row.anexo.lower().endswith('.pdf') %}
         {% if row.imagem_jpg %}
-          <img src="imgs/{{ row.imagem_jpg }}" 
+          <img src="../imgs/{{ row.imagem_jpg }}" 
                class="thumb" 
                alt="Comprovante {{ row.imagem_jpg }}" 
                title="{{ row.imagem_jpg }} (convertido de PDF)">
         {% else %}
-          <span class="pdf-icon">📄</span>
+          <span class="pdf-icon" title="Visualizar PDF">📄</span>
         {% endif %}
       {% endif %}
     {% endif %}
   </td>
-  <td style="text-align: left; font-size: 12px;">
-    {% if row.descricao and row.descricao != 'nan' %}
-      {{ row.descricao }}
+  <td class="descricao-cell optional-column align-middle text-center" style="text-align: left; font-size: 12px;">
+    {% if row.descricao and row.descricao != 'nan' and row.descricao != '' %}
+      <span class="{% if is_editable %}edit-field{% endif %}" 
+            {% if is_editable %}data-field="descricao" 
+            data-original="{{ row.descricao }}"
+            title="Clique para editar a descrição"{% endif %}>
+        {{ row.descricao }}
+      </span>
+    {% elif is_editable %}
+      <span class="edit-field empty-field" 
+            data-field="descricao" 
+            data-original=""
+            title="Clique para editar a descrição">
+        Clique para editar
+      </span>
     {% endif %}
   </td>
-  <td style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
+  <td class="ocr-cell optional-column desktop-only align-middle text-center" style="text-align: left; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
     {% if row.ocr and row.ocr != 'nan' %}
       {% if row.anexo and row.anexo.lower().endswith('.pdf') %}
         📄 
@@ -58,10 +120,45 @@
     {% endif %}
   </td>
   {% if tem_motivo %}
-  <td style="color:#e67e22;font-size:12px;">
+  <td class="align-middle text-center" style="color:#e67e22;font-size:12px;">
     {% if row.motivo and row.motivo != 'nan' %}
       {{ row.motivo }}
     {% endif %}
+  </td>
+  {% endif %}
+  {% if is_editable %}
+  <td class="actions-cell align-middle text-center">
+    <div class="row-actions">
+      <button class="btn-save" 
+              onclick="saveRowChanges('{{ row.data_hora }}')" 
+              style="display: none;"
+              title="Salvar alterações">
+        💾
+      </button>
+      <button class="btn-cancel" 
+              onclick="cancelRowChanges('{{ row.data_hora }}')" 
+              style="display: none;"
+              title="Cancelar alterações">
+        ❌
+      </button>
+      <button class="btn-dismiss" 
+              onclick="dismissRow('{{ row.data_hora }}')" 
+              title="Marcar como desconsiderado">
+        🚫
+      </button>
+      <button class="btn-rotate" 
+              onclick="rotateImage('{{ row.data_hora }}')" 
+              title="Rotacionar imagem" 
+              {% if not row.anexo or row.anexo == 'nan' or row.anexo == '' %}disabled{% endif %}>
+        🔄
+      </button>
+      <button class="btn-reprocess" 
+              onclick="reprocessAI('{{ row.data_hora }}')" 
+              title="Reprocessar com IA" 
+              {% if not row.anexo or row.anexo == 'nan' or row.anexo == '' %}disabled{% endif %}>
+        🤖
+      </button>
+    </div>
   </td>
   {% endif %}
 </tr>

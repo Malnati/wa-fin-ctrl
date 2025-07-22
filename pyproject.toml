@@ -2,12 +2,12 @@
 # Caminho relativo ao projeto: pyproject.toml
 # Configuração do Poetry para gerenciamento de dependências do projeto
 [tool.poetry]
-name = "gastos-tia-claudia"
+name = "wa-fin-ctrl"
 version = "0.1.0"
-description = "Sistema de processamento de comprovantes financeiros"
-authors = ["Your Name <your.email@example.com>"]
+description = "Sistema web de processamento de comprovantes financeiros por WhatsApp"
+authors = ["Ricardo Malnati ricardomalnati@gmail.com"]
 readme = "README.md"
-packages = [{include = "gastos_tia_claudia", from = "src"}]
+packages = [{include = "wa-fin-ctrl", from = "src"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
@@ -22,6 +22,9 @@ pdf2image = "*"
 pdfplumber = "*"
 click = "*"
 jinja2 = "^3.1.6"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.29.0"}
+python-multipart = "^0.0.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"

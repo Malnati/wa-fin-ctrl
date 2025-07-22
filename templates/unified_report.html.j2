@@ -69,7 +69,7 @@
     {% endfor %}
   {% else %}
     {% for row in rows %}
-      {{ render_row(row, loop.index0, attrs) }}
+      {{ render_row(row, loop.index0, attrs, is_editable=is_editable) }}
     {% endfor %}
   {% endif %}
 {% endblock %}

@@ -4,8 +4,8 @@
 import os
 import re
 from openai import OpenAI
-from helper import convert_to_brazilian_format
-from env import *
+from .helper import convert_to_brazilian_format
+from .env import *
 
 def extract_total_value_with_chatgpt(ocr_text):
     try:
@@ -39,7 +39,8 @@ def extract_total_value_with_chatgpt(ocr_text):
         valor = re.sub(r'[^\d,.]', '', valor)
         if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
             return ""
-        valor_brasileiro = convert_to_brazilian_format(valor)
+        from .helper import normalize_value_to_brazilian_format
+        valor_brasileiro = normalize_value_to_brazilian_format(valor)
         return valor_brasileiro
     except Exception as e:
         return ""

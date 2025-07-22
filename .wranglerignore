@@ -12,15 +12,15 @@ __pycache__/
 # Arquivos de configuração do Python
 pyproject.toml
 poetry.lock
-app.py
-app.sh
+wa-fin.py
+src/
 
 # Diretórios de trabalho
 tmp/
 massa/
 input/
 imgs/
-docs/
+# docs/ - manter no controle de versão para relatórios HTML
 
 # Logs e backups
 *.log

@@ -7,6 +7,6 @@
 
 {% block table_body %}
   {% for row in rows %}
-    {{ render_row(row, loop.index0, attrs) }}
+    {{ render_row(row, loop.index0, attrs, is_editable=false) }}
   {% endfor %}
 {% endblock %} 

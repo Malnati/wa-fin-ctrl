@@ -8,8 +8,8 @@ import subprocess
 import xml.etree.ElementTree as ET
 import re
 from pathlib import Path
-from env import *
-from template import TemplateRenderer
+from .env import *
+from .template import TemplateRenderer
 
 def _carregar_ocr_map():
     """Carrega o mapeamento de arquivos para textos OCR do arquivo extract.xml."""
@@ -78,8 +78,12 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
     print(f"DEBUG: Valor original: '{valor}'")
     
     # Se o valor não está nas colunas RICARDO ou RAFAEL, extrair do texto OCR
-    if (not ricardo or ricardo.lower() in ['nan', '']) and (not rafael or rafael.lower() in ['nan', '']):
-        print(f"DEBUG: Campos RICARDO e RAFAEL estão vazios, tentando extrair do OCR")
+    # MAS apenas se não houver um valor já corrigido na coluna VALOR
+    valor_corrigido = str(row.get('VALOR', '')).strip()
+    tem_valor_corrigido = valor_corrigido and valor_corrigido.lower() not in ['nan', '']
+    
+    if (not ricardo or ricardo.lower() in ['nan', '']) and (not rafael or rafael.lower() in ['nan', '']) and not tem_valor_corrigido:
+        print(f"DEBUG: Campos RICARDO e RAFAEL estão vazios e não há valor corrigido, tentando extrair do OCR")
         # Tentar extrair valor do texto OCR
         import re
         valor_ocr = None
@@ -138,10 +142,10 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         for padrao in padroes_valor:
             match = re.search(padrao, texto_ocr, re.IGNORECASE)
             if match:
-                valor_encontrado = match.group(1).replace('.', '').replace(',', '.')
+                valor_encontrado = match.group(1)
                 try:
-                    float(valor_encontrado)
-                    valor_ocr = valor_encontrado
+                    from .helper import normalize_value_to_brazilian_format
+                    valor_ocr = normalize_value_to_brazilian_format(valor_encontrado)
                     print(f"DEBUG: Valor extraído '{valor_ocr}' do texto OCR para remetente '{remetente}'")
                     break
                 except ValueError:
@@ -176,46 +180,37 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         print(f"DEBUG: Campos RICARDO ou RAFAEL já têm valores")
     
     # Após toda a lógica de atribuição, garantir que ricardo/rafael recebam o valor extraído
-    # Se o remetente for Ricardo e ricardo está vazio, mas valor foi extraído, atribuir
-    if remetente == 'ricardo' and (not ricardo or ricardo.lower() in ['nan', '']):
-        if valor and valor.lower() not in ['nan', '']:
-            ricardo = valor
-    # Se o remetente for Rafael e rafael está vazio, mas valor foi extraído, atribuir
-    if remetente == 'rafael' and (not rafael or rafael.lower() in ['nan', '']):
-        if valor and valor.lower() not in ['nan', '']:
-            rafael = valor
+    # MAS priorizar valores já corrigidos na coluna VALOR
+    if tem_valor_corrigido:
+        # Se há um valor corrigido, usar ele para a coluna apropriada
+        if remetente == 'ricardo':
+            ricardo = valor_corrigido
+            print(f"DEBUG: Valor corrigido {valor_corrigido} atribuído à coluna RICARDO")
+        elif remetente == 'rafael':
+            rafael = valor_corrigido
+            print(f"DEBUG: Valor corrigido {valor_corrigido} atribuído à coluna RAFAEL")
+        else:
+            # Se não conseguiu identificar remetente, usar o valor corrigido
+            valor = valor_corrigido
+            print(f"DEBUG: Valor corrigido {valor_corrigido} usado como valor geral")
+    else:
+        # Se não há valor corrigido, usar a lógica original
+        if remetente == 'ricardo' and (not ricardo or ricardo.lower() in ['nan', '']):
+            if valor and valor.lower() not in ['nan', '']:
+                ricardo = valor
+        # Se o remetente for Rafael e rafael está vazio, mas valor foi extraído, atribuir
+        if remetente == 'rafael' and (not rafael or rafael.lower() in ['nan', '']):
+            if valor and valor.lower() not in ['nan', '']:
+                rafael = valor
     
     # Função utilitária para limpar valores monetários
     def limpar_valor(valor):
         if not valor:
             return ''
-        valor = str(valor).replace('R$', '').replace(' ', '')
-        # Se já é um número float válido, apenas formata
-        try:
-            float_valor = float(valor)
-            return f"{float_valor:.2f}"
-        except ValueError:
-            # Se não é float válido, tenta converter formato brasileiro
-            try:
-                # Remove pontos de milhares e converte vírgula para ponto
-                valor_limpo = valor.replace('.', '').replace(',', '.')
-                float_valor = float(valor_limpo)
-                return f"{float_valor:.2f}"
-            except Exception:
-                # Se ainda não conseguiu, tenta outros formatos
-                try:
-                    # Remove todos os caracteres não numéricos exceto ponto e vírgula
-                    valor_limpo = re.sub(r'[^\d.,]', '', valor)
-                    if ',' in valor_limpo and '.' in valor_limpo:
-                        # Se tem ambos, assume que vírgula é decimal e ponto é milhares
-                        valor_limpo = valor_limpo.replace('.', '').replace(',', '.')
-                    elif ',' in valor_limpo:
-                        # Se só tem vírgula, assume que é decimal
-                        valor_limpo = valor_limpo.replace(',', '.')
-                    float_valor = float(valor_limpo)
-                    return f"{float_valor:.2f}"
-                except Exception:
-                    return valor
+        
+        from .helper import normalize_value_to_brazilian_format
+        valor_limpo = normalize_value_to_brazilian_format(valor)
+        return valor_limpo
 
     ricardo = limpar_valor(ricardo)
     rafael = limpar_valor(rafael)
@@ -261,7 +256,9 @@ def _preparar_linhas_impressao(df_mes):
     """Prepara os dados para o template de impressão."""
     def to_float(v):
         try:
-            return float(str(v).replace('.', '').replace(',', '.'))
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(v)
+            return float(valor_brasileiro.replace(',', '.'))
         except:
             return 0.0
     
@@ -276,12 +273,18 @@ def _preparar_linhas_impressao(df_mes):
         
         classificacao = str(row.get('CLASSIFICACAO', ''))
         if classificacao.lower() == 'transferência':
-            receitas = f"{valor:.2f}"
+            receitas = f"{valor:.2f}".replace('.', ',')
             despesas = ''
             saldo += valor
-        else:
+        elif classificacao.lower() == 'desconhecido':
+            # Registros desconhecidos são tratados como despesas (pagamentos não identificados)
             receitas = ''
-            despesas = f"{valor:.2f}"
+            despesas = f"{valor:.2f}".replace('.', ',')
+            saldo -= valor
+        else:
+            # Pagamentos e outros tipos
+            receitas = ''
+            despesas = f"{valor:.2f}".replace('.', ',')
             saldo -= valor
         
         rows.append({
@@ -290,7 +293,7 @@ def _preparar_linhas_impressao(df_mes):
             'descricao': descricao,
             'receitas': receitas,
             'despesas': despesas,
-            'saldo': f"{saldo:.2f}"
+            'saldo': f"{saldo:.2f}".replace('.', ',')
         })
     
     return rows
@@ -302,9 +305,9 @@ def _calcular_totalizadores_pessoas(rows):
         if not valor_str or valor_str.lower() in ['nan', '']:
             return 0.0
         try:
-            # Remove R$ e espaços, converte vírgula para ponto
-            valor_limpo = str(valor_str).replace('R$', '').replace(' ', '').replace(',', '.')
-            return float(valor_limpo)
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(valor_str)
+            return float(valor_brasileiro.replace(',', '.'))
         except (ValueError, TypeError):
             return 0.0
     
@@ -325,23 +328,28 @@ def _calcular_totalizadores_pessoas(rows):
         total_rafael += valor_rafael
     
     return {
-        'ricardo': f"{total_ricardo:.2f}",
-        'rafael': f"{total_rafael:.2f}",
+        'ricardo': f"{total_ricardo:.2f}".replace('.', ','),
+        'rafael': f"{total_rafael:.2f}".replace('.', ','),
         'ricardo_float': total_ricardo,
         'rafael_float': total_rafael
     }
 
-def gerar_relatorio_html(csv_path):
+def gerar_relatorio_html(csv_path, backup=True):
     print(f"DEBUG: Iniciando gerar_relatorio_html com csv_path: {csv_path}")
     try:
         if not os.path.exists(csv_path):
             print(f"❌ O relatório report.html não foi gerado pela ausência da planilha de cálculos ({csv_path})")
             return
-        if os.path.exists("report.html"):
+        
+        report_path = os.path.join(ATTR_FIN_DIR_DOCS, "report.html")
+        if os.path.exists(report_path) and backup:
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
             arquivo_backup = f"report-{timestamp}.bak"
-            os.rename("report.html", arquivo_backup)
+            os.rename(report_path, arquivo_backup)
             print(f"📁 Relatório anterior renomeado para: {arquivo_backup}")
+        elif os.path.exists(report_path) and not backup:
+            os.remove(report_path)
+            print("🗑️ Relatório anterior removido (backup desabilitado)")
         print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
         
         # Carregar dados OCR
@@ -363,17 +371,18 @@ def gerar_relatorio_html(csv_path):
             "rows": rows,
             "tem_motivo": tem_motivo,
             "totalizadores": totalizadores,
+            "is_editable": False,  # Relatório geral é apenas para visualização
             "attrs": {
                 "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
                 "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
             }
         }
         
-        print(f"DEBUG: Chamando TemplateRenderer.render com output_path: report.html")
+        print(f"DEBUG: Chamando TemplateRenderer.render com output_path: {report_path}")
         TemplateRenderer.render(
             template_name="unified_report.html.j2",
             context=context,
-            output_path="report.html"
+            output_path=report_path
         )
         print("✅ Relatório HTML gerado: report.html")
         
@@ -382,18 +391,20 @@ def gerar_relatorio_html(csv_path):
         
         # Detecta relatórios mensais disponíveis
         monthly_reports = []
-        for file in os.listdir("."):
-            if file.startswith("report-") and file.endswith(".html"):
-                # Extrai informações do nome do arquivo: report-2025-04-Abril.html
-                match = re.match(r"report-(\d{4})-(\d{2})-(.+)\.html", file)
-                if match:
-                    year = match.group(1)
-                    month = match.group(3)
-                    display_name = f"📅 {month} {year}"
-                    monthly_reports.append({
-                        "filename": file,
-                        "display_name": display_name
-                    })
+        docs_dir = ATTR_FIN_DIR_DOCS
+        if os.path.exists(docs_dir):
+            for file in os.listdir(docs_dir):
+                if file.startswith("report-") and file.endswith(".html"):
+                    # Extrai informações do nome do arquivo: report-2025-04-Abril.html
+                    match = re.match(r"report-(\d{4})-(\d{2})-(.+)\.html", file)
+                    if match:
+                        year = match.group(1)
+                        month = match.group(3)
+                        display_name = f"📅 {month} {year}"
+                        monthly_reports.append({
+                            "filename": file,
+                            "display_name": display_name
+                        })
         
         # Ordena por data (mais recente primeiro)
         monthly_reports.sort(key=lambda x: x["filename"], reverse=True)
@@ -404,17 +415,22 @@ def gerar_relatorio_html(csv_path):
         }
         
         # Renderiza o template
+        index_path = os.path.join(ATTR_FIN_DIR_DOCS, "index.html")
         TemplateRenderer.render(
             template_name="index.html.j2",
             context=index_context,
-            output_path="index.html"
+            output_path=index_path
         )
         print("✅ Página de entrada gerada: index.html")
         
         # Validação OCR
         print("🔍 Validando conformidade OCR...")
         try:
-            subprocess.run(['python', 'check.py', csv_path], check=True)
+            # Executa o check.py usando o caminho correto
+            import sys
+            from pathlib import Path
+            check_script = Path(__file__).parent / 'check.py'
+            subprocess.run([sys.executable, str(check_script), csv_path], check=True)
             print("✅ Validação OCR concluída com sucesso")
         except subprocess.CalledProcessError:
             print("❌ Falha na validação OCR - verifique as linhas sem OCR")
@@ -423,25 +439,24 @@ def gerar_relatorio_html(csv_path):
     except Exception as e:
         print(f"❌ Erro ao gerar relatório HTML: {str(e)}")
 
-def gerar_relatorios_mensais_html(csv_path):
+def gerar_relatorios_mensais_html(csv_path, backup=True):
+    print(f"📅 Gerando relatórios mensais HTML baseado em {csv_path}...")
     try:
         if not os.path.exists(csv_path):
-            print(f"❌ Arquivo {csv_path} não encontrado para gerar relatórios mensais")
+            print(f"❌ Relatórios mensais não foram gerados pela ausência da planilha de cálculos ({csv_path})")
             return
-        print(f"📅 Gerando relatórios mensais baseados em {csv_path}...")
         
         # Carregar dados OCR
         ocr_map = _carregar_ocr_map()
         
+        # Carregar dados
         df = pd.read_csv(csv_path)
         df['DATA_DT'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
-        df = df.dropna(subset=['DATA_DT'])
-        if len(df) == 0:
-            print("⚠️  Nenhum dado com data válida encontrado")
-            return
-        
         df['ANO_MES'] = df['DATA_DT'].dt.to_period('M')
+        
+        # Agrupar por mês
         grupos_mensais = df.groupby('ANO_MES')
+        
         nomes_meses = {
             1: 'Janeiro', 2: 'Fevereiro', 3: 'Marco', 4: 'Abril',
             5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
@@ -449,6 +464,7 @@ def gerar_relatorios_mensais_html(csv_path):
         }
         
         relatorios_gerados = 0
+        
         for periodo, dados_mes in grupos_mensais:
             ano = periodo.year
             mes = periodo.month
@@ -457,11 +473,15 @@ def gerar_relatorios_mensais_html(csv_path):
             
             # Relatório mensal normal
             nome_arquivo = f"report-{ano}-{mes:02d}-{nome_mes}.html"
-            if os.path.exists(nome_arquivo):
+            arquivo_path = os.path.join(ATTR_FIN_DIR_DOCS, nome_arquivo)
+            if os.path.exists(arquivo_path) and backup:
                 timestamp = pd.Timestamp.now().strftime('%Y%m%d')
                 arquivo_backup = f"report-{ano}-{mes:02d}-{nome_mes}-{timestamp}.bak"
-                os.rename(nome_arquivo, arquivo_backup)
+                os.rename(arquivo_path, arquivo_backup)
                 print(f"📁 Relatório mensal anterior renomeado para: {arquivo_backup}")
+            elif os.path.exists(arquivo_path) and not backup:
+                os.remove(arquivo_path)
+                print(f"🗑️ Relatório mensal anterior removido: {nome_arquivo} (backup desabilitado)")
             
             tem_motivo = False  # Removendo a coluna "Motivo do Erro" de todos os relatórios
             rows = []
@@ -478,18 +498,20 @@ def gerar_relatorios_mensais_html(csv_path):
                 "tem_motivo": tem_motivo,
                 "totalizadores": totalizadores,
                 "edit_link": f"report-edit-{ano}-{mes:02d}-{nome_mes}.html",
+                "is_editable": False,  # Relatório mensal normal é apenas para visualização
                 "attrs": {
                     "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
                     "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
                 }
             }
             
-            TemplateRenderer.render("unified_report.html.j2", context, nome_arquivo)
+            TemplateRenderer.render("unified_report.html.j2", context, arquivo_path)
             relatorios_gerados += 1
             print(f"✅ Relatório mensal gerado: {nome_arquivo}")
             
             # Relatório mensal editável (sem botão de edição)
             nome_arquivo_edit = f"report-edit-{ano}-{mes:02d}-{nome_mes}.html"
+            arquivo_edit_path = os.path.join(ATTR_FIN_DIR_DOCS, nome_arquivo_edit)
             context_edit = {
                 "periodo": f"{nome_mes} {ano}",
                 "timestamp": pd.Timestamp.now().strftime('%d/%m/%Y às %H:%M:%S'),
@@ -497,12 +519,13 @@ def gerar_relatorios_mensais_html(csv_path):
                 "tem_motivo": tem_motivo,
                 "totalizadores": totalizadores,
                 # Não incluir edit_link para relatórios de edição
+                "is_editable": True,  # Relatório editável tem funcionalidades de edição
                 "attrs": {
                     "INPUT_DIR_PATH": ATTR_FIN_DIR_INPUT,
                     "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS
                 }
             }
-            TemplateRenderer.render("unified_report.html.j2", context_edit, nome_arquivo_edit)
+            TemplateRenderer.render("unified_report.html.j2", context_edit, arquivo_edit_path)
             print(f"✅ Relatório mensal editável gerado: {nome_arquivo_edit}")
         
         print(f"📅 Total de relatórios mensais gerados: {relatorios_gerados}")
@@ -510,7 +533,11 @@ def gerar_relatorios_mensais_html(csv_path):
         # Validação OCR
         print("🔍 Validando conformidade OCR...")
         try:
-            subprocess.run(['python', 'check.py', csv_path], check=True)
+            # Executa o check.py usando o caminho correto
+            import sys
+            from pathlib import Path
+            check_script = Path(__file__).parent / 'check.py'
+            subprocess.run([sys.executable, str(check_script), csv_path], check=True)
             print("✅ Validação OCR concluída com sucesso")
         except subprocess.CalledProcessError:
             print("❌ Falha na validação OCR - verifique as linhas sem OCR")

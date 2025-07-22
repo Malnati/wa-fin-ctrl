@@ -16,7 +16,7 @@ from openai import OpenAI
 import base64
 from pathlib import Path
 import json
-from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html, gerar_html_impressao
+from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html, gerar_html_impressao
 # Adiciona imports para PDF
 try:
     import pdfplumber
@@ -25,46 +25,9 @@ except ImportError:
     pdfplumber = None
     convert_from_path = None
 
-from ocr import registrar_ocr_xml, process_image_ocr
-from env import *
-
-def convert_to_brazilian_format(valor):
-    """Converte valor do formato americano para brasileiro se necessário"""
-    if not valor or not re.match(r'^\d+([.,]\d+)?$', valor):
-        return valor
-    
-    # Se tem ponto mas não tem vírgula, pode ser formato americano
-    if '.' in valor and ',' not in valor:
-        partes = valor.split('.')
-        if len(partes) == 2:
-            # Se a parte decimal tem 2 dígitos, é valor decimal (ex: 7698.18 -> 7.698,18)
-            if len(partes[1]) == 2:
-                # Converte para formato brasileiro
-                inteira = partes[0]
-                decimal = partes[1]
-                
-                # Adiciona separadores de milhares se necessário
-                if len(inteira) > 3:
-                    # Formata a parte inteira com pontos para milhares
-                    inteira_formatada = ""
-                    for i, digito in enumerate(inteira[::-1]):
-                        if i > 0 and i % 3 == 0:
-                            inteira_formatada = "." + inteira_formatada
-                        inteira_formatada = digito + inteira_formatada
-                    return f"{inteira_formatada},{decimal}"
-                else:
-                    return f"{inteira},{decimal}"
-            
-            # Se a parte depois do ponto tem 3 dígitos, já é formato de milhares
-            elif len(partes[1]) == 3:
-                return valor  # Mantém como está (ex: 1.000)
-    
-    # Se tem vírgula, já está no formato brasileiro
-    if ',' in valor:
-        return valor
-    
-    # Se só tem números, mantém como está
-    return valor
+from .ocr import registrar_ocr_xml, process_image_ocr
+from .env import *
+from .helper import convert_to_brazilian_format
 
 def extract_value_from_ocr(ocr_text):
     """Extrai valor monetário do texto OCR usando expressões regulares"""
@@ -110,8 +73,9 @@ def extract_value_from_ocr(ocr_text):
     valores_float = []
     for valor in valores_encontrados:
         try:
-            # Converte para float (formato brasileiro)
-            valor_float = float(valor.replace('.', '').replace(',', '.'))
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(valor)
+            valor_float = float(valor_brasileiro.replace(',', '.'))
             valores_float.append(valor_float)
         except ValueError:
             continue
@@ -121,7 +85,7 @@ def extract_value_from_ocr(ocr_text):
     
     # Retorna o maior valor encontrado
     maior_valor = max(valores_float)
-    return f"{maior_valor:.2f}"
+    return f"{maior_valor:.2f}".replace('.', ',')
 
 
 def is_financial_receipt(ocr_text):
@@ -199,8 +163,9 @@ def extract_total_value_with_chatgpt(ocr_text):
         if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
             return ""
         
-        # Converte para formato brasileiro se necessário
-        valor_brasileiro = convert_to_brazilian_format(valor)
+        # Converte para formato brasileiro padronizado
+        from .helper import normalize_value_to_brazilian_format
+        valor_brasileiro = normalize_value_to_brazilian_format(valor)
         
         return valor_brasileiro
         
@@ -538,7 +503,9 @@ def adicionar_totalizacao_mensal(df):
         if pd.isna(value) or value == '':
             return 0.0
         try:
-            return float(str(value).replace(',', '.'))
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(value)
+            return float(valor_brasileiro.replace(',', '.'))
         except:
             return 0.0
     
@@ -580,8 +547,8 @@ def adicionar_totalizacao_mensal(df):
                 'HORA': '23:59:00',
                 'REMETENTE': 'TOTAL MÊS',
                 'CLASSIFICACAO': 'TOTAL',
-                'RICARDO': f'{total_ricardo:.2f}'.replace('.', ',') if total_ricardo > 0 else '',
-                'RAFAEL': f'{total_rafael:.2f}'.replace('.', ',') if total_rafael > 0 else '',
+                'RICARDO': f'{total_ricardo:.2f}' if total_ricardo > 0 else '',
+                'RAFAEL': f'{total_rafael:.2f}' if total_rafael > 0 else '',
                 'ANEXO': f'TOTAL_{mes:02d}_{ano}',
                 'DESCRICAO': f'Total do mês {mes:02d}/{ano}',
                 'VALOR': '',
@@ -719,6 +686,7 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
                 # Extrai valor total - primeiro tenta OCR, depois IA como fallback
                 valor_total = ""
                 ai_used = False
+                classificacao_final = ""
                 
                 if is_receipt:
                     # Primeiro tenta extrair valor via regex do OCR
@@ -729,6 +697,17 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
                         valor_total = extract_total_value_with_chatgpt(ocr_result)
                         ai_used = True
                         print(f"  - IA usada para extração de valor (OCR não encontrou)")
+                    
+                    # Se ainda não encontrou valor, tenta com a imagem + OCR
+                    if not valor_total:
+                        print(f"  - Tentando processamento com imagem + OCR via IA...")
+                        valor_total, classificacao_final = process_image_with_ai_for_value(caminho_input, ocr_result)
+                        ai_used = True
+                        if valor_total:
+                            print(f"  - Valor identificado via IA com imagem: {valor_total}")
+                        else:
+                            print(f"  - IA não conseguiu identificar valor, classificando como desconhecido")
+                            classificacao_final = "desconhecido"
                     
                     # Marca na coluna VALIDADE se IA foi usada
                     if ai_used:
@@ -745,7 +724,13 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
                 
                 # Classifica o tipo de transação usando ChatGPT
                 print(f"Classificando transação: {row['ANEXO']}")
-                classificacao = classify_transaction_type_with_chatgpt(ocr_result)
+                if classificacao_final:
+                    # Usa a classificação retornada pela IA com imagem
+                    classificacao = classificacao_final
+                    print(f"  - Classificação definida pela IA com imagem: {classificacao}")
+                else:
+                    # Usa a classificação padrão do ChatGPT
+                    classificacao = classify_transaction_type_with_chatgpt(ocr_result)
                 df_anexos.at[idx, 'CLASSIFICACAO'] = classificacao
                 
                 # Adiciona o valor à coluna do remetente correspondente APENAS para transferências
@@ -781,7 +766,9 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
         if pd.isna(value) or value == '':
             return 0.0
         try:
-            return float(str(value).replace(',', '.'))
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(value)
+            return float(valor_brasileiro.replace(',', '.'))
         except:
             return 0.0
     
@@ -810,7 +797,9 @@ def verificar_totais(csv_file):
             if pd.isna(value) or value == '':
                 return 0.0
             try:
-                return float(str(value).replace(',', '.'))
+                from .helper import normalize_value_to_brazilian_format
+                valor_brasileiro = normalize_value_to_brazilian_format(value)
+                return float(valor_brasileiro.replace(',', '.'))
             except:
                 return 0.0
 
@@ -828,16 +817,19 @@ def verificar_totais(csv_file):
         print('=== DISTRIBUIÇÃO POR TIPO ===')
         transferencias = df[df['CLASSIFICACAO'] == 'Transferência']
         pagamentos = df[df['CLASSIFICACAO'] == 'Pagamento']
+        desconhecidos = df[df['CLASSIFICACAO'] == 'desconhecido']
 
         transferencia_total = transferencias['VALOR'].apply(convert_to_float).sum()
         pagamento_total = pagamentos['VALOR'].apply(convert_to_float).sum()
+        desconhecido_total = desconhecidos['VALOR'].apply(convert_to_float).sum()
 
         print(f'Total em Transferências: R$ {transferencia_total:.2f}')
         print(f'Total em Pagamentos: R$ {pagamento_total:.2f}')
-        print(f'Verificação: {transferencia_total + pagamento_total:.2f} = {valor_total:.2f}')
+        print(f'Total em Desconhecidos: R$ {desconhecido_total:.2f}')
+        print(f'Verificação: {transferencia_total + pagamento_total + desconhecido_total:.2f} = {valor_total:.2f}')
         
         # Verificação de consistência
-        if abs((transferencia_total + pagamento_total) - valor_total) < 0.01:
+        if abs((transferencia_total + pagamento_total + desconhecido_total) - valor_total) < 0.01:
             print("✅ Verificação: Totais consistentes!")
         else:
             print("❌ Aviso: Diferença detectada nos totais!")
@@ -882,7 +874,7 @@ def diagnostico_erro_ocr(image_path, ocr_result):
         return "Falha no OCR"
     return "Sem diagnóstico detalhado"
 
-def processar_incremental(force=False, entry=None):
+def processar_incremental(force=False, entry=None, backup=False):
     """Função principal para processamento incremental ou forçado, agora com filtro opcional de entry (DATA HORA)"""
     print("=== INICIANDO PROCESSAMENTO {} ===".format("FORÇADO" if force else "INCREMENTAL"))
     if entry:
@@ -892,6 +884,12 @@ def processar_incremental(force=False, entry=None):
         except Exception:
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
+    
+    # Se backup foi solicitado, cria backups antes do processamento
+    if backup:
+        print("=== CRIANDO BACKUPS ===")
+        criar_backups_antes_processamento()
+    
     edits_json = carregar_edits_json()
     if edits_json:
         print(f"Edições encontradas em arquivos JSON de {ATTR_FIN_DIR_INPUT}/: aplicando após confirmação.")
@@ -946,8 +944,8 @@ def processar_incremental(force=False, entry=None):
         if not tem_arquivos:
             print("Nenhum arquivo novo para processar.")
             print("\n=== GERANDO RELATÓRIO HTML ===")
-            gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
-            gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+            gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
+            gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
             return
         print(f"\n=== PROCESSANDO DADOS DE {chat_file} ===")
         print("=== PROCESSANDO DADOS COMPLETOS ===")
@@ -1008,9 +1006,9 @@ def processar_incremental(force=False, entry=None):
                 df_calc.to_csv(ATTR_FIN_ARQ_CALCULO, index=False, quoting=1)
                 print(f"Edições aplicadas em {ATTR_FIN_ARQ_CALCULO}.")
     print("\n=== GERANDO RELATÓRIO HTML ===")
-    gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+    gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
-    gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+    gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
     df_all = pd.read_csv(ATTR_FIN_ARQ_CALCULO)
     df_all['DATA_DT'] = pd.to_datetime(df_all['DATA'], format='%d/%m/%Y', errors='coerce')
     df_all['ANO_MES'] = df_all['DATA_DT'].dt.to_period('M')
@@ -1023,10 +1021,10 @@ def processar_incremental(force=False, entry=None):
         ano = periodo.year
         mes = periodo.month
         nome_mes = nomes_meses.get(mes, str(mes))
-        nome_arquivo_impressao = f"impressao-{ano}-{mes:02d}-{nome_mes}.html"
+        nome_arquivo_impressao = os.path.join(ATTR_FIN_DIR_DOCS, f"impressao-{ano}-{mes:02d}-{nome_mes}.html")
         print(f"✅ HTML de impressão gerado: {nome_arquivo_impressao}")
 
-def processar_pdfs(force=False, entry=None):
+def processar_pdfs(force=False, entry=None, backup=False):
     """Processa apenas arquivos .pdf no diretório input/."""
     print("=== INICIANDO PROCESSAMENTO DE PDFs {} ===".format("FORÇADO" if force else "INCREMENTAL"))
     if entry:
@@ -1036,6 +1034,11 @@ def processar_pdfs(force=False, entry=None):
         except Exception:
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
+    
+    # Se backup foi solicitado, cria backups antes do processamento
+    if backup:
+        print("=== CRIANDO BACKUPS ===")
+        criar_backups_antes_processamento()
     
     input_dir = Path(ATTR_FIN_DIR_INPUT)
     
@@ -1062,18 +1065,53 @@ def processar_pdfs(force=False, entry=None):
         # Registra no XML (usar só o nome do arquivo)
         registrar_ocr_xml(os.path.basename(str(pdf_path)), ocr_text)
         
-        # Extrai valor total usando ChatGPT
-        valor_total = extract_total_value_with_chatgpt(ocr_text)
+        # Verifica se é um comprovante financeiro
+        is_receipt = is_financial_receipt(ocr_text)
+        
+        # Extrai valor total - primeiro tenta OCR, depois IA como fallback
+        valor_total = ""
+        ai_used = False
+        classificacao_final = ""
+        
+        if is_receipt:
+            # Primeiro tenta extrair valor via regex do OCR
+            valor_total = extract_value_from_ocr(ocr_text)
+            
+            # Se não encontrou valor via OCR, usa IA como fallback
+            if not valor_total:
+                valor_total = extract_total_value_with_chatgpt(ocr_text)
+                ai_used = True
+                print(f"  - IA usada para extração de valor (OCR não encontrou)")
+            
+            # Se ainda não encontrou valor, tenta com a imagem + OCR
+            if not valor_total:
+                print(f"  - Tentando processamento com imagem + OCR via IA...")
+                valor_total, classificacao_final = process_image_with_ai_for_value(str(pdf_path), ocr_text)
+                ai_used = True
+                if valor_total:
+                    print(f"  - Valor identificado via IA com imagem: {valor_total}")
+                else:
+                    print(f"  - IA não conseguiu identificar valor, classificando como desconhecido")
+                    classificacao_final = "desconhecido"
+        else:
+            print(f"  - Não identificado como comprovante financeiro")
         
         # Gera descrição do pagamento usando ChatGPT
         descricao = generate_payment_description_with_chatgpt(ocr_text)
         
         # Classifica o tipo de transação usando ChatGPT
-        classificacao = classify_transaction_type_with_chatgpt(ocr_text)
+        if classificacao_final:
+            # Usa a classificação retornada pela IA com imagem
+            classificacao = classificacao_final
+            print(f"  - Classificação definida pela IA com imagem: {classificacao}")
+        else:
+            # Usa a classificação padrão do ChatGPT
+            classificacao = classify_transaction_type_with_chatgpt(ocr_text)
         
         print(f"  - Valor: {valor_total}")
         print(f"  - Descrição: {descricao}")
         print(f"  - Classificação: {classificacao}")
+        print(f"  - IA usada: {'Sim' if ai_used else 'Não'}")
     
     # Atualiza {ATTR_FIN_ARQ_CALCULO} apenas com PDFs
     print("\n=== ATUALIZANDO CSV APENAS COM PDFs ===")
@@ -1083,7 +1121,7 @@ def processar_pdfs(force=False, entry=None):
     
     print("✅ Processamento de PDFs concluído!")
 
-def processar_imgs(force=False, entry=None):
+def processar_imgs(force=False, entry=None, backup=False):
     """Processa apenas arquivos de imagem (.jpg, .png, .jpeg) no diretório input/."""
     print("=== INICIANDO PROCESSAMENTO DE IMAGENS {} ===".format("FORÇADO" if force else "INCREMENTAL"))
     if entry:
@@ -1093,6 +1131,11 @@ def processar_imgs(force=False, entry=None):
         except Exception:
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
+    
+    # Se backup foi solicitado, cria backups antes do processamento
+    if backup:
+        print("=== CRIANDO BACKUPS ===")
+        criar_backups_antes_processamento()
     
     input_dir = Path(ATTR_FIN_DIR_INPUT)
     
@@ -1126,6 +1169,7 @@ def processar_imgs(force=False, entry=None):
         # Extrai valor total - primeiro tenta OCR, depois IA como fallback
         valor_total = ""
         ai_used = False
+        classificacao_final = ""
         
         if is_receipt:
             # Primeiro tenta extrair valor via regex do OCR
@@ -1136,6 +1180,17 @@ def processar_imgs(force=False, entry=None):
                 valor_total = extract_total_value_with_chatgpt(ocr_text)
                 ai_used = True
                 print(f"  - IA usada para extração de valor (OCR não encontrou)")
+            
+            # Se ainda não encontrou valor, tenta com a imagem + OCR
+            if not valor_total:
+                print(f"  - Tentando processamento com imagem + OCR via IA...")
+                valor_total, classificacao_final = process_image_with_ai_for_value(str(img_path), ocr_text)
+                ai_used = True
+                if valor_total:
+                    print(f"  - Valor identificado via IA com imagem: {valor_total}")
+                else:
+                    print(f"  - IA não conseguiu identificar valor, classificando como desconhecido")
+                    classificacao_final = "desconhecido"
         else:
             print(f"  - Não identificado como comprovante financeiro")
         
@@ -1143,7 +1198,13 @@ def processar_imgs(force=False, entry=None):
         descricao = generate_payment_description_with_chatgpt(ocr_text)
         
         # Classifica o tipo de transação usando ChatGPT
-        classificacao = classify_transaction_type_with_chatgpt(ocr_text)
+        if classificacao_final:
+            # Usa a classificação retornada pela IA com imagem
+            classificacao = classificacao_final
+            print(f"  - Classificação definida pela IA com imagem: {classificacao}")
+        else:
+            # Usa a classificação padrão do ChatGPT
+            classificacao = classify_transaction_type_with_chatgpt(ocr_text)
         
         print(f"  - Valor: {valor_total}")
         print(f"  - Descrição: {descricao}")
@@ -1344,6 +1405,17 @@ def backup_arquivos_existentes():
             shutil.copy2(arquivo, backup_nome)
             print(f"Backup criado: {backup_nome}")
 
+def criar_backups_antes_processamento():
+    """Cria backups dos arquivos principais antes do processamento"""
+    arquivos_backup = [ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_CALCULO]
+    
+    for arquivo in arquivos_backup:
+        if os.path.exists(arquivo):
+            timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+            backup_nome = f"{arquivo}.{timestamp}.bak"
+            shutil.copy2(arquivo, backup_nome)
+            print(f"📁 Backup criado: {backup_nome}")
+
 def restaurar_arquivos_backup():
     """Restaura arquivos do backup após os testes"""
     arquivos_backup = [ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_CALCULO]
@@ -1496,8 +1568,9 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                 print("❌ Formato de valor inválido. Use: 2,33 ou 2.33")
                 return False
             
-            # Converte valor para formato brasileiro
-            novo_valor = novo_valor.replace('.', '').replace(',', '.')
+            # Converte valor para formato americano padronizado
+            from .helper import parse_value_from_input
+            novo_valor = parse_value_from_input(novo_valor)
             try:
                 float(novo_valor)
             except ValueError:
@@ -1577,17 +1650,29 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                         if 'RICARDO' in df.columns and 'RAFAEL' in df.columns:
                             # Arquivo calculo.csv - verifica qual coluna está vazia
                             if pd.isna(linha['RICARDO']) or str(linha['RICARDO']).lower() in ['nan', '']:
+                                # Converte coluna para string se necessário
+                                if df['RICARDO'].dtype != object:
+                                    df['RICARDO'] = df['RICARDO'].astype(str)
                                 df.at[idx, 'RICARDO'] = novo_valor
                                 coluna_usada = 'RICARDO'
                             elif pd.isna(linha['RAFAEL']) or str(linha['RAFAEL']).lower() in ['nan', '']:
+                                # Converte coluna para string se necessário
+                                if df['RAFAEL'].dtype != object:
+                                    df['RAFAEL'] = df['RAFAEL'].astype(str)
                                 df.at[idx, 'RAFAEL'] = novo_valor
                                 coluna_usada = 'RAFAEL'
                             else:
                                 # Se ambas estão vazias, usa RICARDO por padrão
+                                # Converte coluna para string se necessário
+                                if df['RICARDO'].dtype != object:
+                                    df['RICARDO'] = df['RICARDO'].astype(str)
                                 df.at[idx, 'RICARDO'] = novo_valor
                                 coluna_usada = 'RICARDO'
                         elif 'VALOR' in df.columns:
                             # Arquivo mensagens.csv
+                            # Converte coluna para string se necessário
+                            if df['VALOR'].dtype != object:
+                                df['VALOR'] = df['VALOR'].astype(str)
                             df.at[idx, 'VALOR'] = novo_valor
                             coluna_usada = 'VALOR'
                         else:
@@ -1631,10 +1716,11 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                     
                     # Converte valor original para formato brasileiro para comparação (apenas se novo_valor foi fornecido)
                     if novo_valor:
-                        valor_original_clean = valor_original.replace('.', '').replace(',', '.')
+                        from .helper import normalize_value_to_brazilian_format
+                        valor_original_clean = normalize_value_to_brazilian_format(valor_original)
                         try:
-                            valor_original_float = float(valor_original_clean)
-                            novo_valor_float = float(novo_valor)
+                            valor_original_float = float(valor_original_clean.replace(',', '.'))
+                            novo_valor_float = float(novo_valor.replace(',', '.'))
                         except ValueError:
                             print(f"⚠️  Erro ao converter valores para comparação")
                             continue
@@ -1645,12 +1731,21 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                     # 1. Corrige valor (se fornecido)
                     if novo_valor:
                         if 'RICARDO' in df.columns and linha['RICARDO'] and str(linha['RICARDO']).lower() not in ['nan', '']:
+                            # Converte coluna para string se necessário
+                            if df['RICARDO'].dtype != object:
+                                df['RICARDO'] = df['RICARDO'].astype(str)
                             df.at[idx, 'RICARDO'] = novo_valor
                             alteracoes.append(f"valor: {valor_original} → {novo_valor}")
                         elif 'RAFAEL' in df.columns and linha['RAFAEL'] and str(linha['RAFAEL']).lower() not in ['nan', '']:
+                            # Converte coluna para string se necessário
+                            if df['RAFAEL'].dtype != object:
+                                df['RAFAEL'] = df['RAFAEL'].astype(str)
                             df.at[idx, 'RAFAEL'] = novo_valor
                             alteracoes.append(f"valor: {valor_original} → {novo_valor}")
                         elif 'VALOR' in df.columns and linha['VALOR'] and str(linha['VALOR']).lower() not in ['nan', '']:
+                            # Converte coluna para string se necessário
+                            if df['VALOR'].dtype != object:
+                                df['VALOR'] = df['VALOR'].astype(str)
                             df.at[idx, 'VALOR'] = novo_valor
                             alteracoes.append(f"valor: {valor_original} → {novo_valor}")
                     
@@ -1719,13 +1814,17 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
         
         # Regenera os relatórios
         try:
-            from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-            from env import ATTR_FIN_ARQ_CALCULO
+            from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+            from .env import ATTR_FIN_ARQ_CALCULO
+            print(f"🔄 Regenerando relatório principal...")
             gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+            print(f"🔄 Regenerando relatórios mensais...")
             gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
             print("✅ Relatórios regenerados com sucesso!")
         except Exception as e:
             print(f"⚠️  Erro ao regenerar relatórios: {str(e)}")
+            import traceback
+            traceback.print_exc()
         
         return True
         
@@ -1821,8 +1920,8 @@ def dismiss_entry(data_hora):
             
             # Regenera os relatórios automaticamente
             try:
-                from reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-                from env import ATTR_FIN_ARQ_CALCULO
+                from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+                from .env import ATTR_FIN_ARQ_CALCULO
                 gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
                 gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
                 print("✅ Relatórios regenerados com sucesso!")
@@ -1954,7 +2053,7 @@ def re_submeter_para_chatgpt(arquivo_anexo):
         print(f"🤖 Re-submetendo para ChatGPT: {os.path.basename(arquivo_path)}")
         
         # Processa OCR na imagem rotacionada
-        from ocr import process_image_ocr
+        from .ocr import process_image_ocr
         ocr_text = process_image_ocr(arquivo_path)
         
         if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
@@ -1964,7 +2063,7 @@ def re_submeter_para_chatgpt(arquivo_anexo):
         print(f"📝 Texto extraído via OCR: {ocr_text[:100]}...")
         
         # Re-submete para ChatGPT para extrair valor, descrição e classificação
-        from ia import extract_total_value_with_chatgpt, generate_payment_description_with_chatgpt, classify_transaction_type_with_chatgpt
+        from .ia import extract_total_value_with_chatgpt, generate_payment_description_with_chatgpt, classify_transaction_type_with_chatgpt
         
         # Extrai valor total
         valor_total = extract_total_value_with_chatgpt(ocr_text)
@@ -1988,7 +2087,7 @@ def re_submeter_para_chatgpt(arquivo_anexo):
             print(f"⚠️  IA não conseguiu classificar transação")
         
         # Atualiza o XML de OCR com o novo texto
-        from ocr import registrar_ocr_xml
+        from .ocr import registrar_ocr_xml
         registrar_ocr_xml(os.path.basename(arquivo_path), ocr_text)
         
         print(f"✅ Re-submissão para ChatGPT concluída com sucesso")
@@ -1997,6 +2096,85 @@ def re_submeter_para_chatgpt(arquivo_anexo):
     except Exception as e:
         print(f"❌ Erro na re-submissão para ChatGPT: {str(e)}")
         return False
+
+def process_image_with_ai_for_value(image_path, ocr_text):
+    """Processa uma imagem com IA para identificar valor quando OCR não conseguiu"""
+    try:
+        # Verifica se a chave da API está disponível
+        api_key = ATTR_FIN_OPENAI_API_KEY
+        if not api_key:
+            return "", "desconhecido"
+        
+        # Verifica se há texto para processar
+        if not ocr_text or ocr_text in ["Arquivo não encontrado", "Erro ao carregar imagem", "Nenhum texto detectado"]:
+            return "", "desconhecido"
+        
+        # Inicializa o cliente OpenAI
+        client = OpenAI(api_key=api_key)
+        
+        # Codifica a imagem em base64
+        with open(image_path, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+        
+        # Prompt para o ChatGPT com a imagem
+        prompt = f"""
+        Analise esta imagem de comprovante financeiro e o texto extraído via OCR.
+        
+        Texto OCR: {ocr_text}
+        
+        Instruções:
+        1. Identifique APENAS o valor total da transação
+        2. Se houver múltiplos valores, retorne o valor da transação principal
+        3. Se não conseguir identificar um valor, retorne "NENHUM"
+        4. Não inclua "R$" ou outros símbolos
+        5. Não retorne explicações, apenas o número
+        
+        Valor total:
+        """
+        
+        # Chama a API do ChatGPT com a imagem
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",  # Usa modelo que suporta imagens
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": prompt
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{encoded_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=50,
+            temperature=0.1
+        )
+        
+        # Extrai a resposta
+        valor = response.choices[0].message.content.strip()
+        
+        # Limpa a resposta removendo caracteres indesejados
+        valor = re.sub(r'[^\d,.]', '', valor)
+        
+        # Se não encontrou valor válido, retorna vazio e classifica como desconhecido
+        if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
+            return "", "desconhecido"
+        
+        # Converte para formato brasileiro padronizado
+        from .helper import normalize_value_to_brazilian_format
+        valor_brasileiro = normalize_value_to_brazilian_format(valor)
+        
+        return valor_brasileiro, "Pagamento"  # Assume como pagamento se encontrou valor
+        
+    except Exception as e:
+        print(f"Erro ao processar imagem com IA: {str(e)}")
+        return "", "desconhecido"
 
 
 
