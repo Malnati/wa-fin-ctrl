@@ -144,8 +144,8 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
             if match:
                 valor_encontrado = match.group(1)
                 try:
-                    from .helper import normalize_value_to_american_format
-                    valor_ocr = normalize_value_to_american_format(valor_encontrado)
+                    from .helper import normalize_value_to_brazilian_format
+                    valor_ocr = normalize_value_to_brazilian_format(valor_encontrado)
                     print(f"DEBUG: Valor extraído '{valor_ocr}' do texto OCR para remetente '{remetente}'")
                     break
                 except ValueError:
@@ -208,8 +208,8 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         if not valor:
             return ''
         
-        from .helper import normalize_value_to_american_format
-        valor_limpo = normalize_value_to_american_format(valor)
+        from .helper import normalize_value_to_brazilian_format
+        valor_limpo = normalize_value_to_brazilian_format(valor)
         return valor_limpo
 
     ricardo = limpar_valor(ricardo)
@@ -256,9 +256,9 @@ def _preparar_linhas_impressao(df_mes):
     """Prepara os dados para o template de impressão."""
     def to_float(v):
         try:
-            from .helper import normalize_value_to_american_format
-            valor_americano = normalize_value_to_american_format(v)
-            return float(valor_americano)
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(v)
+            return float(valor_brasileiro.replace(',', '.'))
         except:
             return 0.0
     
@@ -273,18 +273,18 @@ def _preparar_linhas_impressao(df_mes):
         
         classificacao = str(row.get('CLASSIFICACAO', ''))
         if classificacao.lower() == 'transferência':
-            receitas = f"{valor:.2f}"
+            receitas = f"{valor:.2f}".replace('.', ',')
             despesas = ''
             saldo += valor
         elif classificacao.lower() == 'desconhecido':
             # Registros desconhecidos são tratados como despesas (pagamentos não identificados)
             receitas = ''
-            despesas = f"{valor:.2f}"
+            despesas = f"{valor:.2f}".replace('.', ',')
             saldo -= valor
         else:
             # Pagamentos e outros tipos
             receitas = ''
-            despesas = f"{valor:.2f}"
+            despesas = f"{valor:.2f}".replace('.', ',')
             saldo -= valor
         
         rows.append({
@@ -293,7 +293,7 @@ def _preparar_linhas_impressao(df_mes):
             'descricao': descricao,
             'receitas': receitas,
             'despesas': despesas,
-            'saldo': f"{saldo:.2f}"
+            'saldo': f"{saldo:.2f}".replace('.', ',')
         })
     
     return rows
@@ -305,9 +305,9 @@ def _calcular_totalizadores_pessoas(rows):
         if not valor_str or valor_str.lower() in ['nan', '']:
             return 0.0
         try:
-            from .helper import normalize_value_to_american_format
-            valor_americano = normalize_value_to_american_format(valor_str)
-            return float(valor_americano)
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(valor_str)
+            return float(valor_brasileiro.replace(',', '.'))
         except (ValueError, TypeError):
             return 0.0
     
@@ -328,8 +328,8 @@ def _calcular_totalizadores_pessoas(rows):
         total_rafael += valor_rafael
     
     return {
-        'ricardo': f"{total_ricardo:.2f}",
-        'rafael': f"{total_rafael:.2f}",
+        'ricardo': f"{total_ricardo:.2f}".replace('.', ','),
+        'rafael': f"{total_rafael:.2f}".replace('.', ','),
         'ricardo_float': total_ricardo,
         'rafael_float': total_rafael
     }

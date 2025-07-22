@@ -73,9 +73,9 @@ def extract_value_from_ocr(ocr_text):
     valores_float = []
     for valor in valores_encontrados:
         try:
-            from .helper import normalize_value_to_american_format
-            valor_americano = normalize_value_to_american_format(valor)
-            valor_float = float(valor_americano)
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(valor)
+            valor_float = float(valor_brasileiro.replace(',', '.'))
             valores_float.append(valor_float)
         except ValueError:
             continue
@@ -85,7 +85,7 @@ def extract_value_from_ocr(ocr_text):
     
     # Retorna o maior valor encontrado
     maior_valor = max(valores_float)
-    return f"{maior_valor:.2f}"
+    return f"{maior_valor:.2f}".replace('.', ',')
 
 
 def is_financial_receipt(ocr_text):
@@ -163,11 +163,11 @@ def extract_total_value_with_chatgpt(ocr_text):
         if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
             return ""
         
-        # Converte para formato americano padronizado
-        from .helper import normalize_value_to_american_format
-        valor_americano = normalize_value_to_american_format(valor)
+        # Converte para formato brasileiro padronizado
+        from .helper import normalize_value_to_brazilian_format
+        valor_brasileiro = normalize_value_to_brazilian_format(valor)
         
-        return valor_americano
+        return valor_brasileiro
         
     except Exception as e:
         return ""
@@ -503,9 +503,9 @@ def adicionar_totalizacao_mensal(df):
         if pd.isna(value) or value == '':
             return 0.0
         try:
-            from .helper import normalize_value_to_american_format
-            valor_americano = normalize_value_to_american_format(value)
-            return float(valor_americano)
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(value)
+            return float(valor_brasileiro.replace(',', '.'))
         except:
             return 0.0
     
@@ -766,9 +766,9 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
         if pd.isna(value) or value == '':
             return 0.0
         try:
-            from .helper import normalize_value_to_american_format
-            valor_americano = normalize_value_to_american_format(value)
-            return float(valor_americano)
+            from .helper import normalize_value_to_brazilian_format
+            valor_brasileiro = normalize_value_to_brazilian_format(value)
+            return float(valor_brasileiro.replace(',', '.'))
         except:
             return 0.0
     
@@ -797,9 +797,9 @@ def verificar_totais(csv_file):
             if pd.isna(value) or value == '':
                 return 0.0
             try:
-                from .helper import normalize_value_to_american_format
-                valor_americano = normalize_value_to_american_format(value)
-                return float(valor_americano)
+                from .helper import normalize_value_to_brazilian_format
+                valor_brasileiro = normalize_value_to_brazilian_format(value)
+                return float(valor_brasileiro.replace(',', '.'))
             except:
                 return 0.0
 
@@ -1716,10 +1716,11 @@ def fix_entry(data_hora, novo_valor=None, nova_classificacao=None, nova_descrica
                     
                     # Converte valor original para formato brasileiro para comparação (apenas se novo_valor foi fornecido)
                     if novo_valor:
-                        valor_original_clean = valor_original.replace('.', '').replace(',', '.')
+                        from .helper import normalize_value_to_brazilian_format
+                        valor_original_clean = normalize_value_to_brazilian_format(valor_original)
                         try:
-                            valor_original_float = float(valor_original_clean)
-                            novo_valor_float = float(novo_valor)
+                            valor_original_float = float(valor_original_clean.replace(',', '.'))
+                            novo_valor_float = float(novo_valor.replace(',', '.'))
                         except ValueError:
                             print(f"⚠️  Erro ao converter valores para comparação")
                             continue
@@ -2165,11 +2166,11 @@ def process_image_with_ai_for_value(image_path, ocr_text):
         if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
             return "", "desconhecido"
         
-        # Converte para formato americano padronizado
-        from .helper import normalize_value_to_american_format
-        valor_americano = normalize_value_to_american_format(valor)
+        # Converte para formato brasileiro padronizado
+        from .helper import normalize_value_to_brazilian_format
+        valor_brasileiro = normalize_value_to_brazilian_format(valor)
         
-        return valor_americano, "Pagamento"  # Assume como pagamento se encontrou valor
+        return valor_brasileiro, "Pagamento"  # Assume como pagamento se encontrou valor
         
     except Exception as e:
         print(f"Erro ao processar imagem com IA: {str(e)}")
