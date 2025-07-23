@@ -30,8 +30,8 @@ const ReportPage = () => {
         // Usa o período selecionado ou o filename da URL
         const month = selectedPeriod || filename || null;
         
-        // Usa o novo endpoint de entradas
-        const response = await fetch(`/api/entries${month ? `?month=${month}` : ''}`);
+        // Usa o novo endpoint de relatórios
+        const response = await fetch(`/api/reports/${month ? `?month=${month}` : ''}`);
         if (!response.ok) {
           // Fallback para dados mock se a API não estiver disponível
           const mockResponse = await fetch('/entries-mock.json');
@@ -117,13 +117,15 @@ const ReportPage = () => {
       <Report
         periodo={reportData.periodo}
         rows={reportData.rows || []}
-        attrs={reportData.attrs || {}}
-        editLink={reportData.edit_link}
-        printLink={reportData.print_link}
+        mensagens={reportData.mensagens || []}
+        xmlData={reportData.xml_data || []}
         totalizadores={reportData.totalizadores}
         timestamp={reportData.timestamp}
         isEditable={reportData.is_editable || false}
         temMotivo={reportData.tem_motivo || false}
+        totalRegistros={reportData.total_registros}
+        totalMensagens={reportData.total_mensagens}
+        totalPaginasXml={reportData.total_paginas_xml}
       />
     </div>
   );
@@ -141,21 +143,13 @@ const PrintPage = () => {
       try {
         setLoading(true);
         
-        // Extrai o mês do filename (ex: "2024-01" -> "2024-01")
         const month = filename || null;
+        const response = await fetch(`/api/reports/${month ? `?month=${month}` : ''}`);
         
-        // Usa o novo endpoint de entradas
-        const response = await fetch(`/api/entries${month ? `?month=${month}` : ''}`);
         if (!response.ok) {
-          // Fallback para dados mock se a API não estiver disponível
-          const mockResponse = await fetch('/entries-mock.json');
-          if (mockResponse.ok) {
-            const mockData = await mockResponse.json();
-            setReportData(mockData);
-            return;
-          }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
         const data = await response.json();
         setReportData(data);
       } catch (err) {
@@ -188,10 +182,6 @@ const PrintPage = () => {
         <div className="alert alert-danger" role="alert">
           <h4 className="alert-heading">Erro ao carregar relatório</h4>
           <p>{error}</p>
-          <hr />
-          <p className="mb-0">
-            <Link to="/" className="btn btn-primary">Voltar ao início</Link>
-          </p>
         </div>
       </div>
     );
@@ -203,10 +193,6 @@ const PrintPage = () => {
         <div className="alert alert-warning" role="alert">
           <h4 className="alert-heading">Relatório não encontrado</h4>
           <p>O relatório solicitado não foi encontrado.</p>
-          <hr />
-          <p className="mb-0">
-            <Link to="/" className="btn btn-primary">Voltar ao início</Link>
-          </p>
         </div>
       </div>
     );
@@ -216,20 +202,25 @@ const PrintPage = () => {
     <PrintableReport
       periodo={reportData.periodo}
       rows={reportData.rows || []}
+      mensagens={reportData.mensagens || []}
+      xmlData={reportData.xml_data || []}
       totalizadores={reportData.totalizadores}
       timestamp={reportData.timestamp}
+      totalRegistros={reportData.total_registros}
+      totalMensagens={reportData.total_mensagens}
+      totalPaginasXml={reportData.total_paginas_xml}
     />
   );
 };
 
 // Componente para a página inicial
 const HomePage = () => {
-  const [reports, setReports] = useState([]);
+  const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchReports = async () => {
+    const fetchReportData = async () => {
       try {
         setLoading(true);
         const response = await fetch('/api/reports');
@@ -238,22 +229,22 @@ const HomePage = () => {
           const mockResponse = await fetch('/mock-data.json');
           if (mockResponse.ok) {
             const mockData = await mockResponse.json();
-            setReports(mockData.reports || []);
+            setReportData(mockData);
             return;
           }
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setReports(data.reports || []);
+        setReportData(data);
       } catch (err) {
-        console.error('Erro ao carregar lista de relatórios:', err);
+        console.error('Erro ao carregar dados financeiros:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchReports();
+    fetchReportData();
   }, []);
 
   if (loading) {
@@ -263,7 +254,7 @@ const HomePage = () => {
           <div className="spinner-border" role="status">
             <span className="visually-hidden">Carregando...</span>
           </div>
-          <p className="mt-2">Carregando relatórios...</p>
+          <p className="mt-2">Carregando dados financeiros...</p>
         </div>
       </div>
     );
@@ -273,7 +264,7 @@ const HomePage = () => {
     return (
       <div className="container mt-5">
         <div className="alert alert-danger" role="alert">
-          <h4 className="alert-heading">Erro ao carregar relatórios</h4>
+          <h4 className="alert-heading">Erro ao carregar dados</h4>
           <p>{error}</p>
         </div>
       </div>
@@ -282,69 +273,104 @@ const HomePage = () => {
 
   return (
     <div className="container mt-5">
-      <h1>Relatórios Financeiros</h1>
-      <p className="lead">Selecione um relatório para visualizar:</p>
+      <h1>Controle Financeiro WhatsApp</h1>
+      <p className="lead">Dados processados de comprovantes financeiros</p>
       
-      {reports.length === 0 ? (
+      {!reportData ? (
         <div className="alert alert-info" role="alert">
-          Nenhum relatório disponível no momento.
+          Nenhum dado disponível no momento.
         </div>
       ) : (
-        <div className="row">
-          {reports.map((report, index) => (
-            <div key={index} className="col-md-6 col-lg-4 mb-3">
-              <div className="card">
+        <div>
+          {/* Resumo geral */}
+          <div className="row mb-4">
+            <div className="col-md-3">
+              <div className="card text-center">
                 <div className="card-body">
-                  <h5 className="card-title">{report.periodo || 'Relatório'}</h5>
-                  <p className="card-text">
-                    {report.timestamp ? `Gerado em: ${new Date(report.timestamp).toLocaleString()}` : 'Sem data'}
-                  </p>
-                  <div className="d-grid gap-2">
-                    <Link 
-                      to={`/report/${report.filename || index}`} 
-                      className="btn btn-primary"
-                    >
-                      Visualizar
-                    </Link>
-                    <Link 
-                      to={`/print/${report.filename || index}`} 
-                      className="btn btn-outline-secondary"
-                      target="_blank"
-                    >
-                      Imprimir
-                    </Link>
-                  </div>
+                  <h5 className="card-title">Total Registros</h5>
+                  <p className="card-text display-6">{reportData.total_registros || 0}</p>
                 </div>
               </div>
             </div>
-          ))}
+            <div className="col-md-3">
+              <div className="card text-center">
+                <div className="card-body">
+                  <h5 className="card-title">Total Mensagens</h5>
+                  <p className="card-text display-6">{reportData.total_mensagens || 0}</p>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-3">
+              <div className="card text-center">
+                <div className="card-body">
+                  <h5 className="card-title">Ricardo</h5>
+                  <p className="card-text display-6 text-primary">
+                    R$ {reportData.totalizadores?.ricardo || '0,00'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="col-md-3">
+              <div className="card text-center">
+                <div className="card-body">
+                  <h5 className="card-title">Rafael</h5>
+                  <p className="card-text display-6 text-success">
+                    R$ {reportData.totalizadores?.rafael || '0,00'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Ações */}
+          <div className="row mb-4">
+            <div className="col-12">
+              <div className="d-grid gap-2 d-md-flex justify-content-md-center">
+                <Link 
+                  to="/report" 
+                  className="btn btn-primary btn-lg"
+                >
+                  📊 Ver Relatório Completo
+                </Link>
+                <Link 
+                  to="/print" 
+                  className="btn btn-outline-secondary btn-lg"
+                  target="_blank"
+                >
+                  🖨️ Imprimir Relatório
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Última atualização */}
+          <div className="row">
+            <div className="col-12 text-center">
+              <small className="text-muted">
+                Última atualização: {reportData.timestamp ? 
+                  new Date(reportData.timestamp).toLocaleString('pt-BR') : 
+                  'Não disponível'
+                }
+              </small>
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 };
 
+// Componente principal da aplicação
 function App() {
   return (
     <Router>
       <div className="App">
-        <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-          <div className="container">
-            <Link className="navbar-brand" to="/">
-              WA Financeiro
-            </Link>
-            <div className="navbar-nav">
-              <Link className="nav-link" to="/">
-                Início
-              </Link>
-            </div>
-          </div>
-        </nav>
-
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/report/:filename?" element={<ReportPage />} />
-          <Route path="/print/:filename?" element={<PrintPage />} />
+          <Route path="/report" element={<ReportPage />} />
+          <Route path="/report/:filename" element={<ReportPage />} />
+          <Route path="/print" element={<PrintPage />} />
+          <Route path="/print/:filename" element={<PrintPage />} />
         </Routes>
       </div>
     </Router>
