@@ -1,5 +1,5 @@
 # helper.py
-# Caminho relativo ao projeto: helper.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/helper.py
 # Módulo de funções auxiliares para processamento de dados financeiros
 import re
 import os

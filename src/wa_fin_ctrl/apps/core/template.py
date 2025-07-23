@@ -1,4 +1,6 @@
 # template.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/template.py
+# Utilitário para renderização de templates Jinja2
 import os
 from jinja2 import Environment, FileSystemLoader
 

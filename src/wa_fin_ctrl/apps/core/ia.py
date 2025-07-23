@@ -1,5 +1,5 @@
 # ia.py
-# Caminho relativo ao projeto: ia.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/ia.py
 # Módulo de funções de inteligência artificial para análise de comprovantes
 import os
 import re

@@ -1,5 +1,5 @@
 # ocr.py
-# Caminho relativo ao projeto: ocr.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/ocr.py
 # Módulo de processamento OCR para imagens e PDFs com suporte a extração incremental
 import os
 import re
@@ -11,6 +11,7 @@ from threading import Lock
 from pathlib import Path
 from django.utils import timezone
 from .env import *
+from .models import EntradaFinanceira, ArquivoProcessado
 
 ocr_xml_lock = Lock()
 

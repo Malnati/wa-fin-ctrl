@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # cli.py
-# Caminho relativo ao projeto: cli.py
-# Interface de linha de comando para processamento de comprovantes financeiros
+# Caminho relativo ao projeto: src/wa_fin_ctrl/cli.py
+# CLI para processamento de comprovantes financeiros
 """
 Interface de linha de comando para processamento de comprovantes financeiros.
 Utiliza o pacote click para gerenciar argumentos e subcomandos.

@@ -1,5 +1,5 @@
 # reporter.py
-# Caminho relativo ao projeto: reporter.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/reporter.py
 # Módulo de geração de relatórios HTML para prestação de contas
 import os
 import pandas as pd

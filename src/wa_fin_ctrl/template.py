@@ -1,4 +1,6 @@
 # template.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/template.py
+# Utilitário de templates do projeto
 import os
 from jinja2 import Environment, FileSystemLoader
 

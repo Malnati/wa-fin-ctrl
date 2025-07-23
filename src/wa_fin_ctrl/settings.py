@@ -1,4 +1,7 @@
-# src/wa_fin_ctrl/settings.py
+# settings.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/settings.py
+# Configurações do Django
+
 """
 Django settings for wa_fin_ctrl project.
 

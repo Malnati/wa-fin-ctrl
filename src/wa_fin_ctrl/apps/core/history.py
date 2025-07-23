@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # history.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/history.py
 # Módulo para gerenciamento do histórico de comandos executados
 
 import json

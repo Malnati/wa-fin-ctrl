@@ -1,5 +1,9 @@
 import os
 
+# env.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/env.py
+# Variáveis de ambiente do projeto
+
 # ==== VARIÁVEIS DE AMBIENTE ====
 ATTR_FIN_OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", None)
 ATTR_FIN_DIR_INPUT = os.getenv("ATTR_FIN_DIR_INPUT", "input")

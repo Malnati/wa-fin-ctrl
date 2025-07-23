@@ -1939,8 +1939,6 @@ def re_submeter_para_chatgpt(arquivo_anexo):
         print(f"🤖 Re-submetendo para ChatGPT: {os.path.basename(arquivo_path)}")
 
         # Processa OCR na imagem rotacionada
-        from .ocr import process_image_ocr
-
         ocr_text = process_image_ocr(arquivo_path)
 
         if not ocr_text or ocr_text in [
@@ -1954,11 +1952,6 @@ def re_submeter_para_chatgpt(arquivo_anexo):
         print(f"📝 Texto extraído via OCR: {ocr_text[:100]}...")
 
         # Re-submete para ChatGPT para extrair valor, descrição e classificação
-        from .ia import (
-            extract_total_value_with_chatgpt,
-            generate_payment_description_with_chatgpt,
-            classify_transaction_type_with_chatgpt,
-        )
 
         # Extrai valor total
         valor_total = extract_total_value_with_chatgpt(ocr_text)
@@ -1982,8 +1975,6 @@ def re_submeter_para_chatgpt(arquivo_anexo):
             print(f"⚠️  IA não conseguiu classificar transação")
 
         # Atualiza o XML de OCR com o novo texto
-        from .ocr import registrar_ocr_xml
-
         registrar_ocr_xml(os.path.basename(arquivo_path), ocr_text)
 
         print(f"✅ Re-submissão para ChatGPT concluída com sucesso")
@@ -2100,7 +2091,6 @@ def process_image_with_ai_for_value(image_path, ocr_text):
 
         # Se conseguiu extrair valor, converte para formato brasileiro
         if valor_total:
-            from .helper import normalize_value_to_brazilian_format
             valor_total = normalize_value_to_brazilian_format(valor_total)
             print(f"  - Informações extraídas da imagem: Valor={valor_total}, Classificação={classificacao}")
             return valor_total, descricao, classificacao

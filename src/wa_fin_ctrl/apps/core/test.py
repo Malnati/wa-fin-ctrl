@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""
-Arquivo de testes para o sistema de processamento de comprovantes
-"""
+# test.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/test.py
+# Arquivo de testes para o sistema de processamento de comprovantes
 
 import os
 import sys

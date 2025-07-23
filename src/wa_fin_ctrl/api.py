@@ -1,6 +1,6 @@
 # api.py
 # Caminho relativo ao projeto: src/wa_fin_ctrl/api.py
-# API REST FastAPI para processamento de comprovantes financeiros
+# API FastAPI para processamento de comprovantes financeiros
 """
 API REST FastAPI para processamento de comprovantes financeiros.
 Reutiliza as funções existentes do CLI para manter consistência.

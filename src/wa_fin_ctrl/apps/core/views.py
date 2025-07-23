@@ -1,6 +1,6 @@
 # views.py
 # Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/views.py
-# Views Django para processamento de comprovantes financeiros
+# Views do app core para processamento de comprovantes financeiros
 
 import os
 import time
