@@ -445,6 +445,8 @@ ps-api:
 ps-front:
 	ps aux | grep "npm run dev"
 
+ps-all: ps-api ps-front
+
 reload-api: kill-api process api
 
 reload-front: kill-front front
