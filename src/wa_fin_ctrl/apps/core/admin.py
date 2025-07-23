@@ -3,7 +3,7 @@
 # Configuração do admin Django para os modelos
 
 from django.contrib import admin
-from .models import Processamento, EntradaFinanceira, ArquivoProcessado
+from .models import Processamento, EntradaFinanceira, ArquivoProcessado, CorrecaoHistorico
 
 
 @admin.register(Processamento)
@@ -64,6 +64,44 @@ class ArquivoProcessadoAdmin(admin.ModelAdmin):
         }),
         ('Erro', {
             'fields': ('erro',),
+            'classes': ('collapse',)
+        }),
+    )
+
+
+@admin.register(CorrecaoHistorico)
+class CorrecaoHistoricoAdmin(admin.ModelAdmin):
+    list_display = ['index', 'command', 'data_hora_entrada', 'success', 'execution']
+    list_filter = ['command', 'success', 'dismiss', 'ia_reprocessamento', 'execution']
+    search_fields = ['data_hora_entrada', 'descricao_original', 'descricao_nova']
+    readonly_fields = ['index', 'execution']
+    
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('index', 'command', 'execution', 'data_hora_entrada', 'success')
+        }),
+        ('Valores', {
+            'fields': ('valor_original', 'valor_novo'),
+            'classes': ('collapse',)
+        }),
+        ('Classificação', {
+            'fields': ('classificacao_original', 'classificacao_nova'),
+            'classes': ('collapse',)
+        }),
+        ('Descrição', {
+            'fields': ('descricao_original', 'descricao_nova'),
+            'classes': ('collapse',)
+        }),
+        ('Ações', {
+            'fields': ('dismiss', 'rotate_degrees', 'ia_reprocessamento'),
+            'classes': ('collapse',)
+        }),
+        ('Relacionamentos', {
+            'fields': ('entrada_financeira',),
+            'classes': ('collapse',)
+        }),
+        ('Erro', {
+            'fields': ('mensagem_erro',),
             'classes': ('collapse',)
         }),
     )
