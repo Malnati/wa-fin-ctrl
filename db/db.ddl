@@ -1,3 +1,7 @@
+-- db.ddl
+-- Caminho relativo ao projeto: db/db.ddl
+-- Esquema do banco de dados SQLite para o sistema de processamento financeiro
+
 -- 1) Tabela principal: mensagens
 CREATE TABLE mensagens (
   momento_mensagem  DATETIME PRIMARY KEY,
