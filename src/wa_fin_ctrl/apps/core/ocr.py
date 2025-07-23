@@ -8,6 +8,8 @@ import pytesseract
 import numpy as np
 import xml.etree.ElementTree as ET
 from threading import Lock
+from pathlib import Path
+from django.utils import timezone
 from .env import *
 
 ocr_xml_lock = Lock()
@@ -111,6 +113,7 @@ def process_image_ocr(image_path):
 
 def registrar_ocr_xml(arquivo, texto, arq_xml=ATTR_FIN_ARQ_OCR_XML):
     """Registra extração OCR no arquivo XML incrementalmente, sem sobrescrever entradas existentes."""
+    # Mantém compatibilidade com o XML para transição gradual
     with ocr_xml_lock:
         dir_ocr = os.path.dirname(arq_xml)
         if dir_ocr and not os.path.exists(dir_ocr):
@@ -128,6 +131,52 @@ def registrar_ocr_xml(arquivo, texto, arq_xml=ATTR_FIN_ARQ_OCR_XML):
         entry = ET.SubElement(root, "entry", {"arquivo": arquivo})
         entry.text = texto
         tree.write(arq_xml, encoding="utf-8", xml_declaration=True)
+
+
+def registrar_ocr_banco(arquivo, texto, processamento_id=None):
+    """Registra extração OCR no banco de dados."""
+    try:
+        from .models import ArquivoProcessado
+        
+        # Atualiza ou cria registro do arquivo com OCR
+        arquivo_processado, created = ArquivoProcessado.objects.update_or_create(
+            nome_arquivo=arquivo,
+            defaults={
+                'tipo': 'imagem',  # Será atualizado se o arquivo existir
+                'tamanho': 0,
+                'data_processamento': timezone.now(),
+                'processamento_id': processamento_id,
+                'status': 'processado',
+                'erro': ''
+            }
+        )
+        
+        # Se o arquivo existe fisicamente, atualiza informações
+        arquivo_path = None
+        for diretorio in [ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_IMGS]:
+            caminho_teste = os.path.join(diretorio, arquivo)
+            if os.path.exists(caminho_teste):
+                arquivo_path = caminho_teste
+                break
+        
+        if arquivo_path:
+            extensao = Path(arquivo_path).suffix.lower()
+            if extensao in ['.jpg', '.jpeg', '.png']:
+                tipo_arquivo = 'imagem'
+            elif extensao == '.pdf':
+                tipo_arquivo = 'pdf'
+            else:
+                tipo_arquivo = 'outro'
+            
+            arquivo_processado.tipo = tipo_arquivo
+            arquivo_processado.tamanho = os.path.getsize(arquivo_path)
+            arquivo_processado.save()
+        
+        return True
+        
+    except Exception as e:
+        print(f"Erro ao registrar OCR no banco: {str(e)}")
+        return False
 
 
 def _converter_pdf_para_jpg(pdf_path):
