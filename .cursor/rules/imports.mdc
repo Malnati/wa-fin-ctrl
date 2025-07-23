@@ -1,0 +1,13 @@
+---
+description: |
+  Todas as importações de módulos em arquivos Python devem estar localizadas no **topo do arquivo**, seguindo as diretrizes da PEP 8. É proibido o uso de `import` ou `from ... import` em blocos `try/except`, funções, métodos ou trechos condicionais.
+
+  Regras:
+  - Todas as instruções `import` devem estar no cabeçalho, antes de qualquer execução de código.
+  - É proibido o uso de blocos `try/except` para contornar erros de importação.
+  - É proibido realizar importações dinâmicas no meio da execução (ex: dentro de funções ou sob condições).
+  - Caso um módulo externo seja necessário, ele deve estar presente no `pyproject.toml` e ser instalado previamente.
+
+globs: '*.py'
+alwaysApply: true
+---
