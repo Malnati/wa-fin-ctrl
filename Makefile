@@ -434,12 +434,15 @@ kill-front:
 	else \
 		echo "Nenhum processo do front-end encontrado."; \
 	fi
-	
+
 ps-api:
 	ps aux | grep "python manage.py runserver 0.0.0.0:8000"
 
 ps-front:
 	ps aux | grep "npm run dev"
 
+reload-api: kill-api process api
+
+reload-front: kill-front front
 
 .PHONY: help install run server api copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia
