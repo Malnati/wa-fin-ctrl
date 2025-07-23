@@ -1,3 +1,7 @@
+# urls.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/urls.py
+# Configuração de URLs do projeto Django
+
 """
 URL configuration for wa_fin_ctrl project.
 
@@ -28,4 +32,6 @@ urlpatterns = [
 # Adiciona URLs para arquivos estáticos em desenvolvimento
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static('/imgs/', document_root='imgs/')
+    # Usa constantes do env.py para diretórios
+    from .env import ATTR_FIN_DIR_IMGS
+    urlpatterns += static(f'/{ATTR_FIN_DIR_IMGS}/', document_root=f'{ATTR_FIN_DIR_IMGS}/')
