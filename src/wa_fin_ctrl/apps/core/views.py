@@ -288,14 +288,19 @@ def list_reports(request):
                     ]
                 
                 for _, row in df_mensagens.iterrows():
+                    def safe_get(val, default=''):
+                        if pd.isna(val) or val is None or str(val).strip() == '' or str(val).lower() == 'nan':
+                            return default
+                        return str(val)
+                    
                     mensagens_data.append({
-                        "data": row.get('data', '') or '',
-                        "hora": row.get('hora', '') or '',
-                        "remetente": row.get('remetente', '') or '',
-                        "mensagem": row.get('mensagem', '') or '',
-                        "anexo": row.get('anexo', '') or '',
-                        "ocr": row.get('OCR', '') or '',
-                        "validade": row.get('VALIDADE', '') or ''
+                        "data": safe_get(row.get('data', '')),
+                        "hora": safe_get(row.get('hora', '')),
+                        "remetente": safe_get(row.get('remetente', '')),
+                        "mensagem": safe_get(row.get('mensagem', '')),
+                        "anexo": safe_get(row.get('anexo', '')),
+                        "ocr": safe_get(row.get('OCR', '')),
+                        "validade": safe_get(row.get('VALIDADE', ''))
                     })
             except Exception as e:
                 print(f"Erro ao carregar mensagens.csv: {e}")
@@ -347,21 +352,26 @@ def list_reports(request):
             valor_ricardo_float = parse_float(valor_ricardo)
             valor_rafael_float = parse_float(valor_rafael)
             
+            def safe_get(val, default=''):
+                if pd.isna(val) or val is None or str(val).strip() == '' or str(val).lower() == 'nan':
+                    return default
+                return str(val)
+            
             rows.append({
-                "data": row.get('DATA', '') or '',
-                "hora": row.get('HORA', '') or '',
-                "remetente": row.get('REMETENTE', '') or '',
-                "classificacao": row.get('CLASSIFICACAO', '') or '',
-                "ricardo": valor_ricardo or '',
+                "data": safe_get(row.get('DATA', '')),
+                "hora": safe_get(row.get('HORA', '')),
+                "remetente": safe_get(row.get('REMETENTE', '')),
+                "classificacao": safe_get(row.get('CLASSIFICACAO', '')),
+                "ricardo": safe_get(valor_ricardo),
                 "ricardo_float": valor_ricardo_float,
-                "rafael": valor_rafael or '',
+                "rafael": safe_get(valor_rafael),
                 "rafael_float": valor_rafael_float,
-                "anexo": row.get('ANEXO', '') or '',
-                "descricao": row.get('DESCRICAO', '') or '',
-                "valor": row.get('VALOR', '') or '',
-                "ocr": row.get('OCR', '') or '',
-                "validade": row.get('VALIDADE', '') or '',
-                "motivo_erro": row.get('MOTIVO_ERRO', '') or ''
+                "anexo": safe_get(row.get('ANEXO', '')),
+                "descricao": safe_get(row.get('DESCRICAO', '')),
+                "valor": safe_get(row.get('VALOR', '')),
+                "ocr": safe_get(row.get('OCR', '')),
+                "validade": safe_get(row.get('VALIDADE', '')),
+                "motivo_erro": safe_get(row.get('MOTIVO_ERRO', ''))
             })
         
         # Calcula totalizadores
