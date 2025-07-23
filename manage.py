@@ -1,3 +1,7 @@
+# manage.py
+# Caminho relativo ao projeto: manage.py
+# Utilitário de linha de comando do Django para tarefas administrativas
+
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
 import os
