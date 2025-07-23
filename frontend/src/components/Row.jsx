@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const Row = ({ row, index, attrs, isEditable = false, temMotivo = false }) => {
+const Row = ({ row, index, attrs, isEditable = false, temMotivo = false, onImageClick }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValues, setEditValues] = useState({});
 
@@ -33,6 +33,12 @@ const Row = ({ row, index, attrs, isEditable = false, temMotivo = false }) => {
 
   const reprocessAI = (dataHora) => {
     console.log('Reprocessando com IA:', dataHora);
+  };
+
+  const handleImageClick = (imageSrc) => {
+    if (onImageClick) {
+      onImageClick(imageSrc);
+    }
   };
 
   const renderClassificacao = () => {
@@ -108,6 +114,7 @@ const Row = ({ row, index, attrs, isEditable = false, temMotivo = false }) => {
           className="thumb"
           alt={`Comprovante ${row.anexo}`}
           title={row.anexo}
+          onClick={() => handleImageClick(`/imgs/${row.anexo}`)}
         />
       );
     } else if (row.anexo.toLowerCase().endsWith('.pdf')) {
@@ -118,6 +125,7 @@ const Row = ({ row, index, attrs, isEditable = false, temMotivo = false }) => {
             className="thumb"
             alt={`Comprovante ${row.imagem_jpg}`}
             title={`${row.imagem_jpg} (convertido de PDF)`}
+            onClick={() => handleImageClick(`/imgs/${row.imagem_jpg}`)}
           />
         );
       } else {

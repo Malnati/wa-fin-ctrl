@@ -352,6 +352,20 @@ help:
 	@echo "    collectstatic: Coleta arquivos estáticos"
 	@echo "    server: Inicia o servidor Django (localhost:8000)"
 	@echo "    api: Inicia a API REST Django (localhost:8000)"
+	@echo "  Frontend:"
+	@echo "    front: Inicia o frontend React (localhost:4779)"
+	@echo "    front-clean: Limpa e reinstala dependências do frontend"
+	@echo "    front-fresh: Inicia frontend com limpeza prévia"
+	@echo "    kill-front: Encerra o frontend"
+	@echo "    reload-front: Recarrega o frontend"
+	@echo "  Desenvolvimento:"
+	@echo "    dev: Inicia API e frontend juntos"
+	@echo "    dev-fresh: Inicia API e frontend com limpeza prévia"
+	@echo "  Processos:"
+	@echo "    ps-api: Mostra processos da API"
+	@echo "    ps-front: Mostra processos do frontend"
+	@echo "    ps-all: Mostra todos os processos"
+	@echo "    kill-all: Encerra todos os processos"
 	@echo "  copy: Copia a estrutura do projeto para a área de transferência"
 
 # Processa apenas imagens (sem backup)
@@ -452,11 +466,20 @@ api:
 	poetry run python manage.py runserver 0.0.0.0:8000 &
 
 front:
-	cd frontend && npm run dev &
+	@echo "Iniciando frontend..."
+	@cd frontend && npm install --silent
+	@cd frontend && npm run dev &
+	@echo "Frontend iniciado em background"
 
 rebuild: remove-all copy-july process api
 
 reload: process api
+
+# Inicia API e frontend juntos
+dev: api front
+
+# Inicia API e frontend com limpeza prévia
+dev-fresh: api front-fresh
 
 kill-api:
 	@echo "Verificando processos na porta 8000..."
@@ -470,12 +493,14 @@ kill-api:
 	fi
 
 kill-front:
-	@PID=$$(pgrep -f "node .*wa-fin-ctrl"); \
+	@echo "Verificando processos do frontend..."
+	@PID=$$(lsof -ti:4779 2>/dev/null); \
 	if [ -n "$$PID" ]; then \
-		echo "Encerrando front-end (PID=$$PID)"; \
+		echo "Encerrando frontend na porta 4779 (PID=$$PID)"; \
 		kill -9 $$PID; \
+		echo "Frontend encerrado."; \
 	else \
-		echo "Nenhum processo do front-end encontrado."; \
+		echo "Nenhum processo encontrado na porta 4779."; \
 	fi
 
 kill-all: kill-api kill-front
@@ -484,12 +509,23 @@ ps-api:
 	ps aux | grep "manage.py"
 
 ps-front:
-	ps aux | grep "node .*wa-fin-ctrl"
+	@echo "Processos do frontend (porta 4779):"
+	@lsof -ti:4779 2>/dev/null | xargs ps -p 2>/dev/null || echo "Nenhum processo encontrado na porta 4779"
 
 ps-all: ps-api ps-front
 
 reload-api: kill-api process api
 
 reload-front: kill-front front
+
+# Limpa e reinstala dependências do frontend
+front-clean:
+	@echo "Limpando dependências do frontend..."
+	@cd frontend && rm -rf node_modules package-lock.json
+	@cd frontend && npm install
+	@echo "Dependências do frontend reinstaladas"
+
+# Inicia frontend com limpeza prévia
+front-fresh: front-clean front
 
 .PHONY: help install run server api copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia

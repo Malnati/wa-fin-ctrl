@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Report.css';
+import ImageModal from './ImageModal';
 
 const Report = ({ 
   periodo, 
@@ -21,6 +22,8 @@ const Report = ({
     dataHora: true,
     classificacao: true
   });
+  const [modalImage, setModalImage] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const formatCurrency = (value) => {
     if (!value || value === '0' || value === '0.0') return 'R$ 0,00';
@@ -66,6 +69,58 @@ const Report = ({
     const ricardo = totalizadores?.ricardo_float || 0;
     const rafael = totalizadores?.rafael_float || 0;
     return ricardo + rafael;
+  };
+
+  const handleImageClick = (imageSrc) => {
+    console.log('showModal chamada com src:', imageSrc);
+    setModalImage(imageSrc);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    console.log('hideModal chamada');
+    setIsModalOpen(false);
+    setModalImage(null);
+  };
+
+  const renderImage = (row) => {
+    if (!row.anexo || row.anexo === 'nan' || row.anexo === '') {
+      return null;
+    }
+
+    const anexo = row.anexo.toLowerCase();
+    
+    if (anexo.endsWith('.jpg') || anexo.endsWith('.jpeg') || anexo.endsWith('.png')) {
+      return (
+        <img 
+          src={`/imgs/${row.anexo}`}
+          className="thumb"
+          alt={`Comprovante ${row.anexo}`}
+          title={row.anexo}
+          onClick={() => handleImageClick(`/imgs/${row.anexo}`)}
+          style={{ cursor: 'pointer' }}
+        />
+      );
+    }
+    
+    if (anexo.endsWith('.pdf')) {
+      if (row.imagem_jpg) {
+        return (
+          <img 
+            src={`/imgs/${row.imagem_jpg}`}
+            className="thumb"
+            alt={`Comprovante ${row.imagem_jpg}`}
+            title={`${row.imagem_jpg} (convertido de PDF)`}
+            onClick={() => handleImageClick(`/imgs/${row.imagem_jpg}`)}
+            style={{ cursor: 'pointer' }}
+          />
+        );
+      } else {
+        return <span className="pdf-icon" title="Visualizar PDF">📄</span>;
+      }
+    }
+    
+    return null;
   };
 
   return (
@@ -240,14 +295,7 @@ const Report = ({
                 )}
               </td>
               <td className="align-middle text-center">
-                {row.anexo && row.anexo !== 'nan' && row.anexo !== '' && (
-                  <img 
-                    src={`/imgs/${row.anexo}`}
-                    className="thumb"
-                    alt={`Comprovante ${row.anexo}`}
-                    title={row.anexo}
-                  />
-                )}
+                {renderImage(row)}
               </td>
               {visibleColumns.descricao && (
                 <td className="descricao-cell optional-column align-middle text-center" style={{textAlign: 'left', fontSize: '12px'}}>
@@ -301,9 +349,11 @@ const Report = ({
       </table>
 
       {/* Modal para imagens */}
-      <div id="modal" className="modal">
-        <img id="modal-img" className="modal-content" />
-      </div>
+      <ImageModal 
+        isOpen={isModalOpen}
+        imageSrc={modalImage}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };
