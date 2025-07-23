@@ -437,6 +437,8 @@ kill-front:
 		echo "Nenhum processo do front-end encontrado."; \
 	fi
 
+kill-all: kill-api kill-front
+
 ps-api:
 	ps aux | grep "python manage.py runserver 0.0.0.0:8000"
 
