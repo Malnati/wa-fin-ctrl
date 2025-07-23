@@ -467,8 +467,6 @@ def adicionar_totalizacao_mensal(df):
         if pd.isna(value) or value == "":
             return 0.0
         try:
-            from .helper import normalize_value_to_brazilian_format
-
             valor_brasileiro = normalize_value_to_brazilian_format(value)
             return float(valor_brasileiro.replace(",", "."))
         except:
