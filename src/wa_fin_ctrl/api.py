@@ -30,8 +30,8 @@ import signal
 import sys
 from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
 from .app import processar_incremental, fix_entry
-from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-from .helper import normalize_value_to_brazilian_format
+from .apps.core.reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+from .apps.core.helper import normalize_value_to_brazilian_format
 
 # Variável global para controlar o reload e status
 _force_reload = False

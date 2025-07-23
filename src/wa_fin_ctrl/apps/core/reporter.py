@@ -13,17 +13,46 @@ from .env import *
 from .template import TemplateRenderer
 from .helper import normalize_value_to_brazilian_format
 
+# ==== CONSTANTES ====
+# Arquivos
+ARQUIVO_EXTRACT_XML = "extract.xml"
+
+# Extensões de arquivo
+EXTENSAO_PDF = ".pdf"
+EXTENSAO_JPG = ".jpg"
+
+# Elementos XML
+ELEMENTO_ENTRY = "entry"
+ATRIBUTO_ARQUIVO = "arquivo"
+
+# Nomes de colunas CSV
+COLUNA_DATA = "DATA"
+COLUNA_HORA = "HORA"
+COLUNA_CLASSIFICACAO = "CLASSIFICACAO"
+COLUNA_RICARDO = "RICARDO"
+COLUNA_RAFAEL = "RAFAEL"
+COLUNA_ANEXO = "ANEXO"
+COLUNA_DESCRICAO = "DESCRICAO"
+COLUNA_VALOR = "VALOR"
+COLUNA_VALIDADE = "VALIDADE"
+COLUNA_OCR = "OCR"
+COLUNA_REMETENTE = "REMETENTE"
+
+# Valores especiais
+VALOR_NAN = "nan"
+VALOR_VAZIO = ""
+
 
 def _carregar_ocr_map():
     """Carrega o mapeamento de arquivos para textos OCR do arquivo extract.xml."""
     ocr_map = {}
     try:
-        xml_path = os.path.join(ATTR_FIN_DIR_OCR, "extract.xml")
+        xml_path = os.path.join(ATTR_FIN_DIR_OCR, ARQUIVO_EXTRACT_XML)
         if os.path.exists(xml_path):
             tree = ET.parse(xml_path)
             root = tree.getroot()
-            for entry in root.findall("entry"):
-                arquivo = entry.get("arquivo", "")
+            for entry in root.findall(ELEMENTO_ENTRY):
+                arquivo = entry.get(ATRIBUTO_ARQUIVO, "")
                 texto = entry.text or ""
                 ocr_map[arquivo] = texto
             print(f"📄 Carregados {len(ocr_map)} registros OCR de {xml_path}")
@@ -36,11 +65,11 @@ def _carregar_ocr_map():
 
 def _verificar_imagem_jpg_pdf(anexo):
     """Verifica se existe uma imagem JPG correspondente ao PDF."""
-    if not anexo or anexo.lower() == "nan" or not anexo.lower().endswith(".pdf"):
+    if not anexo or anexo.lower() == VALOR_NAN or not anexo.lower().endswith(EXTENSAO_PDF):
         return None
 
     nome_base = os.path.splitext(anexo)[0]
-    jpg_path = os.path.join(ATTR_FIN_DIR_IMGS, f"{nome_base}.jpg")
+    jpg_path = os.path.join(ATTR_FIN_DIR_IMGS, f"{nome_base}{EXTENSAO_JPG}")
 
     if os.path.exists(jpg_path):
         return f"{nome_base}.jpg"
@@ -49,34 +78,34 @@ def _verificar_imagem_jpg_pdf(anexo):
 
 def _preparar_linha(row, ocr_map, tem_motivo=False):
     """Prepara os dados de uma linha para o template - apenas dados puros, sem HTML."""
-    data = str(row.get("DATA", ""))
-    hora = str(row.get("HORA", ""))
-    data_hora = f"{data} {hora}" if data != "nan" and hora != "nan" else ""
+    data = str(row.get(COLUNA_DATA, ""))
+    hora = str(row.get(COLUNA_HORA, ""))
+    data_hora = f"{data} {hora}" if data != VALOR_NAN and hora != VALOR_NAN else ""
 
-    classificacao = str(row.get("CLASSIFICACAO", ""))
-    ricardo = str(row.get("RICARDO", ""))
-    rafael = str(row.get("RAFAEL", ""))
-    anexo = str(row.get("ANEXO", ""))
-    descricao = str(row.get("DESCRICAO", ""))
-    valor = str(row.get("VALOR", ""))
-    validade = str(row.get("VALIDADE", ""))
+    classificacao = str(row.get(COLUNA_CLASSIFICACAO, ""))
+    ricardo = str(row.get(COLUNA_RICARDO, ""))
+    rafael = str(row.get(COLUNA_RAFAEL, ""))
+    anexo = str(row.get(COLUNA_ANEXO, ""))
+    descricao = str(row.get(COLUNA_DESCRICAO, ""))
+    valor = str(row.get(COLUNA_VALOR, ""))
+    validade = str(row.get(COLUNA_VALIDADE, ""))
 
     # Buscar texto OCR pelo nome do arquivo (campo ANEXO)
-    anexo = str(row.get("ANEXO", ""))
+    anexo = str(row.get(COLUNA_ANEXO, ""))
 
     # Verificar se existe imagem JPG para PDF
     imagem_jpg = _verificar_imagem_jpg_pdf(anexo)
 
     # 1) primeiro, tenta usar o que já veio no CSV (coluna "OCR")
-    texto_csv = str(row.get("OCR", "") or "").strip()
-    if texto_csv and texto_csv.lower() != "nan":
+    texto_csv = str(row.get(COLUNA_OCR, "") or "").strip()
+    if texto_csv and texto_csv.lower() != VALOR_NAN:
         texto_ocr = texto_csv
     else:
         # 2) fallback: puxa do XML carregado em ocr_map
-        texto_ocr = ocr_map.get(anexo, "") if anexo and anexo.lower() != "nan" else ""
+        texto_ocr = ocr_map.get(anexo, "") if anexo and anexo.lower() != VALOR_NAN else ""
 
     # Identificar origem da mensagem e direcionar valor para coluna correta
-    remetente = str(row.get("REMETENTE", "")).strip().lower()
+    remetente = str(row.get(COLUNA_REMETENTE, "")).strip().lower()
     print(f"DEBUG: Remetente: '{remetente}'")
     print(f"DEBUG: Ricardo original: '{ricardo}'")
     print(f"DEBUG: Rafael original: '{rafael}'")
@@ -84,12 +113,12 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
 
     # Se o valor não está nas colunas RICARDO ou RAFAEL, extrair do texto OCR
     # MAS apenas se não houver um valor já corrigido na coluna VALOR
-    valor_corrigido = str(row.get("VALOR", "")).strip()
-    tem_valor_corrigido = valor_corrigido and valor_corrigido.lower() not in ["nan", ""]
+    valor_corrigido = str(row.get(COLUNA_VALOR, "")).strip()
+    tem_valor_corrigido = valor_corrigido and valor_corrigido.lower() not in [VALOR_NAN, VALOR_VAZIO]
 
     if (
-        (not ricardo or ricardo.lower() in ["nan", ""])
-        and (not rafael or rafael.lower() in ["nan", ""])
+        (not ricardo or ricardo.lower() in [VALOR_NAN, VALOR_VAZIO])
+        and (not rafael or rafael.lower() in [VALOR_NAN, VALOR_VAZIO])
         and not tem_valor_corrigido
     ):
         print(

@@ -2,7 +2,6 @@
 # Caminho relativo ao projeto: src/wa_fin_ctrl/app.py
 # Módulo principal de processamento de comprovantes financeiros com suporte a OCR e IA
 import pandas as pd
-from openpyxl import load_workbook
 import sys
 import re
 import os
@@ -11,11 +10,9 @@ import zipfile
 from PIL import Image
 import pytesseract
 import cv2
-import numpy as np
 from openai import OpenAI
 import base64
 from pathlib import Path
-import json
 from datetime import datetime
 from .reporter import (
     gerar_relatorio_html,
@@ -25,543 +22,60 @@ from .reporter import (
 
 # Adiciona imports para PDF
 
-from .ocr import registrar_ocr_xml, process_image_ocr
+from .apps.core.ocr import registrar_ocr_xml, process_image_ocr
 from .env import *
-from .helper import convert_to_brazilian_format, normalize_value_to_brazilian_format, parse_value_from_input
-from .history import record_fix_command_wrapper
+from .apps.core.helper import convert_to_brazilian_format, normalize_value_to_brazilian_format, parse_value_from_input
+from .apps.core.history import record_fix_command_wrapper
 from .apps.core.models import EntradaFinanceira
-from .ia import (
+from .apps.core.ia import (
     extract_total_value_with_chatgpt,
     generate_payment_description_with_chatgpt,
     classify_transaction_type_with_chatgpt,
     process_image_with_ai_for_value,
 )
+from .apps.core.helper import (
+    gerenciar_arquivos_incrementais,
+    normalize_sender,
+    adicionar_totalizacao_mensal,
+)
+from .apps.core.utils import (
+    descomprimir_zip_se_existir,
+    organizar_arquivos_extraidos,
+    organizar_subdiretorios_se_necessario,
+    mover_arquivos_processados,
+    backup_arquivos_existentes,
+    criar_backups_antes_processamento,
+    restaurar_arquivos_backup,
+    diagnostico_erro_ocr,
+)
 
 
-def extract_value_from_ocr(ocr_text):
-    """Extrai valor monetário do texto OCR usando expressões regulares"""
-    if not ocr_text:
-        return ""
 
-    # Padrões para encontrar valores no texto OCR
-    padroes_valor = [
-        r"R\$\s*([0-9.,]+)",  # R$ 123,45
-        r"valor\s*R\$\s*([0-9.,]+)",  # valor R$ 123,45
-        r"([0-9.,]+)\s*reais",  # 123,45 reais
-        r"total\s*R\$\s*([0-9.,]+)",  # total R$ 123,45
-        r"pago\s*R\$\s*([0-9.,]+)",  # pago R$ 123,45
-        r"R\$\s*([0-9.,]+)\s*dados",  # R$ 123,45 dados
-        r"valor\s*:\s*R\$\s*([0-9.,]+)",  # valor: R$ 123,45
-        r"([0-9.,]+)\s*via\s*celular",  # 123,45 via celular
-        r"([0-9.,]+)\s*realizado",  # 123,45 realizado
-        r"VALOR\s*TOTAL\s*R\$\s*([0-9.,]+)",  # VALOR TOTAL R$ 123,45
-        r"VALOR\s*A\s*PAGAR\s*R\$\s*([0-9.,]+)",  # VALOR A PAGAR R$ 123,45
-        r"R\$\s*([0-9.,]+)\s*realizado",  # R$ 123,45 realizado
-        r"valor\s*R\$\s*([0-9.,]+)\s*realizado",  # valor R$ 123,45 realizado
-        r"([0-9.,]+)\s*R\$",  # 123,45 R$
-        r"R\$\s*([0-9.,]+)\s*R\$",  # R$ 123,45 R$
-    ]
 
-    valores_encontrados = []
 
-    for padrao in padroes_valor:
-        matches = re.findall(padrao, ocr_text, re.IGNORECASE)
-        for match in matches:
-            if match:
-                # Limpa o valor encontrado
-                valor_limpo = match.strip()
-                # Remove caracteres não numéricos exceto vírgula e ponto
-                valor_limpo = re.sub(r"[^\d,.]", "", valor_limpo)
-                if valor_limpo:
-                    valores_encontrados.append(valor_limpo)
 
-    if not valores_encontrados:
-        return ""
 
-    # Se encontrou múltiplos valores, retorna o maior (geralmente o total)
-    valores_float = []
-    for valor in valores_encontrados:
-        try:
-            valor_brasileiro = normalize_value_to_brazilian_format(valor)
-            valor_float = float(valor_brasileiro.replace(",", "."))
-            valores_float.append(valor_float)
-        except ValueError:
-            continue
 
-    if not valores_float:
-        return ""
 
-    # Retorna o maior valor encontrado
-    maior_valor = max(valores_float)
-    return f"{maior_valor:.2f}".replace(".", ",")
 
 
-def is_financial_receipt(ocr_text):
-    """Verifica se o texto OCR indica que é um comprovante financeiro"""
-    if not ocr_text or len(ocr_text.strip()) < 10:
-        return False
 
-    # Palavras-chave que indicam comprovante financeiro
-    keywords = [
-        "pix",
-        "transferência",
-        "pagamento",
-        "comprovante",
-        "recibo",
-        "banco",
-        "bb",
-        "nubank",
-        "itau",
-        "bradesco",
-        "santander",
-        "valor",
-        "total",
-        "r$",
-        "reais",
-        "realizado",
-        "pago",
-        "conta",
-        "cartão",
-        "débito",
-        "crédito",
-        "boleto",
-        "qr code",
-        "celular",
-        "app",
-        "mobile",
-    ]
 
-    texto_lower = ocr_text.lower()
 
-    # Conta quantas palavras-chave estão presentes
-    matches = sum(1 for keyword in keywords if keyword in texto_lower)
 
-    # Se pelo menos 2 palavras-chave estão presentes, considera como comprovante
-    return matches >= 2
 
 
-def extract_total_value_with_chatgpt(ocr_text):
-    """Usa a API do ChatGPT para identificar o valor total da compra no texto OCR"""
-    try:
-        # Verifica se a chave da API está disponível
-        api_key = ATTR_FIN_OPENAI_API_KEY
-        if not api_key:
-            return ""
 
-        # Verifica se há texto para processar
-        if not ocr_text or ocr_text in [
-            "Arquivo não encontrado",
-            "Erro ao carregar imagem",
-            "Nenhum texto detectado",
-        ]:
-            return ""
 
-        # Inicializa o cliente OpenAI
-        client = OpenAI(api_key=api_key)
 
-        # Prompt para o ChatGPT
-        prompt = f"""
-        Analise o seguinte texto extraído de um comprovante financeiro e identifique APENAS o valor total da transação.
-        
-        Texto: {ocr_text}
-        
-        Instruções:
-        - Retorne APENAS o valor numérico (ex: 29.90 ou 1533.27 ou 29,90)
-        - Se houver múltiplos valores, retorne o valor da transação principal
-        - Se não conseguir identificar um valor, retorne "NENHUM"
-        - Não inclua "R$" ou outros símbolos
-        - Não retorne explicações, apenas o número
-        
-        Valor total:
-        """
 
-        # Chama a API do ChatGPT
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Você é um especialista em análise de comprovantes financeiros. Extraia apenas o valor total das transações.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=50,
-            temperature=0.1,
-        )
 
-        # Extrai a resposta
-        valor = response.choices[0].message.content.strip()
 
-        # Limpa a resposta removendo caracteres indesejados
-        valor = re.sub(r"[^\d,.]", "", valor)
 
-        # Se não encontrou valor válido, retorna vazio
-        if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
-            return ""
 
-        # Converte para formato brasileiro padronizado
-        valor_brasileiro = normalize_value_to_brazilian_format(valor)
 
-        return valor_brasileiro
 
-    except Exception as e:
-        return ""
 
-
-def generate_payment_description_with_chatgpt(ocr_text):
-    """Usa a API do ChatGPT para gerar uma descrição do pagamento baseado no texto OCR"""
-    try:
-        # Verifica se a chave da API está disponível
-        api_key = ATTR_FIN_OPENAI_API_KEY
-        if not api_key:
-            return ""
-
-        # Verifica se há texto para processar
-        if not ocr_text or ocr_text in [
-            "Arquivo não encontrado",
-            "Erro ao carregar imagem",
-            "Nenhum texto detectado",
-        ]:
-            return ""
-
-        # Inicializa o cliente OpenAI
-        client = OpenAI(api_key=api_key)
-
-        # Prompt para o ChatGPT
-        prompt = f"""
-        Analise o seguinte texto extraído de um comprovante financeiro e crie uma descrição concisa do pagamento.
-        
-        Texto: {ocr_text}
-        
-        Instruções:
-        - Identifique o tipo de estabelecimento (padaria, farmácia, supermercado, etc.)
-        - Identifique o nome do estabelecimento se possível
-        - Identifique o tipo de transação (compra, recarga, transferência, etc.)
-        - Crie uma descrição de 3-5 palavras máximo
-        - Use formato: "Tipo - Estabelecimento" (ex: "Compra - Padaria Bonanza", "Medicamentos - Drogaria", "Recarga celular")
-        - Se não conseguir identificar, retorne "Pagamento"
-        
-        Descrição:
-        """
-
-        # Chama a API do ChatGPT
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Você é um especialista em análise de comprovantes financeiros. Crie descrições concisas e úteis para categorizações de gastos.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=30,
-            temperature=0.3,
-        )
-
-        # Extrai a resposta
-        descricao = response.choices[0].message.content.strip()
-
-        # Remove aspas e caracteres especiais desnecessários
-        descricao = re.sub(r'["\']', "", descricao)
-
-        # Se a descrição estiver vazia ou muito genérica, retorna "Pagamento"
-        if not descricao or len(descricao.strip()) == 0:
-            return "Pagamento"
-
-        return descricao.strip()
-
-    except Exception as e:
-        return "Pagamento"
-
-
-def classify_transaction_type_with_chatgpt(ocr_text):
-    """Usa a API do ChatGPT para classificar o tipo de transação (Pagamento ou Transferência)"""
-    try:
-        # Verifica se a chave da API está disponível
-        api_key = ATTR_FIN_OPENAI_API_KEY
-        if not api_key:
-            return ""
-
-        # Verifica se há texto para processar
-        if not ocr_text or ocr_text in [
-            "Arquivo não encontrado",
-            "Erro ao carregar imagem",
-            "Nenhum texto detectado",
-        ]:
-            return ""
-
-        # Inicializa o cliente OpenAI
-        client = OpenAI(api_key=api_key)
-
-        # Prompt para o ChatGPT
-        prompt = f"""
-        Analise o seguinte texto extraído de um comprovante financeiro e classifique o tipo de transação.
-        
-        Texto: {ocr_text}
-        
-        Instruções:
-        - Se for uma transferência PIX, TED, DOC ou transferência entre contas, retorne "Transferência"
-        - Se for um pagamento por débito, crédito, compra direta em estabelecimento comercial, retorne "Pagamento"
-        - Retorne APENAS uma das duas opções: "Transferência" ou "Pagamento"
-        - Não retorne explicações, apenas a classificação
-        
-        Classificação:
-        """
-
-        # Chama a API do ChatGPT
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Você é um especialista em análise de comprovantes financeiros. Classifique transações como Transferência ou Pagamento.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            max_tokens=10,
-            temperature=0.1,
-        )
-
-        # Extrai a resposta
-        classificacao = response.choices[0].message.content.strip()
-
-        # Remove aspas e caracteres especiais desnecessários
-        classificacao = re.sub(r'["\']', "", classificacao)
-
-        # Normaliza a classificação
-        if "transferência" in classificacao.lower():
-            return "Transferência"
-        elif "pagamento" in classificacao.lower():
-            return "Pagamento"
-        else:
-            # Fallback baseado no conteúdo do texto
-            if any(
-                palavra in ocr_text.lower()
-                for palavra in ["pix", "transferência", "ted", "doc"]
-            ):
-                return "Transferência"
-            else:
-                return "Pagamento"
-
-    except Exception as e:
-        return "Pagamento"
-
-
-
-
-
-def gerenciar_arquivos_incrementais():
-    """Gerencia arquivos de input, remove duplicatas e prepara para processamento incremental"""
-    input_dir = ATTR_FIN_DIR_INPUT
-    imgs_dir = ATTR_FIN_DIR_IMGS
-
-    # Verifica se o diretório input existe
-    if not os.path.exists(input_dir):
-        print(f"Diretório {input_dir}/ não encontrado!")
-        return False, None
-
-    # Lista arquivos de imagem em input/
-    extensoes_imagem = (".jpg", ".jpeg", ".png", ".pdf")
-    arquivos_input = [
-        f for f in os.listdir(input_dir) if f.lower().endswith(extensoes_imagem)
-    ]
-
-    if not arquivos_input:
-        print(f"Nenhuma imagem encontrada no diretório {ATTR_FIN_DIR_INPUT}/")
-        return False, None
-
-    # Lista arquivos já existentes no diretório de imagens
-    arquivos_existentes = []
-    if os.path.exists(imgs_dir):
-        arquivos_existentes = [
-            f for f in os.listdir(imgs_dir) if f.lower().endswith(extensoes_imagem)
-        ]
-
-    # Remove duplicatas do diretório de entrada
-    duplicatas_removidas = 0
-    for arquivo in arquivos_input[:]:  # Cópia da lista para modificar durante iteração
-        if arquivo in arquivos_existentes:
-            caminho_input = os.path.join(input_dir, arquivo)
-            os.remove(caminho_input)
-            arquivos_input.remove(arquivo)
-            duplicatas_removidas += 1
-            print(f"Removida duplicata: {arquivo}")
-
-    if duplicatas_removidas > 0:
-        print(
-            f"Total de {duplicatas_removidas} duplicatas removidas de {ATTR_FIN_DIR_INPUT}/"
-        )
-
-    # Verifica se ainda há arquivos para processar
-    if not arquivos_input:
-        print(
-            f"Todos os arquivos de {ATTR_FIN_DIR_INPUT}/ já foram processados anteriormente"
-        )
-        return False, None
-
-    print(
-        f"Encontrados {len(arquivos_input)} arquivos novos para processar em {ATTR_FIN_DIR_INPUT}/"
-    )
-
-    return True, arquivos_input
-
-
-def mover_arquivos_processados():
-    """Move arquivos processados do diretório de entrada para o diretório de imagens"""
-    input_dir = ATTR_FIN_DIR_INPUT
-    imgs_dir = ATTR_FIN_DIR_IMGS
-
-    # Garante que o diretório de imagens existe
-    os.makedirs(imgs_dir, exist_ok=True)
-
-    # Lista arquivos de imagem no diretório de entrada
-    extensoes_imagem = (".jpg", ".jpeg", ".png", ".pdf")
-    arquivos_input = [
-        f for f in os.listdir(input_dir) if f.lower().endswith(extensoes_imagem)
-    ]
-
-    arquivos_movidos = 0
-    for arquivo in arquivos_input:
-        origem = os.path.join(input_dir, arquivo)
-        destino = os.path.join(imgs_dir, arquivo)
-        shutil.move(origem, destino)
-        arquivos_movidos += 1
-        print(f"Movido: {arquivo} -> {ATTR_FIN_DIR_IMGS}/")
-
-    if arquivos_movidos > 0:
-        print(f"Total de {arquivos_movidos} arquivos movidos para {ATTR_FIN_DIR_IMGS}/")
-
-    return arquivos_movidos
-
-
-
-
-
-def normalize_sender(remetente):
-    """Normaliza o nome do remetente para 'Ricardo' ou 'Rafael'"""
-    if not remetente or pd.isna(remetente):
-        return ""
-
-    remetente_str = str(remetente).strip()
-
-    if "Ricardo" in remetente_str:
-        return "Ricardo"
-    elif "Rafael" in remetente_str:
-        return "Rafael"
-    else:
-        return remetente_str
-
-
-def adicionar_totalizacao_mensal(df):
-    """Adiciona linhas de totalização no final de cada mês"""
-    import calendar
-
-    # Função auxiliar para converter valores para float
-    def convert_to_float(value):
-        if pd.isna(value) or value == "":
-            return 0.0
-        try:
-            valor_brasileiro = normalize_value_to_brazilian_format(value)
-            return float(valor_brasileiro.replace(",", "."))
-        except:
-            return 0.0
-
-    # Converte DATA para datetime para facilitar ordenação e agrupamento
-    df["DATA_DT"] = pd.to_datetime(df["DATA"], format="%d/%m/%Y", errors="coerce")
-
-    # Remove linhas de totalização existentes antes de recalcular
-    df_sem_totais = df[df["REMETENTE"] != "TOTAL MÊS"].copy()
-
-    # Ordena por data
-    df_sem_totais = df_sem_totais.sort_values("DATA_DT").reset_index(drop=True)
-
-    # Lista para armazenar as novas linhas
-    linhas_totalizacao = []
-
-    # Agrupa por mês/ano
-    df_sem_totais["MES_ANO"] = df_sem_totais["DATA_DT"].dt.to_period("M")
-    meses_unicos = df_sem_totais["MES_ANO"].dropna().unique()
-
-    # Para cada mês, calcula totais e adiciona linha de totalização
-    for mes_periodo in sorted(meses_unicos):
-        # Filtra dados do mês (excluindo totalizações)
-        dados_mes = df_sem_totais[df_sem_totais["MES_ANO"] == mes_periodo]
-
-        # Calcula totais do mês
-        total_ricardo = dados_mes["RICARDO"].apply(convert_to_float).sum()
-        total_rafael = dados_mes["RAFAEL"].apply(convert_to_float).sum()
-
-        # Se há valores a totalizar
-        if total_ricardo > 0 or total_rafael > 0:
-            # Calcula último dia do mês
-            ano = mes_periodo.year
-            mes = mes_periodo.month
-            ultimo_dia = calendar.monthrange(ano, mes)[1]
-
-            # Cria linha de totalização
-            linha_total = {
-                "DATA": f"{ultimo_dia:02d}/{mes:02d}/{ano}",
-                "HORA": "23:59:00",
-                "REMETENTE": "TOTAL MÊS",
-                "CLASSIFICACAO": "TOTAL",
-                "RICARDO": f"{total_ricardo:.2f}" if total_ricardo > 0 else "",
-                "RAFAEL": f"{total_rafael:.2f}" if total_rafael > 0 else "",
-                "ANEXO": f"TOTAL_{mes:02d}_{ano}",
-                "DESCRICAO": f"Total do mês {mes:02d}/{ano}",
-                "VALOR": "",
-                "OCR": "",
-                "VALIDADE": "",
-                "DATA_DT": datetime(ano, mes, ultimo_dia, 23, 59),
-                "MES_ANO": mes_periodo,
-            }
-
-            linhas_totalizacao.append(linha_total)
-
-    # Adiciona as linhas de totalização ao DataFrame sem totais
-    if linhas_totalizacao:
-        df_totalizacao = pd.DataFrame(linhas_totalizacao)
-        df_combinado = pd.concat([df_sem_totais, df_totalizacao], ignore_index=True)
-        # Reordena por data/hora
-        df_combinado = df_combinado.sort_values(["DATA_DT", "HORA"]).reset_index(
-            drop=True
-        )
-    else:
-        df_combinado = df_sem_totais
-
-    # Remove colunas auxiliares
-    df_combinado = df_combinado.drop(columns=["DATA_DT", "MES_ANO"])
-
-    print(f"Adicionadas {len(linhas_totalizacao)} linhas de totalização mensal")
-
-    return df_combinado
-
-
-
-
-
-
-
-
-
-
-
-
-def diagnostico_erro_ocr(image_path, ocr_result):
-    if ocr_result == "Arquivo não encontrado":
-        return "Arquivo não encontrado no disco"
-    if ocr_result == "Erro ao carregar imagem":
-        return "Imagem corrompida ou formato não suportado"
-    if ocr_result == "Nenhum texto detectado":
-        ext = os.path.splitext(image_path)[1].lower()
-        if ext == ".pdf":
-            return "PDF escaneado ilegível, protegido ou em branco"
-        else:
-            return "Imagem ilegível ou em branco"
-    if ocr_result.startswith("Erro ao processar PDF"):
-        return "PDF protegido, corrompido ou formato incompatível"
-    if ocr_result.startswith("Erro no OCR"):
-        return "Falha no OCR"
-    return "Sem diagnóstico detalhado"
 
 
 def processar_incremental(force=False, entry=None, backup=False):
@@ -989,152 +503,10 @@ def processar_imgs(force=False, entry=None, backup=False):
     print("✅ Processamento de imagens concluído!")
 
 
-def descomprimir_zip_se_existir():
-    """Verifica se existe apenas um arquivo ZIP no diretório de entrada e o descomprime"""
-    input_dir = ATTR_FIN_DIR_INPUT
-
-    # Verifica se o diretório input existe
-    if not os.path.exists(input_dir):
-        print(f"Diretório {ATTR_FIN_DIR_INPUT}/ não encontrado!")
-        return False
-
-    # Lista todos os arquivos no diretório de entrada
-    todos_arquivos = os.listdir(input_dir)
-
-    # Filtra apenas arquivos ZIP
-    arquivos_zip = [f for f in todos_arquivos if f.lower().endswith(".zip")]
-
-    # Verifica se existe apenas um arquivo ZIP
-    if len(arquivos_zip) == 0:
-        print(f"Nenhum arquivo ZIP encontrado em {ATTR_FIN_DIR_INPUT}/")
-        return True  # Não é erro, apenas não há ZIP para processar
-
-    if len(arquivos_zip) > 1:
-        print(
-            f"Encontrados {len(arquivos_zip)} arquivos ZIP em {ATTR_FIN_DIR_INPUT}/. Deve haver apenas um."
-        )
-        print(f"Arquivos ZIP encontrados: {arquivos_zip}")
-        return False
-
-    # Se chegou aqui, existe exatamente um arquivo ZIP
-    arquivo_zip = arquivos_zip[0]
-    caminho_zip = os.path.join(input_dir, arquivo_zip)
-
-    print(f"Encontrado arquivo ZIP: {arquivo_zip}")
-    print("Descomprimindo arquivo ZIP...")
-
-    try:
-        # Descomprime o arquivo ZIP
-        with zipfile.ZipFile(caminho_zip, "r") as zip_ref:
-            # Lista o conteúdo do ZIP antes de extrair
-            lista_arquivos = zip_ref.namelist()
-            print(f"Arquivos no ZIP: {len(lista_arquivos)} itens")
-
-            # Extrai todos os arquivos para o diretório de entrada
-            zip_ref.extractall(input_dir)
-
-            print(f"✅ Arquivo ZIP descomprimido com sucesso!")
-            print(f"Extraídos {len(lista_arquivos)} itens para {input_dir}/")
-
-        # Remove o arquivo ZIP após descompressão bem-sucedida
-        os.remove(caminho_zip)
-        print(f"Arquivo ZIP {arquivo_zip} removido após descompressão")
-
-        # Organiza arquivos extraídos - move tudo para o diretório de entrada diretamente
-        organizar_arquivos_extraidos()
-
-        return True
-
-    except zipfile.BadZipFile:
-        print(f"❌ Erro: {arquivo_zip} não é um arquivo ZIP válido")
-        return False
-    except Exception as e:
-        print(f"❌ Erro ao descomprimir {arquivo_zip}: {str(e)}")
-        return False
 
 
-def organizar_arquivos_extraidos():
-    """Move arquivos de subdiretórios para o diretório de entrada diretamente e remove diretórios desnecessários"""
-    input_dir = ATTR_FIN_DIR_INPUT
-    extensoes_validas = (".jpg", ".jpeg", ".png", ".pdf", ".txt")
-
-    arquivos_movidos = 0
-    diretorios_removidos = 0
-
-    # Percorre todos os itens no diretório de entrada
-    for item in os.listdir(input_dir):
-        caminho_item = os.path.join(input_dir, item)
-
-        # Se é um diretório
-        if os.path.isdir(caminho_item):
-            # Ignora diretório __MACOSX (arquivos do macOS)
-            if item.startswith("__MACOSX"):
-                print(f"Removendo diretório __MACOSX: {item}")
-                shutil.rmtree(caminho_item)
-                diretorios_removidos += 1
-                continue
-
-            # Para outros diretórios, move arquivos válidos para o diretório de entrada
-            print(f"Processando subdiretório: {item}")
-            for arquivo in os.listdir(caminho_item):
-                caminho_arquivo = os.path.join(caminho_item, arquivo)
-
-                # Se é um arquivo e tem extensão válida
-                if os.path.isfile(caminho_arquivo) and arquivo.lower().endswith(
-                    extensoes_validas
-                ):
-                    destino = os.path.join(input_dir, arquivo)
-
-                    # Se já existe arquivo com mesmo nome, adiciona sufixo
-                    contador = 1
-                    arquivo_original = arquivo
-                    while os.path.exists(destino):
-                        nome, ext = os.path.splitext(arquivo_original)
-                        arquivo = f"{nome}_{contador}{ext}"
-                        destino = os.path.join(input_dir, arquivo)
-                        contador += 1
-
-                    # Move o arquivo
-                    shutil.move(caminho_arquivo, destino)
-                    print(f"Movido: {item}/{arquivo_original} -> {arquivo}")
-                    arquivos_movidos += 1
-
-            # Remove o diretório vazio após mover arquivos
-            try:
-                if os.path.exists(caminho_item):
-                    shutil.rmtree(caminho_item)
-                    diretorios_removidos += 1
-                    print(f"Diretório removido: {item}")
-            except Exception as e:
-                print(f"Aviso: Não foi possível remover diretório {item}: {e}")
-
-    print(
-        f"✅ Organização concluída: {arquivos_movidos} arquivos movidos, {diretorios_removidos} diretórios removidos"
-    )
 
 
-def organizar_subdiretorios_se_necessario():
-    """Verifica se há subdiretórios no diretório de entrada e organiza arquivos se necessário"""
-    input_dir = ATTR_FIN_DIR_INPUT
-
-    if not os.path.exists(input_dir):
-        return
-
-    # Verifica se há subdiretórios
-    subdiretorios = [
-        item
-        for item in os.listdir(input_dir)
-        if os.path.isdir(os.path.join(input_dir, item))
-    ]
-
-    if not subdiretorios:
-        print(f"Nenhum subdiretório encontrado em {ATTR_FIN_DIR_INPUT}/")
-        return
-
-    print(f"Subdiretórios encontrados: {subdiretorios}")
-
-    # Organiza arquivos dos subdiretórios
-    organizar_arquivos_extraidos()
 
 
 def executar_testes_e2e():
@@ -1186,22 +558,7 @@ def executar_testes_e2e():
         restaurar_arquivos_backup()
 
 
-def backup_arquivos_existentes():
-    """Faz backup de arquivos existentes antes dos testes"""
-    # Função removida - não há mais arquivos CSV para fazer backup
-    print("Backup de arquivos CSV removido - dados agora estão no banco")
 
-
-def criar_backups_antes_processamento():
-    """Cria backups dos arquivos principais antes do processamento"""
-    # Função removida - não há mais arquivos CSV para fazer backup
-    print("Backup de arquivos CSV removido - dados agora estão no banco")
-
-
-def restaurar_arquivos_backup():
-    """Restaura arquivos do backup após os testes"""
-    # Função removida - não há mais arquivos CSV para restaurar
-    print("Restauração de arquivos CSV removida - dados agora estão no banco")
 
 
 def testar_processamento_incremental():

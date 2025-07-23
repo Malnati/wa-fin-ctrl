@@ -7,10 +7,37 @@ import os
 import sys
 from pathlib import Path
 
+# ==== CONSTANTES ====
+# Extensões de arquivo
+EXTENSAO_JPG = ".jpg"
+EXTENSAO_JPEG = ".jpeg"
+EXTENSAO_PNG = ".png"
+
+# Texto de teste
+TEXTO_TESTE = "PIX Banco do Brasil R$ 29,90 Padaria Bonanza"
+
+# Classificações válidas
+CLASSIFICACAO_TRANSFERENCIA = "Transferência"
+CLASSIFICACAO_PAGAMENTO = "Pagamento"
+
+# Mensagens de teste
+MSG_NENHUMA_IMAGEM = "⚠️  Nenhuma imagem encontrada para teste de OCR"
+MSG_API_NAO_CONFIGURADA = "⚠️  API Key do OpenAI não configurada"
+MSG_OCR_FUNCIONANDO = "✅ OCR funcionando - Texto extraído: {}..."
+MSG_OCR_NAO_EXTRAIU = "❌ OCR não extraiu texto"
+MSG_ERRO_OCR = "❌ Erro no teste de OCR: {}"
+MSG_TESTANDO_OCR = "Testando OCR na imagem: {}"
+MSG_TESTANDO_VALOR = "Testando extração de valor..."
+MSG_TESTANDO_DESCRICAO = "Testando geração de descrição..."
+MSG_TESTANDO_CLASSIFICACAO = "Testando classificação..."
+MSG_VALOR_EXTRAIDO = "Valor extraído: {}"
+MSG_DESCRICAO_GERADA = "Descrição gerada: {}"
+MSG_CLASSIFICACAO = "Classificação: {}"
+
 # Adiciona o diretório atual ao path para importar módulos
 sys.path.insert(0, str(Path(__file__).parent))
 
-from .app import (
+from ..app import (
     ATTR_FIN_DIR_IMGS,
     ATTR_FIN_DIR_INPUT,
     ATTR_FIN_DIR_MASSA,
@@ -38,30 +65,30 @@ def testar_ocr_individual():
                 imagens = [
                     f
                     for f in os.listdir(diretorio)
-                    if f.lower().endswith((".jpg", ".jpeg", ".png"))
+                    if f.lower().endswith((EXTENSAO_JPG, EXTENSAO_JPEG, EXTENSAO_PNG))
                 ]
                 if imagens:
                     imagem_teste = os.path.join(diretorio, imagens[0])
                     break
 
         if not imagem_teste:
-            print("⚠️  Nenhuma imagem encontrada para teste de OCR")
+            print(MSG_NENHUMA_IMAGEM)
             return True  # Não é falha, apenas não há imagem para testar
 
-        print(f"Testando OCR na imagem: {imagem_teste}")
+        print(MSG_TESTANDO_OCR.format(imagem_teste))
 
         # Executa OCR
         resultado = ocr_process_image(imagem_teste)
 
         if resultado and resultado.strip():
-            print(f"✅ OCR funcionando - Texto extraído: {resultado[:100]}...")
+            print(MSG_OCR_FUNCIONANDO.format(resultado[:100]))
             return True
         else:
-            print("❌ OCR não extraiu texto")
+            print(MSG_OCR_NAO_EXTRAIU)
             return False
 
     except Exception as e:
-        print(f"❌ Erro no teste de OCR: {e}")
+        print(MSG_ERRO_OCR.format(e))
         return False
 
 
@@ -73,30 +100,30 @@ def testar_funcoes_chatgpt():
         # Verifica se API está disponível
         api_key = ATTR_FIN_OPENAI_API_KEY
         if not api_key:
-            print("⚠️  API Key do OpenAI não configurada")
+            print(MSG_API_NAO_CONFIGURADA)
             return False
 
         # Texto de teste
-        texto_teste = "PIX Banco do Brasil R$ 29,90 Padaria Bonanza"
+        texto_teste = TEXTO_TESTE
 
         # Testa extração de valor
-        print("Testando extração de valor...")
+        print(MSG_TESTANDO_VALOR)
         valor = extract_total_value_with_chatgpt(texto_teste)
         sucesso_valor = bool(valor and valor != "")
 
         # Testa geração de descrição
-        print("Testando geração de descrição...")
+        print(MSG_TESTANDO_DESCRICAO)
         descricao = generate_payment_description_with_chatgpt(texto_teste)
         sucesso_descricao = bool(descricao and descricao != "")
 
         # Testa classificação
-        print("Testando classificação...")
+        print(MSG_TESTANDO_CLASSIFICACAO)
         classificacao = classify_transaction_type_with_chatgpt(texto_teste)
-        sucesso_classificacao = classificacao in ["Transferência", "Pagamento"]
+        sucesso_classificacao = classificacao in [CLASSIFICACAO_TRANSFERENCIA, CLASSIFICACAO_PAGAMENTO]
 
-        print(f"Valor extraído: {valor}")
-        print(f"Descrição gerada: {descricao}")
-        print(f"Classificação: {classificacao}")
+        print(MSG_VALOR_EXTRAIDO.format(valor))
+        print(MSG_DESCRICAO_GERADA.format(descricao))
+        print(MSG_CLASSIFICACAO.format(classificacao))
 
         sucesso_geral = sucesso_valor and sucesso_descricao and sucesso_classificacao
         print(f"Funções ChatGPT: {'✅ PASSOU' if sucesso_geral else '❌ FALHOU'}")
@@ -121,7 +148,7 @@ def testar_processamento_completo():
                 imagens = [
                     f
                     for f in os.listdir(diretorio)
-                    if f.lower().endswith((".jpg", ".jpeg", ".png"))
+                    if f.lower().endswith((EXTENSAO_JPG, EXTENSAO_JPEG, EXTENSAO_PNG))
                 ]
                 if imagens:
                     imagem_teste = os.path.join(diretorio, imagens[0])

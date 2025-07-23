@@ -19,6 +19,12 @@ from .ia import (
 )
 from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_IMGS
 from .helper import normalize_sender, normalize_value_to_brazilian_format
+from .utils import (
+    descomprimir_zip_se_existir,
+    organizar_arquivos_extraidos,
+    organizar_subdiretorios_se_necessario,
+    mover_arquivos_processados,
+)
 import zipfile
 import shutil
 
@@ -312,68 +318,7 @@ def processar_incremental_paralelo(force=False, entry=None, backup=False, max_wo
         }
 
 
-def _descomprimir_zip_se_existir():
-    """Verifica se existe apenas um arquivo ZIP no diretório de entrada e o descomprime"""
-    input_dir = ATTR_FIN_DIR_INPUT
 
-    # Verifica se o diretório input existe
-    if not os.path.exists(input_dir):
-        print(f"Diretório {ATTR_FIN_DIR_INPUT} não encontrado!")
-        return False
-
-    # Lista todos os arquivos no diretório de entrada
-    todos_arquivos = os.listdir(input_dir)
-
-    # Filtra apenas arquivos ZIP
-    arquivos_zip = [f for f in todos_arquivos if f.lower().endswith(".zip")]
-
-    # Verifica se existe apenas um arquivo ZIP
-    if len(arquivos_zip) == 0:
-        print(f"Nenhum arquivo ZIP encontrado em {ATTR_FIN_DIR_INPUT}/")
-        return True  # Não é erro, apenas não há ZIP para processar
-
-    if len(arquivos_zip) > 1:
-        print(
-            f"Encontrados {len(arquivos_zip)} arquivos ZIP em {ATTR_FIN_DIR_INPUT}/. Deve haver apenas um."
-        )
-        print(f"Arquivos ZIP encontrados: {arquivos_zip}")
-        return False
-
-    # Se chegou aqui, existe exatamente um arquivo ZIP
-    arquivo_zip = arquivos_zip[0]
-    caminho_zip = os.path.join(input_dir, arquivo_zip)
-
-    print(f"Encontrado arquivo ZIP: {arquivo_zip}")
-    print("Descomprimindo arquivo ZIP...")
-
-    try:
-        # Descomprime o arquivo ZIP
-        with zipfile.ZipFile(caminho_zip, "r") as zip_ref:
-            # Lista o conteúdo do ZIP antes de extrair
-            lista_arquivos = zip_ref.namelist()
-            print(f"Arquivos no ZIP: {len(lista_arquivos)} itens")
-
-            # Extrai todos os arquivos para o diretório de entrada
-            zip_ref.extractall(input_dir)
-
-            print(f"✅ Arquivo ZIP descomprimido com sucesso!")
-            print(f"Extraídos {len(lista_arquivos)} itens para {input_dir}/")
-
-        # Remove o arquivo ZIP após descompressão bem-sucedida
-        os.remove(caminho_zip)
-        print(f"Arquivo ZIP {arquivo_zip} removido após descompressão")
-
-        # Organiza arquivos extraídos - move tudo para o diretório de entrada diretamente
-        _organizar_arquivos_extraidos()
-
-        return True
-
-    except zipfile.BadZipFile:
-        print(f"❌ Erro: {arquivo_zip} não é um arquivo ZIP válido")
-        return False
-    except Exception as e:
-        print(f"❌ Erro ao descomprimir {arquivo_zip}: {str(e)}")
-        return False
 
 
 def _organizar_arquivos_extraidos():

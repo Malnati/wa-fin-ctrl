@@ -13,6 +13,6 @@ ATTR_FIN_DIR_TMP = os.getenv("ATTR_FIN_DIR_TMP", "tmp")
 ATTR_FIN_DIR_MENSAGENS = os.getenv("ATTR_FIN_DIR_MENSAGENS", "mensagens")
 ATTR_FIN_DIR_OCR = os.getenv("ATTR_FIN_DIR_OCR", "ocr")
 ATTR_FIN_DIR_DOCS = os.getenv("ATTR_FIN_DIR_DOCS", "docs")
-ATTR_FIN_DIR_DATA = os.getenv("ATTR_FIN_DIR_DATA", "data")
+
 ATTR_FIN_ARQ_DB = os.getenv("ATTR_FIN_ARQ_DB", "db/db.sqlite3")
 ATTR_FIN_ARQ_CHAT = os.getenv("ATTR_FIN_ARQ_CHAT", "_chat.txt")

@@ -10,6 +10,19 @@ from typing import Dict, Any, Optional, List
 from django.utils import timezone
 from .models import CorrecaoHistorico
 
+# ==== CONSTANTES ====
+# Chaves de resposta JSON
+CHAVE_TOTAL_COMMANDS = "total_commands"
+CHAVE_SUCCESSFUL_COMMANDS = "successful_commands"
+CHAVE_FAILED_COMMANDS = "failed_commands"
+CHAVE_COMMAND_TYPES = "command_types"
+CHAVE_FIRST_COMMAND = "first_command"
+CHAVE_LAST_COMMAND = "last_command"
+CHAVE_STORAGE_TYPE = "storage_type"
+
+# Valores de resposta
+VALOR_DATABASE = "database"
+
 
 class CommandHistory:
     """Classe para gerenciar o histórico de comandos executados"""
@@ -208,24 +221,24 @@ class CommandHistory:
                     last_command = last.execution.isoformat()
             
             return {
-                "total_commands": total_commands,
-                "successful_commands": successful_commands,
-                "failed_commands": failed_commands,
-                "command_types": command_types,
-                "first_command": first_command,
-                "last_command": last_command,
-                "storage_type": "database"
+                CHAVE_TOTAL_COMMANDS: total_commands,
+                CHAVE_SUCCESSFUL_COMMANDS: successful_commands,
+                CHAVE_FAILED_COMMANDS: failed_commands,
+                CHAVE_COMMAND_TYPES: command_types,
+                CHAVE_FIRST_COMMAND: first_command,
+                CHAVE_LAST_COMMAND: last_command,
+                CHAVE_STORAGE_TYPE: VALOR_DATABASE
             }
         except Exception as e:
             print(f"⚠️ Erro ao obter estatísticas: {str(e)}")
             return {
-                "total_commands": 0,
-                "successful_commands": 0,
-                "failed_commands": 0,
-                "command_types": {},
-                "first_command": None,
-                "last_command": None,
-                "storage_type": "database"
+                CHAVE_TOTAL_COMMANDS: 0,
+                CHAVE_SUCCESSFUL_COMMANDS: 0,
+                CHAVE_FAILED_COMMANDS: 0,
+                CHAVE_COMMAND_TYPES: {},
+                CHAVE_FIRST_COMMAND: None,
+                CHAVE_LAST_COMMAND: None,
+                CHAVE_STORAGE_TYPE: VALOR_DATABASE
             }
 
 

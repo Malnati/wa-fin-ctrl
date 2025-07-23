@@ -32,6 +32,56 @@ from ..reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
 # Importa funções para WebSocket
 from .consumers import broadcast_reload_sync
 
+# ==== CONSTANTES ====
+# Arquivos
+ARQUIVO_INDEX = "index.html"
+
+# Status HTTP
+STATUS_404 = 404
+STATUS_500 = 500
+
+# Mensagens de erro
+ERRO_PAGINA_NAO_ENCONTRADA = "Página index.html não encontrada. Execute o processamento primeiro."
+ERRO_SERVIR_PAGINA = "Erro ao servir página de relatórios: {}"
+ERRO_PARAMETRO_OBRIGATORIO = "Parâmetro 'find' é obrigatório"
+ERRO_ENTRADA_NAO_ENCONTRADA = "Entrada {} não encontrada ou erro na correção"
+ERRO_CORRIGIR_ENTRADA = "Erro ao corrigir entrada: {}"
+ERRO_PROCESSAMENTO = "Erro durante o processamento paralelo"
+ERRO_PROCESSAR_ARQUIVOS = "Erro ao processar arquivos: {}"
+ERRO_NENHUM_ARQUIVO = "Nenhum arquivo enviado"
+ERRO_ARQUIVO_VAZIO = "Arquivo vazio"
+
+# Mensagens de sucesso
+SUCESSO_ENTRADA_CORRIGIDA = "Entrada {} corrigida com sucesso"
+SUCESSO_PROCESSAMENTO = "Processamento paralelo concluído com sucesso"
+
+# Chaves de resposta JSON
+CHAVE_STATUS = "status"
+CHAVE_LAST_UPDATE = "last_update"
+CHAVE_TIMESTAMP = "timestamp"
+CHAVE_WEBSOCKET_AVAILABLE = "websocket_available"
+CHAVE_ERROR = "error"
+CHAVE_SUCCESS = "success"
+CHAVE_MESSAGE = "message"
+CHAVE_DATA = "data"
+CHAVE_FIND = "find"
+CHAVE_VALUE = "value"
+CHAVE_DESC = "desc"
+CHAVE_CLASS = "class"
+CHAVE_ROTATE = "rotate"
+CHAVE_IA = "ia"
+CHAVE_DISMISS = "dismiss"
+CHAVE_STORAGE = "storage"
+CHAVE_FORCE = "force"
+CHAVE_BACKUP = "backup"
+CHAVE_MAX_WORKERS = "max_workers"
+CHAVE_RESULTADO = "resultado"
+
+# Valores de resposta
+VALOR_HEALTHY = "healthy"
+VALOR_TRUE = True
+VALOR_DATABASE = "database"
+
 # Variável global para controlar o status
 _last_update_time = time.time()
 
@@ -48,12 +98,12 @@ def root(request):
     View raiz - serve a página index.html dos relatórios.
     """
     try:
-        index_path = os.path.join(ATTR_FIN_DIR_DOCS, "index.html")
+        index_path = os.path.join(ATTR_FIN_DIR_DOCS, ARQUIVO_INDEX)
 
         if not os.path.exists(index_path):
             return JsonResponse(
-                {"error": "Página index.html não encontrada. Execute o processamento primeiro."},
-                status=404
+                {CHAVE_ERROR: ERRO_PAGINA_NAO_ENCONTRADA},
+                status=STATUS_404
             )
 
         # Retorna o arquivo index.html
@@ -61,8 +111,8 @@ def root(request):
 
     except Exception as e:
         return JsonResponse(
-            {"error": f"Erro ao servir página de relatórios: {str(e)}"},
-            status=500
+            {CHAVE_ERROR: ERRO_SERVIR_PAGINA.format(str(e))},
+            status=STATUS_500
         )
 
 
@@ -72,10 +122,10 @@ def get_status(request):
     View para verificar status e última atualização.
     """
     return JsonResponse({
-        "status": "healthy",
-        "last_update": _last_update_time,
-        "timestamp": time.time(),
-        "websocket_available": True,  # WebSocket disponível via Channels
+        CHAVE_STATUS: VALOR_HEALTHY,
+        CHAVE_LAST_UPDATE: _last_update_time,
+        CHAVE_TIMESTAMP: time.time(),
+        CHAVE_WEBSOCKET_AVAILABLE: True,  # WebSocket disponível via Channels
     })
 
 
@@ -88,17 +138,17 @@ def fix_entry_view(request):
     """
     try:
         # Obtém os dados do POST
-        find = request.POST.get('find')
-        value = request.POST.get('value', '')
-        desc = request.POST.get('desc', '')
-        class_ = request.POST.get('class_', '')
-        rotate = request.POST.get('rotate', '')
-        ia = request.POST.get('ia', 'false').lower() == 'true'
-        dismiss = request.POST.get('dismiss', 'false').lower() == 'true'
+        find = request.POST.get(CHAVE_FIND)
+        value = request.POST.get(CHAVE_VALUE, '')
+        desc = request.POST.get(CHAVE_DESC, '')
+        class_ = request.POST.get(CHAVE_CLASS, '')
+        rotate = request.POST.get(CHAVE_ROTATE, '')
+        ia = request.POST.get(CHAVE_IA, 'false').lower() == 'true'
+        dismiss = request.POST.get(CHAVE_DISMISS, 'false').lower() == 'true'
 
         if not find:
             return JsonResponse(
-                {"error": "Parâmetro 'find' é obrigatório"},
+                {CHAVE_ERROR: ERRO_PARAMETRO_OBRIGATORIO},
                 status=400
             )
 
@@ -124,30 +174,30 @@ def fix_entry_view(request):
                 print(f"Erro ao enviar notificação WebSocket: {e}")
 
             return JsonResponse({
-                "success": True,
-                "message": f"Entrada {find} corrigida com sucesso",
-                "data": {
-                    "find": find,
-                    "value": value,
-                    "desc": desc,
-                    "class": class_,
-                    "rotate": rotate,
-                    "ia": ia,
-                    "dismiss": dismiss,
-                    "last_update": _last_update_time,
-                    "storage": "database",  # Indica que foi salvo no banco
+                CHAVE_SUCCESS: True,
+                CHAVE_MESSAGE: SUCESSO_ENTRADA_CORRIGIDA.format(find),
+                CHAVE_DATA: {
+                    CHAVE_FIND: find,
+                    CHAVE_VALUE: value,
+                    CHAVE_DESC: desc,
+                    CHAVE_CLASS: class_,
+                    CHAVE_ROTATE: rotate,
+                    CHAVE_IA: ia,
+                    CHAVE_DISMISS: dismiss,
+                    CHAVE_LAST_UPDATE: _last_update_time,
+                    CHAVE_STORAGE: VALOR_DATABASE,  # Indica que foi salvo no banco
                 }
             })
         else:
             return JsonResponse(
-                {"error": f"Entrada {find} não encontrada ou erro na correção"},
+                {CHAVE_ERROR: ERRO_ENTRADA_NAO_ENCONTRADA.format(find)},
                 status=404
             )
 
     except Exception as e:
         return JsonResponse(
-            {"error": f"Erro ao corrigir entrada: {str(e)}"},
-            status=500
+            {CHAVE_ERROR: ERRO_CORRIGIR_ENTRADA.format(str(e))},
+            status=STATUS_500
         )
 
 
@@ -160,9 +210,9 @@ def process_files(request):
     """
     try:
         # Obtém os parâmetros do POST
-        force = request.POST.get('force', 'false').lower() == 'true'
-        backup = request.POST.get('backup', 'false').lower() == 'true'
-        max_workers = int(request.POST.get('max_workers', '4'))
+        force = request.POST.get(CHAVE_FORCE, 'false').lower() == 'true'
+        backup = request.POST.get(CHAVE_BACKUP, 'false').lower() == 'true'
+        max_workers = int(request.POST.get(CHAVE_MAX_WORKERS, '4'))
 
         # Chama a função de processamento paralelo
         resultado = processar_incremental_paralelo(
@@ -171,7 +221,7 @@ def process_files(request):
             max_workers=max_workers
         )
 
-        if resultado and resultado.get('success'):
+        if resultado and resultado.get(CHAVE_SUCCESS):
             # Atualiza timestamp
             update_last_modified()
 
@@ -182,26 +232,26 @@ def process_files(request):
                 print(f"Erro ao enviar notificação WebSocket: {e}")
 
             return JsonResponse({
-                "success": True,
-                "message": "Processamento paralelo concluído com sucesso",
-                "data": {
-                    "force": force,
-                    "backup": backup,
-                    "max_workers": max_workers,
-                    "resultado": resultado,
-                    "last_update": _last_update_time,
+                CHAVE_SUCCESS: True,
+                CHAVE_MESSAGE: SUCESSO_PROCESSAMENTO,
+                CHAVE_DATA: {
+                    CHAVE_FORCE: force,
+                    CHAVE_BACKUP: backup,
+                    CHAVE_MAX_WORKERS: max_workers,
+                    CHAVE_RESULTADO: resultado,
+                    CHAVE_LAST_UPDATE: _last_update_time,
                 }
             })
         else:
             return JsonResponse(
-                {"error": "Erro durante o processamento paralelo"},
-                status=500
+                {CHAVE_ERROR: ERRO_PROCESSAMENTO},
+                status=STATUS_500
             )
 
     except Exception as e:
         return JsonResponse(
-            {"error": f"Erro ao processar arquivos: {str(e)}"},
-            status=500
+            {CHAVE_ERROR: ERRO_PROCESSAR_ARQUIVOS.format(str(e))},
+            status=STATUS_500
         )
 
 
@@ -214,7 +264,7 @@ def upload_file(request):
     try:
         if 'file' not in request.FILES:
             return JsonResponse(
-                {"error": "Nenhum arquivo enviado"},
+                {CHAVE_ERROR: ERRO_NENHUM_ARQUIVO},
                 status=400
             )
 
@@ -223,7 +273,7 @@ def upload_file(request):
         # Verifica se o arquivo tem tamanho
         if uploaded_file.size == 0:
             return JsonResponse(
-                {"error": "Arquivo vazio"},
+                {CHAVE_ERROR: ERRO_ARQUIVO_VAZIO},
                 status=400
             )
 
@@ -236,9 +286,9 @@ def upload_file(request):
                 destination.write(chunk)
 
         return JsonResponse({
-            "success": True,
-            "message": f"Arquivo {uploaded_file.name} enviado com sucesso",
-            "data": {
+            CHAVE_SUCCESS: True,
+            CHAVE_MESSAGE: f"Arquivo {uploaded_file.name} enviado com sucesso",
+            CHAVE_DATA: {
                 "filename": uploaded_file.name,
                 "size": uploaded_file.size,
                 "path": file_path
@@ -247,8 +297,8 @@ def upload_file(request):
 
     except Exception as e:
         return JsonResponse(
-            {"error": f"Erro ao fazer upload: {str(e)}"},
-            status=500
+            {CHAVE_ERROR: f"Erro ao fazer upload: {str(e)}"},
+            status=STATUS_500
         )
 
 
@@ -408,8 +458,8 @@ def generate_reports(request):
     """
     try:
         # Obtém os parâmetros do POST
-        force = request.POST.get('force', 'false').lower() == 'true'
-        backup = request.POST.get('backup', 'true').lower() == 'true'
+        force = request.POST.get(CHAVE_FORCE, 'false').lower() == 'true'
+        backup = request.POST.get(CHAVE_BACKUP, 'true').lower() == 'true'
 
         # Gera os relatórios
         resultado = gerar_relatorio_html(backup=backup)
@@ -425,21 +475,21 @@ def generate_reports(request):
             print(f"Erro ao enviar notificação WebSocket: {e}")
 
         return JsonResponse({
-            "success": True,
-            "message": "Relatórios gerados com sucesso",
-            "data": {
-                "force": force,
-                "backup": backup,
+            CHAVE_SUCCESS: True,
+            CHAVE_MESSAGE: "Relatórios gerados com sucesso",
+            CHAVE_DATA: {
+                CHAVE_FORCE: force,
+                CHAVE_BACKUP: backup,
                 "relatorio_geral": resultado,
                 "relatorios_mensais": resultado_mensal,
-                "last_update": _last_update_time,
+                CHAVE_LAST_UPDATE: _last_update_time,
             }
         })
 
     except Exception as e:
         return JsonResponse(
-            {"error": f"Erro ao gerar relatórios: {str(e)}"},
-            status=500
+            {CHAVE_ERROR: f"Erro ao gerar relatórios: {str(e)}"},
+            status=STATUS_500
         )
 
 
@@ -475,8 +525,8 @@ def health(request):
     Health check da API.
     """
     return JsonResponse({
-        "status": "healthy",
-        "timestamp": time.time(),
+        CHAVE_STATUS: VALOR_HEALTHY,
+        CHAVE_TIMESTAMP: time.time(),
         "service": "wa-fin-ctrl"
     })
 
