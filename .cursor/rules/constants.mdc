@@ -1,5 +1,23 @@
 ---
-description: Caminhos ou nomes de arquivos, valores fixos e demais hard-code values devem ser sempre declarados em constantes, no topo dos arquivos Python.
+description: |
+  Nenhum valor fixo (hardcoded) deve ser utilizado diretamente no corpo de funções, métodos ou blocos de código.
+
+  Todos os valores literais como:
+    - Strings de caminho de diretórios ou arquivos (ex: `"data/input.csv"`);
+    - Chaves fixas (ex: `"OPENAI_API_KEY"`);
+    - URLs, nomes de arquivos, extensões, tokens e parâmetros estáticos;
+    - Nomes de colunas, campos ou estruturas fixas;
+
+  Devem obrigatoriamente ser extraídos para constantes no **topo do arquivo Python**, em letras maiúsculas com underscores (ex: `CAMINHO_DADOS = "data/input.csv"`), conforme recomendação do Clean Code e da PEP 8.
+
+  Essa abordagem:
+    - Centraliza os valores para facilitar ajustes futuros;
+    - Evita duplicações e inconsistências;
+    - Torna o código mais legível e autossuficiente;
+    - Suporta refatorações automatizadas com maior segurança.
+
+  Exceções:
+    - Strings que aparecem uma única vez e são claramente autoexplicativas (ex: `print("Olá, mundo!")`) podem ser toleradas, desde que não representem configuração ou dados relevantes.
 globs: '*.py'
 alwaysApply: true
 ---
