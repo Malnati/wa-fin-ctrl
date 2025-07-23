@@ -732,7 +732,6 @@ def processar_incremental(force=False, entry=None, backup=False):
                 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
                 django.setup()
                 
-                from .apps.core.models import EntradaFinanceira
                 from django.utils import timezone
                 
                 if valor_total:
