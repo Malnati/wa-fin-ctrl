@@ -33,7 +33,15 @@ except ImportError:
 
 from .ocr import registrar_ocr_xml, process_image_ocr
 from .env import *
-from .helper import convert_to_brazilian_format
+from .helper import convert_to_brazilian_format, normalize_value_to_brazilian_format, parse_value_from_input
+from .history import record_fix_command_wrapper
+from .apps.core.models import EntradaFinanceira
+from .ia import (
+    extract_total_value_with_chatgpt,
+    generate_payment_description_with_chatgpt,
+    classify_transaction_type_with_chatgpt,
+    process_image_with_ai_for_value,
+)
 
 
 def extract_value_from_ocr(ocr_text):
@@ -80,8 +88,6 @@ def extract_value_from_ocr(ocr_text):
     valores_float = []
     for valor in valores_encontrados:
         try:
-            from .helper import normalize_value_to_brazilian_format
-
             valor_brasileiro = normalize_value_to_brazilian_format(valor)
             valor_float = float(valor_brasileiro.replace(",", "."))
             valores_float.append(valor_float)
@@ -200,8 +206,6 @@ def extract_total_value_with_chatgpt(ocr_text):
             return ""
 
         # Converte para formato brasileiro padronizado
-        from .helper import normalize_value_to_brazilian_format
-
         valor_brasileiro = normalize_value_to_brazilian_format(valor)
 
         return valor_brasileiro
@@ -372,14 +376,14 @@ def gerenciar_arquivos_incrementais():
         print(f"Nenhuma imagem encontrada no diretório {ATTR_FIN_DIR_INPUT}/")
         return False, None
 
-    # Lista arquivos já existentes em imgs/
+    # Lista arquivos já existentes no diretório de imagens
     arquivos_existentes = []
     if os.path.exists(imgs_dir):
         arquivos_existentes = [
             f for f in os.listdir(imgs_dir) if f.lower().endswith(extensoes_imagem)
         ]
 
-    # Remove duplicatas de input/
+    # Remove duplicatas do diretório de entrada
     duplicatas_removidas = 0
     for arquivo in arquivos_input[:]:  # Cópia da lista para modificar durante iteração
         if arquivo in arquivos_existentes:
@@ -409,14 +413,14 @@ def gerenciar_arquivos_incrementais():
 
 
 def mover_arquivos_processados():
-    """Move arquivos processados de input/ para imgs/"""
+    """Move arquivos processados do diretório de entrada para o diretório de imagens"""
     input_dir = ATTR_FIN_DIR_INPUT
     imgs_dir = ATTR_FIN_DIR_IMGS
 
-    # Garante que o diretório imgs/ existe
+    # Garante que o diretório de imagens existe
     os.makedirs(imgs_dir, exist_ok=True)
 
-    # Lista arquivos de imagem em input/
+    # Lista arquivos de imagem no diretório de entrada
     extensoes_imagem = (".jpg", ".jpeg", ".png", ".pdf")
     arquivos_input = [
         f for f in os.listdir(input_dir) if f.lower().endswith(extensoes_imagem)
@@ -456,7 +460,6 @@ def normalize_sender(remetente):
 
 def adicionar_totalizacao_mensal(df):
     """Adiciona linhas de totalização no final de cada mês"""
-    from datetime import datetime, timedelta
     import calendar
 
     # Função auxiliar para converter valores para float
@@ -788,7 +791,7 @@ def processar_incremental(force=False, entry=None, backup=False):
 
 
 def processar_pdfs(force=False, entry=None, backup=False):
-    """Processa apenas arquivos .pdf no diretório input/."""
+    """Processa apenas arquivos .pdf no diretório de entrada."""
     print(
         "=== INICIANDO PROCESSAMENTO DE PDFs {} ===".format(
             "FORÇADO" if force else "INCREMENTAL"
@@ -890,7 +893,7 @@ def processar_pdfs(force=False, entry=None, backup=False):
 
 
 def processar_imgs(force=False, entry=None, backup=False):
-    """Processa apenas arquivos de imagem (.jpg, .png, .jpeg) no diretório input/."""
+    """Processa apenas arquivos de imagem (.jpg, .png, .jpeg) no diretório de entrada."""
     print(
         "=== INICIANDO PROCESSAMENTO DE IMAGENS {} ===".format(
             "FORÇADO" if force else "INCREMENTAL"
@@ -997,7 +1000,7 @@ def processar_imgs(force=False, entry=None, backup=False):
 
 
 def descomprimir_zip_se_existir():
-    """Verifica se existe apenas um arquivo ZIP em input/ e o descomprime"""
+    """Verifica se existe apenas um arquivo ZIP no diretório de entrada e o descomprime"""
     input_dir = ATTR_FIN_DIR_INPUT
 
     # Verifica se o diretório input existe
@@ -1005,7 +1008,7 @@ def descomprimir_zip_se_existir():
         print(f"Diretório {ATTR_FIN_DIR_INPUT}/ não encontrado!")
         return False
 
-    # Lista todos os arquivos no diretório input/
+    # Lista todos os arquivos no diretório de entrada
     todos_arquivos = os.listdir(input_dir)
 
     # Filtra apenas arquivos ZIP
@@ -1037,7 +1040,7 @@ def descomprimir_zip_se_existir():
             lista_arquivos = zip_ref.namelist()
             print(f"Arquivos no ZIP: {len(lista_arquivos)} itens")
 
-            # Extrai todos os arquivos para o diretório input/
+            # Extrai todos os arquivos para o diretório de entrada
             zip_ref.extractall(input_dir)
 
             print(f"✅ Arquivo ZIP descomprimido com sucesso!")
@@ -1047,7 +1050,7 @@ def descomprimir_zip_se_existir():
         os.remove(caminho_zip)
         print(f"Arquivo ZIP {arquivo_zip} removido após descompressão")
 
-        # Organiza arquivos extraídos - move tudo para input/ diretamente
+        # Organiza arquivos extraídos - move tudo para o diretório de entrada diretamente
         organizar_arquivos_extraidos()
 
         return True
@@ -1061,14 +1064,14 @@ def descomprimir_zip_se_existir():
 
 
 def organizar_arquivos_extraidos():
-    """Move arquivos de subdiretórios para input/ diretamente e remove diretórios desnecessários"""
+    """Move arquivos de subdiretórios para o diretório de entrada diretamente e remove diretórios desnecessários"""
     input_dir = ATTR_FIN_DIR_INPUT
     extensoes_validas = (".jpg", ".jpeg", ".png", ".pdf", ".txt")
 
     arquivos_movidos = 0
     diretorios_removidos = 0
 
-    # Percorre todos os itens em input/
+    # Percorre todos os itens no diretório de entrada
     for item in os.listdir(input_dir):
         caminho_item = os.path.join(input_dir, item)
 
@@ -1081,7 +1084,7 @@ def organizar_arquivos_extraidos():
                 diretorios_removidos += 1
                 continue
 
-            # Para outros diretórios, move arquivos válidos para input/
+            # Para outros diretórios, move arquivos válidos para o diretório de entrada
             print(f"Processando subdiretório: {item}")
             for arquivo in os.listdir(caminho_item):
                 caminho_arquivo = os.path.join(caminho_item, arquivo)
@@ -1121,7 +1124,7 @@ def organizar_arquivos_extraidos():
 
 
 def organizar_subdiretorios_se_necessario():
-    """Verifica se há subdiretórios em input/ e organiza arquivos se necessário"""
+    """Verifica se há subdiretórios no diretório de entrada e organiza arquivos se necessário"""
     input_dir = ATTR_FIN_DIR_INPUT
 
     if not os.path.exists(input_dir):
