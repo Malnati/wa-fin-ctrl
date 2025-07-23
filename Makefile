@@ -418,12 +418,14 @@ rebuild: remove-all copy-july process api
 reload: process api
 
 kill-api:
-	@PID=$$(pgrep -f "python manage.py runserver 0.0.0.0:8000"); \
+	@echo "Verificando processos na porta 8000..."
+	@PID=$$(lsof -ti:8000 2>/dev/null); \
 	if [ -n "$$PID" ]; then \
-		echo "Encerrando API (PID=$$PID)"; \
+		echo "Encerrando processo na porta 8000 (PID=$$PID)"; \
 		kill -9 $$PID; \
+		echo "Processo encerrado."; \
 	else \
-		echo "Nenhum processo da API encontrado."; \
+		echo "Nenhum processo encontrado na porta 8000."; \
 	fi
 
 kill-front:
