@@ -1,0 +1,22 @@
+---
+description: |
+  O princípio DRY (*Don't Repeat Yourself*) deve ser seguido rigorosamente em todo o projeto.
+
+  Antes de criar uma nova função, classe ou qualquer implementação, é obrigatório verificar se já existe no projeto algo com o mesmo objetivo.
+
+  Regras:
+  - Se já existir função ou lógica equivalente, reutilize-a em vez de duplicar.
+  - Caso a reutilização direta cause loop de importações, a função original deve ser movida para um módulo comum, como `utils.py`, `helper.py` ou outro arquivo de utilidades.
+  - Nunca duplique código apenas por conveniência ou isolamento artificial entre arquivos.
+  - Pequenas variações de lógica devem ser parametrizadas em funções reutilizáveis.
+
+  Fundamentação:
+  - O Clean Code orienta que duplicação é inimiga da manutenção.
+  - O CodeVibe reforça o uso de camadas utilitárias para promover coesão e evitar acoplamento circular.
+  - Projetos escaláveis dependem de reaproveitamento de lógica para manter legibilidade, cobertura de testes e redução de bugs.
+
+  Essa regra vale para qualquer linguagem: Python, TypeScript, JavaScript, etc.
+
+globs: ['*.py', '*.ts', '*.tsx', '*.js', '*.jsx']
+alwaysApply: true
+---
