@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Row from './Row';
 import './Report.css';
 
 const Report = ({ 
@@ -15,7 +14,13 @@ const Report = ({
   totalMensagens = 0,
   totalPaginasXml = 0
 }) => {
-  const [activeTab, setActiveTab] = useState('transacoes');
+  const [showColumnControls, setShowColumnControls] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState({
+    descricao: true,
+    ocr: true,
+    dataHora: true,
+    classificacao: true
+  });
 
   const formatCurrency = (value) => {
     if (!value || value === '0' || value === '0.0') return 'R$ 0,00';
@@ -27,324 +32,277 @@ const Report = ({
   };
 
   const getStatusClass = (validade) => {
-    if (validade === 'dismiss') return 'table-danger';
-    if (validade === 'ai-check') return 'table-warning';
+    if (validade === 'dismiss') return 'dismiss-row';
+    if (validade === 'ai-check') return 'fix-row';
     return '';
   };
 
+  const getClassificationClass = (classificacao) => {
+    if (!classificacao) return '';
+    const lower = classificacao.toLowerCase();
+    if (lower === 'transferência') return 'transferencia';
+    if (lower === 'pagamento') return 'pagamento';
+    return 'desconhecido';
+  };
+
+  const toggleColumn = (column) => {
+    setVisibleColumns(prev => ({
+      ...prev,
+      [column]: !prev[column]
+    }));
+  };
+
+  const formatDataHora = (data, hora) => {
+    if (!data) return '';
+    return `${data} ${hora || ''}`.trim();
+  };
+
+  const truncateText = (text, maxLength = 100) => {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+  };
+
+  const getTotalGeral = () => {
+    const ricardo = totalizadores?.ricardo_float || 0;
+    const rafael = totalizadores?.rafael_float || 0;
+    return ricardo + rafael;
+  };
+
   return (
-    <div className="container mt-4">
-      {/* Cabeçalho */}
-      <div className="row mb-4">
-        <div className="col-12">
-          <div className="card">
-            <div className="card-header">
-              <h2 className="mb-0">
-                📊 Relatório Financeiro - {periodo || 'Todos os Períodos'}
-              </h2>
+    <div className="container">
+      <h1>Relatório de Prestação de Contas</h1>
+      <div className="info">Gerado automaticamente em {timestamp ? 
+        new Date(timestamp).toLocaleString('pt-BR') : 
+        'Não disponível'
+      }</div>
+      
+      {/* Totalizadores */}
+      {totalizadores && (
+        <div className="totalizadores">
+          <div className="totalizador">
+            <h3>Ricardo</h3>
+            <div className={`valor ${totalizadores.ricardo_float === 0 ? 'zero' : ''}`}>
+              {formatCurrency(totalizadores.ricardo_float)}
             </div>
-            <div className="card-body">
-              <div className="row">
-                <div className="col-md-3">
-                  <div className="text-center">
-                    <h5>Total Registros</h5>
-                    <p className="h3 text-primary">{totalRegistros}</p>
-                  </div>
+            <div className="label">Total do período</div>
+          </div>
+          <div className="totalizador">
+            <h3>Rafael</h3>
+            <div className={`valor ${totalizadores.rafael_float === 0 ? 'zero' : ''}`}>
+              {formatCurrency(totalizadores.rafael_float)}
+            </div>
+            <div className="label">Total do período</div>
+          </div>
+          <div className="totalizador">
+            <h3>Total Geral</h3>
+            <div className={`valor ${getTotalGeral() === 0 ? 'zero' : ''}`}>
+              {formatCurrency(getTotalGeral())}
+            </div>
+            <div className="label">Soma de ambos</div>
+          </div>
+        </div>
+      )}
+
+      {/* Controles de colunas opcionais */}
+      <div className="card mb-4">
+        <div 
+          className="card-header column-controls-toggle" 
+          onClick={() => setShowColumnControls(!showColumnControls)}
+        >
+          <i className="bi bi-gear me-2"></i>
+          Controles de Colunas Opcionais
+          <i className={`bi ${showColumnControls ? 'bi-chevron-up' : 'bi-chevron-down'} ms-auto`}></i>
+        </div>
+        {showColumnControls && (
+          <div className="card-body">
+            <div className="row">
+              <div className="col-md-6">
+                <h6 className="mb-2">📊 Colunas Opcionais:</h6>
+                <div className="form-check form-check-inline">
+                  <input 
+                    className="form-check-input" 
+                    type="checkbox" 
+                    id="toggle-descricao"
+                    checked={visibleColumns.descricao}
+                    onChange={() => toggleColumn('descricao')}
+                  />
+                  <label className="form-check-label" htmlFor="toggle-descricao">
+                    Descrição
+                  </label>
                 </div>
-                <div className="col-md-3">
-                  <div className="text-center">
-                    <h5>Total Mensagens</h5>
-                    <p className="h3 text-info">{totalMensagens}</p>
-                  </div>
+                <div className="form-check form-check-inline">
+                  <input 
+                    className="form-check-input" 
+                    type="checkbox" 
+                    id="toggle-ocr"
+                    checked={visibleColumns.ocr}
+                    onChange={() => toggleColumn('ocr')}
+                  />
+                  <label className="form-check-label" htmlFor="toggle-ocr">
+                    OCR
+                  </label>
                 </div>
-                <div className="col-md-3">
-                  <div className="text-center">
-                    <h5>Ricardo</h5>
-                    <p className="h3 text-success">{formatCurrency(totalizadores?.ricardo_float || 0)}</p>
-                  </div>
+                <div className="form-check form-check-inline">
+                  <input 
+                    className="form-check-input" 
+                    type="checkbox" 
+                    id="toggle-data-hora"
+                    checked={visibleColumns.dataHora}
+                    onChange={() => toggleColumn('dataHora')}
+                  />
+                  <label className="form-check-label" htmlFor="toggle-data-hora">
+                    Data-Hora
+                  </label>
                 </div>
-                <div className="col-md-3">
-                  <div className="text-center">
-                    <h5>Rafael</h5>
-                    <p className="h3 text-warning">{formatCurrency(totalizadores?.rafael_float || 0)}</p>
-                  </div>
+                <div className="form-check form-check-inline">
+                  <input 
+                    className="form-check-input" 
+                    type="checkbox" 
+                    id="toggle-classificacao"
+                    checked={visibleColumns.classificacao}
+                    onChange={() => toggleColumn('classificacao')}
+                  />
+                  <label className="form-check-label" htmlFor="toggle-classificacao">
+                    Classificação
+                  </label>
                 </div>
-              </div>
-              <div className="text-center mt-3">
-                <small className="text-muted">
-                  Última atualização: {timestamp ? 
-                    new Date(timestamp).toLocaleString('pt-BR') : 
-                    'Não disponível'
-                  }
-                </small>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Abas */}
-      <ul className="nav nav-tabs mb-4" id="reportTabs" role="tablist">
-        <li className="nav-item" role="presentation">
-          <button
-            className={`nav-link ${activeTab === 'transacoes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('transacoes')}
-            type="button"
-          >
-            💰 Transações ({rows.length})
-          </button>
-        </li>
-        <li className="nav-item" role="presentation">
-          <button
-            className={`nav-link ${activeTab === 'mensagens' ? 'active' : ''}`}
-            onClick={() => setActiveTab('mensagens')}
-            type="button"
-          >
-            💬 Mensagens ({mensagens.length})
-          </button>
-        </li>
-        <li className="nav-item" role="presentation">
-          <button
-            className={`nav-link ${activeTab === 'ocr' ? 'active' : ''}`}
-            onClick={() => setActiveTab('ocr')}
-            type="button"
-          >
-            📄 OCR ({totalPaginasXml})
-          </button>
-        </li>
-      </ul>
-
-      {/* Conteúdo das abas */}
-      <div className="tab-content" id="reportTabContent">
-        {/* Aba Transações */}
-        <div className={`tab-pane fade ${activeTab === 'transacoes' ? 'show active' : ''}`}>
-          <div className="card">
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Transações Financeiras</h5>
-              <div>
-                {isEditable && (
-                  <button className="btn btn-sm btn-outline-primary me-2">
-                    ✏️ Editar
-                  </button>
-                )}
-                <button 
-                  className="btn btn-sm btn-outline-secondary"
-                  onClick={() => window.print()}
-                >
-                  🖨️ Imprimir
+      {/* Tabela principal */}
+      <table>
+        <thead>
+          <tr>
+            {visibleColumns.dataHora && (
+              <th className="desktop-only data-hora-cell">Data-Hora</th>
+            )}
+            {visibleColumns.classificacao && (
+              <th className="classificacao-cell">
+                <button className="toggle-payments-btn" aria-label="Alternar pagamentos">
+                  ⇄
                 </button>
-              </div>
-            </div>
-            <div className="card-body">
-              {rows.length === 0 ? (
-                <div className="alert alert-info">
-                  Nenhuma transação encontrada para o período selecionado.
-                </div>
-              ) : (
-                <div className="table-responsive">
-                  <table className="table table-striped table-hover">
-                    <thead className="table-dark">
-                      <tr>
-                        <th>Data</th>
-                        <th>Hora</th>
-                        <th>Remetente</th>
-                        <th>Classificação</th>
-                        <th>Ricardo</th>
-                        <th>Rafael</th>
-                        <th>Descrição</th>
-                        <th>Valor</th>
-                        <th>Anexo</th>
-                        {temMotivo && <th>Motivo</th>}
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.map((row, index) => (
-                        <tr key={index} className={getStatusClass(row.validade)}>
-                          <td>{row.data}</td>
-                          <td>{row.hora}</td>
-                          <td>{row.remetente}</td>
-                          <td>{row.classificacao}</td>
-                          <td className="text-end">
-                            {row.ricardo ? formatCurrency(row.ricardo_float) : '-'}
-                          </td>
-                          <td className="text-end">
-                            {row.rafael ? formatCurrency(row.rafael_float) : '-'}
-                          </td>
-                          <td>{row.descricao}</td>
-                          <td className="text-end">{row.valor ? formatCurrency(row.valor) : '-'}</td>
-                          <td>
-                            {row.anexo ? (
-                              <span className="badge bg-secondary">📎 {row.anexo}</span>
-                            ) : '-'}
-                          </td>
-                          {temMotivo && (
-                            <td>
-                              {row.motivo_erro && row.motivo_erro !== 'nan' ? (
-                                <span className="badge bg-danger">{row.motivo_erro}</span>
-                              ) : '-'}
-                            </td>
-                          )}
-                          <td>
-                            {row.validade === 'dismiss' && (
-                              <span className="badge bg-danger">❌ Desconsiderado</span>
-                            )}
-                            {row.validade === 'ai-check' && (
-                              <span className="badge bg-warning">🤖 AI Check</span>
-                            )}
-                            {!row.validade && (
-                              <span className="badge bg-success">✅ OK</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              </th>
+            )}
+            <th>Ricardo (R$)</th>
+            <th>Rafael (R$)</th>
+            <th>Anexo</th>
+            {visibleColumns.descricao && (
+              <th className="optional-column descricao-cell">Descrição</th>
+            )}
+            {visibleColumns.ocr && (
+              <th className="optional-column desktop-only ocr-cell">OCR</th>
+            )}
+            {temMotivo && <th>Motivo do Erro</th>}
+            {isEditable && <th>Ações</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, index) => (
+            <tr 
+              key={index} 
+              className={`${getStatusClass(row.validade)}`}
+              data-row-id={index}
+              data-data-hora={formatDataHora(row.data, row.hora)}
+            >
+              {visibleColumns.dataHora && (
+                <td className="data-hora data-hora-cell desktop-only align-middle text-center">
+                  {formatDataHora(row.data, row.hora)}
+                </td>
               )}
-            </div>
-          </div>
-        </div>
+              {visibleColumns.classificacao && (
+                <td className="classificacao-cell align-middle text-center">
+                  {row.classificacao && row.classificacao !== 'nan' && row.classificacao !== '' ? (
+                    <span className={`form-control-plaintext form-control-sm clickable-field classificacao ${getClassificationClass(row.classificacao)}`}>
+                      {row.classificacao}
+                    </span>
+                  ) : (
+                    <span className="form-control-plaintext form-control-sm clickable-field classificacao empty-field">
+                      Clique para editar
+                    </span>
+                  )}
+                </td>
+              )}
+              <td className="valor-cell align-middle text-center">
+                {row.ricardo && row.ricardo !== 'nan' && row.ricardo !== '' ? (
+                  <span className="valor">{row.ricardo}</span>
+                ) : (
+                  <span className="valor empty-field">Clique para editar</span>
+                )}
+              </td>
+              <td className="valor-cell align-middle text-center">
+                {row.rafael && row.rafael !== 'nan' && row.rafael !== '' ? (
+                  <span className="valor">{row.rafael}</span>
+                ) : (
+                  <span className="valor empty-field">Clique para editar</span>
+                )}
+              </td>
+              <td className="align-middle text-center">
+                {row.anexo && row.anexo !== 'nan' && row.anexo !== '' && (
+                  <img 
+                    src={`/imgs/${row.anexo}`}
+                    className="thumb"
+                    alt={`Comprovante ${row.anexo}`}
+                    title={row.anexo}
+                  />
+                )}
+              </td>
+              {visibleColumns.descricao && (
+                <td className="descricao-cell optional-column align-middle text-center" style={{textAlign: 'left', fontSize: '12px'}}>
+                  {row.descricao && row.descricao !== 'nan' && row.descricao !== '' ? (
+                    <span>{row.descricao}</span>
+                  ) : (
+                    <span className="empty-field">Clique para editar</span>
+                  )}
+                </td>
+              )}
+              {visibleColumns.ocr && (
+                <td className="ocr-cell optional-column desktop-only align-middle text-center" style={{textAlign: 'left', fontSize: '11px', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                  {row.ocr && row.ocr !== 'nan' && (
+                    <>
+                      {row.anexo && row.anexo.toLowerCase().endsWith('.pdf') && '📄 '}
+                      {row.anexo && (row.anexo.toLowerCase().endsWith('.jpg') || row.anexo.toLowerCase().endsWith('.jpeg') || row.anexo.toLowerCase().endsWith('.png')) && '🖼️ '}
+                      {truncateText(row.ocr, 100)}
+                    </>
+                  )}
+                </td>
+              )}
+              {temMotivo && (
+                <td className="align-middle text-center" style={{color: '#e67e22', fontSize: '12px'}}>
+                  {row.motivo_erro && row.motivo_erro !== 'nan' && row.motivo_erro}
+                </td>
+              )}
+              {isEditable && (
+                <td className="actions-cell align-middle text-center">
+                  <div className="row-actions">
+                    <button className="btn-save" title="Salvar alterações" style={{display: 'none'}}>
+                      💾
+                    </button>
+                    <button className="btn-cancel" title="Cancelar alterações" style={{display: 'none'}}>
+                      ❌
+                    </button>
+                    <button className="btn-dismiss" title="Marcar como desconsiderado">
+                      🚫
+                    </button>
+                    <button className="btn-rotate" title="Rotacionar imagem" disabled={!row.anexo || row.anexo === 'nan' || row.anexo === ''}>
+                      🔄
+                    </button>
+                    <button className="btn-reprocess" title="Reprocessar com IA" disabled={!row.anexo || row.anexo === 'nan' || row.anexo === ''}>
+                      🤖
+                    </button>
+                  </div>
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-        {/* Aba Mensagens */}
-        <div className={`tab-pane fade ${activeTab === 'mensagens' ? 'show active' : ''}`}>
-          <div className="card">
-            <div className="card-header">
-              <h5 className="mb-0">Mensagens do WhatsApp</h5>
-            </div>
-            <div className="card-body">
-              {mensagens.length === 0 ? (
-                <div className="alert alert-info">
-                  Nenhuma mensagem encontrada para o período selecionado.
-                </div>
-              ) : (
-                <div className="table-responsive">
-                  <table className="table table-striped">
-                    <thead className="table-dark">
-                      <tr>
-                        <th>Data</th>
-                        <th>Hora</th>
-                        <th>Remetente</th>
-                        <th>Mensagem</th>
-                        <th>Anexo</th>
-                        <th>OCR</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {mensagens.map((msg, index) => (
-                        <tr key={index} className={getStatusClass(msg.validade)}>
-                          <td>{msg.data}</td>
-                          <td>{msg.hora}</td>
-                          <td>{msg.remetente}</td>
-                          <td>
-                            <div style={{ maxWidth: '300px', wordWrap: 'break-word' }}>
-                              {msg.mensagem}
-                            </div>
-                          </td>
-                          <td>
-                            {msg.anexo ? (
-                              <span className="badge bg-secondary">📎 {msg.anexo}</span>
-                            ) : '-'}
-                          </td>
-                          <td>
-                            <div style={{ maxWidth: '200px', wordWrap: 'break-word', fontSize: '0.8em' }}>
-                              {msg.ocr && msg.ocr !== 'nan' ? msg.ocr.substring(0, 100) + '...' : '-'}
-                            </div>
-                          </td>
-                          <td>
-                            {msg.validade === 'dismiss' && (
-                              <span className="badge bg-danger">❌ Desconsiderado</span>
-                            )}
-                            {msg.validade === 'ai-check' && (
-                              <span className="badge bg-warning">🤖 AI Check</span>
-                            )}
-                            {!msg.validade && (
-                              <span className="badge bg-success">✅ OK</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Aba OCR */}
-        <div className={`tab-pane fade ${activeTab === 'ocr' ? 'show active' : ''}`}>
-          <div className="card">
-            <div className="card-header">
-              <h5 className="mb-0">Dados OCR Extraídos</h5>
-            </div>
-            <div className="card-body">
-              {xmlData.length === 0 ? (
-                <div className="alert alert-info">
-                  Nenhum dado OCR encontrado.
-                </div>
-              ) : (
-                <div className="accordion" id="ocrAccordion">
-                  {xmlData.map((page, pageIndex) => (
-                    <div className="accordion-item" key={pageIndex}>
-                      <h2 className="accordion-header">
-                        <button
-                          className="accordion-button collapsed"
-                          type="button"
-                          data-bs-toggle="collapse"
-                          data-bs-target={`#ocrPage${pageIndex}`}
-                        >
-                          📄 Página {page.page_number} ({page.text_blocks.length} blocos de texto)
-                        </button>
-                      </h2>
-                      <div
-                        id={`ocrPage${pageIndex}`}
-                        className="accordion-collapse collapse"
-                        data-bs-parent="#ocrAccordion"
-                      >
-                        <div className="accordion-body">
-                          <div className="row">
-                            <div className="col-md-6">
-                              <h6>Informações da Página:</h6>
-                              <ul className="list-unstyled">
-                                <li><strong>Número:</strong> {page.page_number}</li>
-                                <li><strong>Largura:</strong> {page.width}</li>
-                                <li><strong>Altura:</strong> {page.height}</li>
-                                <li><strong>Blocos de texto:</strong> {page.text_blocks.length}</li>
-                              </ul>
-                            </div>
-                            <div className="col-md-6">
-                              <h6>Texto Extraído:</h6>
-                              <div 
-                                className="border p-3 bg-light" 
-                                style={{ 
-                                  maxHeight: '300px', 
-                                  overflowY: 'auto',
-                                  fontSize: '0.9em',
-                                  fontFamily: 'monospace'
-                                }}
-                              >
-                                {page.text_blocks.map((block, blockIndex) => (
-                                  <div key={blockIndex} className="mb-2">
-                                    <small className="text-muted">
-                                      [{block.x}, {block.y}] {block.width}x{block.height}
-                                    </small>
-                                    <div>{block.text}</div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+      {/* Modal para imagens */}
+      <div id="modal" className="modal">
+        <img id="modal-img" className="modal-content" />
       </div>
     </div>
   );

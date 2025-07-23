@@ -2,11 +2,9 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -21,19 +19,6 @@ a {
 }
 a:hover {
   color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
 }
 
 button {
@@ -82,254 +67,104 @@ body {
   min-height: 100vh;
 }
 
-/* Estilos para tabelas */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1rem;
-  background-color: white;
+/* Estilos para spinners */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Estilos para alertas */
+.alert {
   border-radius: 8px;
-  overflow: hidden;
+  border: none;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-th, td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #dee2e6;
+.alert-danger {
+  background-color: #f8d7da;
+  color: #721c24;
 }
 
-th {
-  background-color: #f8f9fa;
-  font-weight: 600;
-  color: #495057;
-  border-bottom: 2px solid #dee2e6;
+.alert-warning {
+  background-color: #fff3cd;
+  color: #856404;
 }
 
-tr:hover {
-  background-color: #f8f9fa;
+.alert-info {
+  background-color: #d1ecf1;
+  color: #0c5460;
 }
 
-/* Estilos para valores */
-.valor {
-  font-weight: 600;
-  color: #28a745;
-}
-
-.valor.negative {
-  color: #dc3545;
-}
-
-/* Estilos para classificação */
-.classificacao {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+/* Estilos para botões */
+.btn {
+  border-radius: 6px;
   font-weight: 500;
+  transition: all 0.2s;
 }
 
-.classificacao.transferencia {
-  background-color: #e3f2fd;
-  color: #1976d2;
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
 }
 
-.classificacao.pagamento {
-  background-color: #f3e5f5;
-  color: #7b1fa2;
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
 }
 
-/* Estilos para anexos */
-.thumb {
-  max-width: 50px;
-  max-height: 50px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.thumb:hover {
-  transform: scale(1.1);
-}
-
-.pdf-icon {
-  font-size: 24px;
-  cursor: pointer;
-}
-
-/* Estilos para campos editáveis */
-.edit-field {
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 3px;
-  transition: background-color 0.2s;
-}
-
-.edit-field:hover {
-  background-color: #e3f2fd;
-}
-
-.edit-field.empty-field {
+.btn-outline-secondary {
   color: #6c757d;
-  font-style: italic;
+  border-color: #6c757d;
 }
 
-/* Estilos para ações */
-.row-actions {
-  display: flex;
-  gap: 4px;
-  justify-content: center;
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
 }
 
-.row-actions button {
-  padding: 4px 8px;
-  font-size: 12px;
-  border: none;
-  border-radius: 3px;
+/* Estilos para formulários */
+.form-check-input:checked {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.form-check-label {
   cursor: pointer;
-  background-color: #f8f9fa;
-  color: #495057;
-  transition: background-color 0.2s;
 }
 
-.row-actions button:hover {
-  background-color: #e9ecef;
-}
-
-.row-actions button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Estilos para botão de alternar pagamentos */
-.toggle-payments-btn {
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.toggle-payments-btn:hover {
-  background-color: #e9ecef;
-}
-
-/* Estilos para assinaturas */
-.signature {
-  margin-top: 40px;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-
-.signature div {
-  flex: 1;
-  min-width: 200px;
-  text-align: center;
-  margin: 10px;
-  padding: 20px;
-  border: 1px solid #dee2e6;
-  border-radius: 8px;
-  background-color: #f8f9fa;
-}
-
-/* Estilos para informações do cabeçalho */
-.header-info {
-  display: flex;
-  justify-content: space-between;
-  margin: 20px 0;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-/* Estilos para modal */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.8);
-}
-
-.modal-content {
-  margin: auto;
-  display: block;
-  max-width: 90%;
-  max-height: 90%;
-  border-radius: 8px;
-}
-
-/* Estilos para mobile */
+/* Estilos para responsividade */
 @media (max-width: 768px) {
   .container {
     padding: 10px;
   }
   
-  table {
+  .card-body {
+    padding: 15px;
+  }
+  
+  .btn {
     font-size: 14px;
-  }
-  
-  th, td {
-    padding: 8px 4px;
-  }
-  
-  .row-actions {
-    flex-direction: column;
-    gap: 2px;
-  }
-  
-  .row-actions button {
-    font-size: 10px;
-    padding: 2px 4px;
-  }
-  
-  .signature {
-    flex-direction: column;
-  }
-  
-  .signature div {
-    min-width: auto;
-  }
-  
-  .header-info {
-    flex-direction: column;
-    gap: 10px;
+    padding: 8px 12px;
   }
 }
 
 /* Estilos para impressão */
 @media print {
-  body {
-    background-color: white;
-    color: black;
+  .App {
+    min-height: auto;
   }
   
-  .navbar,
-  .btn-edit,
-  .toggle-payments-btn,
-  .row-actions,
-  .column-controls-toggle {
+  .navbar {
     display: none !important;
   }
   
-  table {
+  .container {
+    padding: 0;
+    max-width: none;
+  }
+  
+  .card {
     box-shadow: none;
     border: 1px solid #000;
-  }
-  
-  th, td {
-    border: 1px solid #000;
-    padding: 4px;
-  }
-  
-  .thumb {
-    max-width: 30px;
-    max-height: 30px;
   }
 }
