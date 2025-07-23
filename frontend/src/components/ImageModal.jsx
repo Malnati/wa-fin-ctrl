@@ -27,7 +27,6 @@ const ImageModal = ({ isOpen, imageSrc, onClose }) => {
         src={imageSrc} 
         className="modal-content" 
         alt="Imagem expandida"
-        onClick={(e) => e.stopPropagation()} // Previne que o clique na imagem feche o modal
       />
     </div>
   );
