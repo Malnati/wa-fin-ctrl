@@ -220,7 +220,7 @@ const Report = ({
                     </span>
                   ) : (
                     <span className="form-control-plaintext form-control-sm clickable-field classificacao empty-field">
-                      Clique para editar
+                      
                     </span>
                   )}
                 </td>
@@ -229,14 +229,14 @@ const Report = ({
                 {row.ricardo && row.ricardo !== 'nan' && row.ricardo !== '' ? (
                   <span className="valor">{row.ricardo}</span>
                 ) : (
-                  <span className="valor empty-field">Clique para editar</span>
+                  <span className="valor empty-field"></span>
                 )}
               </td>
               <td className="valor-cell align-middle text-center">
                 {row.rafael && row.rafael !== 'nan' && row.rafael !== '' ? (
                   <span className="valor">{row.rafael}</span>
                 ) : (
-                  <span className="valor empty-field">Clique para editar</span>
+                  <span className="valor empty-field"></span>
                 )}
               </td>
               <td className="align-middle text-center">
@@ -254,7 +254,7 @@ const Report = ({
                   {row.descricao && row.descricao !== 'nan' && row.descricao !== '' ? (
                     <span>{row.descricao}</span>
                   ) : (
-                    <span className="empty-field">Clique para editar</span>
+                    <span className="empty-field"></span>
                   )}
                 </td>
               )}

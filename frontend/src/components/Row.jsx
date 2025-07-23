@@ -62,7 +62,7 @@ const Row = ({ row, index, attrs, isEditable = false, temMotivo = false }) => {
           data-bs-placement="top" 
           data-bs-title="Clique para editar a classificação"
         >
-          Clique para editar
+          
         </span>
       );
     }
@@ -89,7 +89,7 @@ const Row = ({ row, index, attrs, isEditable = false, temMotivo = false }) => {
           data-original=""
           title={title}
         >
-          Clique para editar
+          
         </span>
       );
     }
@@ -147,7 +147,7 @@ const Row = ({ row, index, attrs, isEditable = false, temMotivo = false }) => {
           data-original=""
           title="Clique para editar a descrição"
         >
-          Clique para editar
+          
         </span>
       );
     }
