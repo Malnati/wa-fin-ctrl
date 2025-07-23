@@ -588,11 +588,8 @@ def processar_incremental(force=False, entry=None, backup=False):
         print("=== CRIANDO BACKUPS ===")
         criar_backups_antes_processamento()
 
-    edits_json = carregar_edits_json()
-    if edits_json:
-        print(
-            f"Edições encontradas em arquivos JSON de {ATTR_FIN_DIR_INPUT}/: aplicando após confirmação."
-        )
+    # Edições agora são aplicadas diretamente no banco de dados
+    print("Edições serão aplicadas diretamente no banco de dados, se existirem.")
     print("\n=== VERIFICANDO ARQUIVOS ZIP ===")
     if not descomprimir_zip_se_existir():
         print("❌ Erro na descompressão de arquivo ZIP. Processamento interrompido.")
@@ -716,9 +713,8 @@ def processar_incremental(force=False, entry=None, backup=False):
         else:
             print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
         print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
-        if edits_json:
-            # Edições agora são aplicadas diretamente no banco de dados
-            print("Edições aplicadas no banco de dados.")
+        # Edições agora são aplicadas diretamente no banco de dados
+        print("Edições aplicadas no banco de dados.")
     print("\n=== GERANDO RELATÓRIO HTML ===")
     gerar_relatorio_html(backup=backup)
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
