@@ -7,6 +7,8 @@ import json
 import os
 from datetime import datetime
 from typing import Dict, Any, Optional, List
+from django.utils import timezone
+from .apps.core.models import CorrecaoHistorico
 
 
 class CommandHistory:
@@ -19,7 +21,6 @@ class CommandHistory:
     def _get_next_index(self) -> int:
         """Obtém o próximo índice disponível do banco de dados"""
         try:
-            from .apps.core.models import CorrecaoHistorico
             return CorrecaoHistorico.objects.count() + 1
         except Exception:
             return 1
@@ -29,7 +30,6 @@ class CommandHistory:
     ):
         """Registra um comando executado no banco de dados"""
         try:
-            from .apps.core.models import CorrecaoHistorico
             
             # Extrai informações específicas do comando fix
             data_hora_entrada = None
@@ -89,7 +89,6 @@ class CommandHistory:
     def get_history(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """Obtém o histórico de comandos do banco de dados"""
         try:
-            from .apps.core.models import CorrecaoHistorico
             
             queryset = CorrecaoHistorico.objects.all()
             if limit:
@@ -122,7 +121,6 @@ class CommandHistory:
     ) -> List[Dict[str, Any]]:
         """Obtém histórico de um comando específico"""
         try:
-            from .apps.core.models import CorrecaoHistorico
             
             queryset = CorrecaoHistorico.objects.filter(command=command)
             if limit:
@@ -153,8 +151,6 @@ class CommandHistory:
     def get_recent_commands(self, hours: int = 24) -> List[Dict[str, Any]]:
         """Obtém comandos executados nas últimas N horas"""
         try:
-            from .apps.core.models import CorrecaoHistorico
-            from django.utils import timezone
             
             cutoff_time = timezone.now() - timezone.timedelta(hours=hours)
             queryset = CorrecaoHistorico.objects.filter(execution__gte=cutoff_time)
@@ -184,7 +180,6 @@ class CommandHistory:
     def clear_history(self):
         """Limpa todo o histórico do banco de dados"""
         try:
-            from .apps.core.models import CorrecaoHistorico
             CorrecaoHistorico.objects.all().delete()
             print("🗑️ Histórico limpo com sucesso")
         except Exception as e:
@@ -193,7 +188,6 @@ class CommandHistory:
     def get_statistics(self) -> Dict[str, Any]:
         """Obtém estatísticas do histórico"""
         try:
-            from .apps.core.models import CorrecaoHistorico
             
             total_commands = CorrecaoHistorico.objects.count()
             successful_commands = CorrecaoHistorico.objects.filter(success=True).count()

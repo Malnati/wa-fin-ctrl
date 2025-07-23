@@ -1,17 +1,18 @@
 # ocr.py
 # Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/ocr.py
-# Módulo de processamento OCR para imagens e PDFs com suporte a extração incremental
+# Módulo de processamento OCR para extração de texto de imagens e PDFs
+
 import os
 import re
 import cv2
-import pytesseract
 import numpy as np
+import pytesseract
 import xml.etree.ElementTree as ET
 from threading import Lock
-from pathlib import Path
-from django.utils import timezone
-from .env import *
+import pdfplumber
+from pdf2image import convert_from_path
 from .models import EntradaFinanceira, ArquivoProcessado
+from .env import ATTR_FIN_DIR_OCR, ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT
 
 ocr_xml_lock = Lock()
 
@@ -21,7 +22,6 @@ def process_image_ocr(image_path):
     try:
         # 1. Consulta o banco de dados primeiro
         try:
-            from .models import EntradaFinanceira
             entrada = EntradaFinanceira.objects.filter(
                 arquivo_origem=os.path.basename(image_path)
             ).first()
@@ -49,8 +49,7 @@ def process_image_ocr(image_path):
         # 3. Se for PDF, aplica pdfplumber e fallback com OCR via pdf2image
         if image_path.lower().endswith(".pdf"):
             try:
-                import pdfplumber
-                from pdf2image import convert_from_path
+                pass
             except ImportError:
                 return (
                     "Erro: Suporte a PDF não disponível. "
@@ -136,7 +135,6 @@ def registrar_ocr_xml(arquivo, texto, arq_xml=None):
 def registrar_ocr_banco(arquivo, texto, processamento_id=None):
     """Registra extração OCR no banco de dados."""
     try:
-        from .models import ArquivoProcessado
         
         # Atualiza ou cria registro do arquivo com OCR
         arquivo_processado, created = ArquivoProcessado.objects.update_or_create(
@@ -195,8 +193,6 @@ def _converter_pdf_para_jpg(pdf_path):
             return
 
         # Converter PDF para JPG
-        from pdf2image import convert_from_path
-        from PIL import Image
 
         print(f"🔄 Convertendo {os.path.basename(pdf_path)} para JPG...")
 

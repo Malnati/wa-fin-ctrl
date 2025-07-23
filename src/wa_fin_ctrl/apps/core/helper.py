@@ -1,11 +1,14 @@
 # helper.py
 # Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/helper.py
-# Módulo de funções auxiliares para processamento de dados financeiros
-import re
+# Funções auxiliares para processamento de dados
+
 import os
+import re
 import pandas as pd
 import shutil
 from .env import *
+from datetime import datetime
+import calendar
 
 
 def normalize_value_to_brazilian_format(valor):
@@ -275,9 +278,6 @@ def normalize_sender(remetente):
 
 
 def adicionar_totalizacao_mensal(df):
-    from datetime import datetime
-    import calendar
-
     def convert_to_float(value):
         if pd.isna(value) or value == "":
             return 0.0

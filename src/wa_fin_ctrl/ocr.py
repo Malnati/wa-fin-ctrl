@@ -1,14 +1,19 @@
 # ocr.py
 # Caminho relativo ao projeto: src/wa_fin_ctrl/ocr.py
-# Módulo de OCR do projeto
+# Módulo de processamento OCR para extração de texto de imagens e PDFs
+
 import os
 import re
 import cv2
-import pytesseract
 import numpy as np
+import pytesseract
 import xml.etree.ElementTree as ET
 from threading import Lock
-from .env import *
+from datetime import datetime
+import pdfplumber
+from pdf2image import convert_from_path
+from .apps.core.models import EntradaFinanceira
+from .env import ATTR_FIN_DIR_OCR, ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT
 
 ocr_xml_lock = Lock()
 
@@ -37,8 +42,7 @@ def process_image_ocr(image_path):
         # 3. Se for PDF, aplica pdfplumber e fallback com OCR via pdf2image
         if image_path.lower().endswith(".pdf"):
             try:
-                import pdfplumber
-                from pdf2image import convert_from_path
+                pass
             except ImportError:
                 return (
                     "Erro: Suporte a PDF não disponível. "
@@ -102,9 +106,6 @@ def process_image_ocr(image_path):
 def registrar_ocr_xml(arquivo, texto, arq_xml=None):
     """Registra extração OCR no banco de dados."""
     try:
-        from .apps.core.models import EntradaFinanceira
-        from datetime import datetime
-        
         # Busca entrada existente pelo nome do arquivo
         entrada = EntradaFinanceira.objects.filter(
             arquivo_origem=arquivo

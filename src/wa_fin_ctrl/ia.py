@@ -47,7 +47,6 @@ def extract_total_value_with_chatgpt(ocr_text):
         valor = re.sub(r"[^\d,.]", "", valor)
         if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
             return ""
-        from .helper import normalize_value_to_brazilian_format
 
         valor_brasileiro = normalize_value_to_brazilian_format(valor)
         return valor_brasileiro

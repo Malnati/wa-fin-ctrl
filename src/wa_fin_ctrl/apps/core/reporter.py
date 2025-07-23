@@ -1,6 +1,7 @@
 # reporter.py
 # Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/reporter.py
 # Módulo de geração de relatórios HTML para prestação de contas
+
 import os
 import pandas as pd
 import base64
@@ -10,6 +11,7 @@ import re
 from pathlib import Path
 from .env import *
 from .template import TemplateRenderer
+from .helper import normalize_value_to_brazilian_format
 
 
 def _carregar_ocr_map():
@@ -154,8 +156,6 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
             if match:
                 valor_encontrado = match.group(1)
                 try:
-                    from .helper import normalize_value_to_brazilian_format
-
                     valor_ocr = normalize_value_to_brazilian_format(valor_encontrado)
                     print(
                         f"DEBUG: Valor extraído '{valor_ocr}' do texto OCR para remetente '{remetente}'"
@@ -231,8 +231,6 @@ def _preparar_linha(row, ocr_map, tem_motivo=False):
         if not valor:
             return ""
 
-        from .helper import normalize_value_to_brazilian_format
-
         valor_limpo = normalize_value_to_brazilian_format(valor)
         return valor_limpo
 
@@ -282,8 +280,6 @@ def _preparar_linhas_impressao(df_mes):
 
     def to_float(v):
         try:
-            from .helper import normalize_value_to_brazilian_format
-
             valor_brasileiro = normalize_value_to_brazilian_format(v)
             return float(valor_brasileiro.replace(",", "."))
         except:
@@ -336,8 +332,6 @@ def _calcular_totalizadores_pessoas(rows):
         if not valor_str or valor_str.lower() in ["nan", ""]:
             return 0.0
         try:
-            from .helper import normalize_value_to_brazilian_format
-
             valor_brasileiro = normalize_value_to_brazilian_format(valor_str)
             return float(valor_brasileiro.replace(",", "."))
         except (ValueError, TypeError):

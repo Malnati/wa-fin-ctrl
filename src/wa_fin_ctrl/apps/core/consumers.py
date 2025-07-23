@@ -1,11 +1,12 @@
 # consumers.py
 # Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/consumers.py
-# Consumers WebSocket para notificações em tempo real
+# Consumidores WebSocket para comunicação em tempo real
 
 import json
 import time
 from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 class ConnectionManagerConsumer(AsyncWebsocketConsumer):
@@ -93,9 +94,6 @@ async def broadcast_notification(message: str):
     """
     Envia notificação para todos os clientes WebSocket conectados.
     """
-    from channels.layers import get_channel_layer
-    from asgiref.sync import async_to_sync
-    
     channel_layer = get_channel_layer()
     await channel_layer.group_send(
         "notifications",
@@ -110,8 +108,6 @@ async def broadcast_reload():
     """
     Envia comando de reload para todos os clientes WebSocket conectados.
     """
-    from channels.layers import get_channel_layer
-    
     channel_layer = get_channel_layer()
     await channel_layer.group_send(
         "notifications",
@@ -127,9 +123,6 @@ def broadcast_reload_sync():
     Versão síncrona para enviar comando de reload.
     """
     try:
-        from channels.layers import get_channel_layer
-        from asgiref.sync import async_to_sync
-        
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             "notifications",

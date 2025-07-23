@@ -10,12 +10,17 @@ Utiliza o pacote click para gerenciar argumentos e subcomandos.
 import click
 import os
 import shutil
+import django
 from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_IMGS
 from .app import (
     processar_incremental,
-    dismiss_entry,
+    processar_pdfs,
+    processar_imgs,
     fix_entry,
+    dismiss_entry,
 )
+from .history import CommandHistory
+from .apps.core.parallel_processor import processar_incremental_paralelo
 
 
 @click.group()
@@ -46,21 +51,16 @@ def cli():
 )
 def processar(force, entry, backup, parallel, max_workers):
     """Executa o processamento incremental dos comprovantes (PDFs + imagens)."""
-    from .history import CommandHistory
-
     # Prepara argumentos para o histórico - inclui TODOS os argumentos
     arguments = {"force": force, "entry": entry, "backup": backup, "parallel": parallel, "max_workers": max_workers}
 
     try:
         if parallel:
             # Configura Django antes de importar módulos que usam modelos
-            import os
-            import django
             os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
             django.setup()
             
             # Usa processamento paralelo
-            from .apps.core.parallel_processor import processar_incremental_paralelo
             resultado = processar_incremental_paralelo(
                 force=force, 
                 entry=entry, 
@@ -122,14 +122,10 @@ def processar_pdf(force, entry, backup):
     - Extrai texto via OCR e salva no banco de dados
     - Processa dados e salva no banco de dados
     """
-    from .history import CommandHistory
-
     # Prepara argumentos para o histórico - inclui TODOS os argumentos
     arguments = {"force": force, "entry": entry, "backup": backup}
 
     try:
-        from .app import processar_pdfs
-
         processar_pdfs(force=force, entry=entry, backup=backup)
 
         # Registra sucesso no histórico
@@ -163,14 +159,10 @@ def processar_img(force, entry, backup):
     - Extrai texto via OCR e salva no banco de dados
     - Processa dados e salva no banco de dados
     """
-    from .history import CommandHistory
-
     # Prepara argumentos para o histórico - inclui TODOS os argumentos
     arguments = {"force": force, "entry": entry, "backup": backup}
 
     try:
-        from .app import processar_imgs
-
         processar_imgs(force=force, entry=entry, backup=backup)
 
         # Registra sucesso no histórico
@@ -227,13 +219,9 @@ def prestacao():
 def fix(data_hora, value, classification, description, dismiss, rotate, ia):
     """Corrige uma entrada específica em todos os arquivos CSV."""
     # Configura Django antes de usar os modelos
-    import os
-    import django
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
     django.setup()
     
-    from .history import CommandHistory
-
     # Prepara argumentos para o histórico - inclui TODOS os argumentos
     arguments = {
         "data_hora": data_hora,
@@ -262,13 +250,9 @@ def fix(data_hora, value, classification, description, dismiss, rotate, ia):
 def dismiss(data_hora):
     """Marca uma entrada como desconsiderada."""
     # Configura Django antes de usar os modelos
-    import os
-    import django
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
     django.setup()
     
-    from .history import CommandHistory
-
     # Prepara argumentos para o histórico
     arguments = {
         "data_hora": data_hora,
@@ -334,12 +318,9 @@ def api(host, port, reload, auto_reload):
 def history(command, limit, json_output, recent, stats, clear):
     """Gerencia o histórico de comandos executados."""
     # Configura Django antes de usar os modelos
-    import os
-    import django
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
     django.setup()
     
-    from .history import CommandHistory
     import json as json_module
 
     # Configura o sistema de histórico

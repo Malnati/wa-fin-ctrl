@@ -1,5 +1,5 @@
 # app.py
-# Caminho relativo ao projeto: app.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/app.py
 # Módulo principal de processamento de comprovantes financeiros com suporte a OCR e IA
 import pandas as pd
 from openpyxl import load_workbook
@@ -24,12 +24,6 @@ from .reporter import (
 )
 
 # Adiciona imports para PDF
-try:
-    import pdfplumber
-    from pdf2image import convert_from_path
-except ImportError:
-    pdfplumber = None
-    convert_from_path = None
 
 from .ocr import registrar_ocr_xml, process_image_ocr
 from .env import *
@@ -1800,10 +1794,6 @@ def dismiss_entry(data_hora):
 
             # Regenera os relatórios automaticamente
             try:
-                from .reporter import (
-                    gerar_relatorio_html,
-                    gerar_relatorios_mensais_html,
-                )
                 gerar_relatorio_html()
                 gerar_relatorios_mensais_html()
                 print("✅ Relatórios regenerados com sucesso!")
@@ -1823,9 +1813,6 @@ def dismiss_entry(data_hora):
 def aplicar_rotacao_imagem(arquivo_anexo, graus):
     """Aplica rotação em uma imagem ou converte PDF para JPG e aplica rotação."""
     try:
-        import cv2
-        from PIL import Image
-        import os
 
         # Determina o caminho do arquivo
         caminhos_possiveis = [
@@ -1847,7 +1834,6 @@ def aplicar_rotacao_imagem(arquivo_anexo, graus):
         # Se for PDF, converte para JPG primeiro
         if arquivo_path.lower().endswith(".pdf"):
             print(f"📄 Convertendo PDF para JPG antes da rotação...")
-            from pdf2image import convert_from_path
 
             try:
                 # Converte primeira página do PDF para imagem
@@ -1917,8 +1903,6 @@ def aplicar_rotacao_imagem(arquivo_anexo, graus):
 def re_submeter_para_chatgpt(arquivo_anexo):
     """Re-submete uma imagem para processamento com ChatGPT após rotação."""
     try:
-        import os
-
         # Determina o caminho do arquivo
         caminhos_possiveis = [
             os.path.join(ATTR_FIN_DIR_INPUT, arquivo_anexo),

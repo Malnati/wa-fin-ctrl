@@ -24,12 +24,14 @@ import re
 import time
 from typing import Optional, List
 from pathlib import Path
+import pandas as pd
+from datetime import datetime
+import signal
+import sys
 from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
 from .app import processar_incremental, fix_entry
-
-import signal
-import os
-import sys
+from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+from .helper import normalize_value_to_brazilian_format
 
 # Variável global para controlar o reload e status
 _force_reload = False
@@ -408,8 +410,6 @@ async def generate_reports(force: bool = Form(False), backup: bool = Form(True))
     Gera relatórios HTML sob demanda.
     """
     try:
-        from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-
         # Gera relatórios
         gerar_relatorio_html(backup=backup)
         gerar_relatorios_mensais_html(backup=backup)
@@ -441,9 +441,6 @@ async def api_entries(month: str = None):
     Aceita parâmetro de query opcional 'month' no formato YYYY-MM.
     """
     try:
-        import pandas as pd
-        from datetime import datetime
-        
         # Dados agora vêm do banco de dados
         # TODO: Implementar consulta ao banco de dados
         raise HTTPException(
@@ -500,7 +497,6 @@ async def api_entries(month: str = None):
             if not is_total_row:
                 valor = str(row.get("VALOR", "0"))
                 try:
-                    from .helper import normalize_value_to_brazilian_format
                     valor_float = float(normalize_value_to_brazilian_format(valor).replace(",", "."))
                 except:
                     valor_float = 0.0
@@ -545,7 +541,6 @@ def _calcular_totalizadores_pessoas(rows):
         if not valor_str or valor_str.lower() in ["nan", ""]:
             return 0.0
         try:
-            from .helper import normalize_value_to_brazilian_format
             valor_brasileiro = normalize_value_to_brazilian_format(valor_str)
             return float(valor_brasileiro.replace(",", "."))
         except (ValueError, TypeError):

@@ -2,6 +2,10 @@
 # Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/views.py
 # Views do app core para processamento de comprovantes financeiros
 
+"""
+Views Django para o app core.
+"""
+
 import os
 import time
 import json
@@ -18,6 +22,7 @@ from datetime import datetime
 from django.utils import timezone
 from .parallel_processor import processar_incremental_paralelo
 from .models import EntradaFinanceira, ArquivoProcessado
+from .helper import normalize_value_to_brazilian_format
 
 # Importa as funções do módulo app.py
 from ..app import processar_incremental, fix_entry
@@ -587,7 +592,6 @@ def _calcular_totalizadores_pessoas(rows):
         if not valor_str or valor_str.lower() in ["nan", ""]:
             return 0.0
         try:
-            from .helper import normalize_value_to_brazilian_format
             valor_brasileiro = normalize_value_to_brazilian_format(valor_str)
             return float(valor_brasileiro.replace(",", "."))
         except (ValueError, TypeError):
