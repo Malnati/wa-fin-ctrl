@@ -279,6 +279,34 @@ fix-rotate:
 fix-rotate-ia:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --rotate "$(rotate)" --ia 
 
+# Corrige uma entrada usando arquivo JSON (legado)
+fix-json:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} fix "$(find)" --value "$(value)" --class "$(class)" --desc "$(desc)" --use-json
+
+# Gerencia histórico de comandos
+history:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} history
+
+# Mostra estatísticas do histórico
+history-stats:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} history --stats
+
+# Mostra comandos recentes
+history-recent:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} history --recent 24
+
+# Limpa histórico
+history-clear:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} history --clear
+
+# Migra dados do JSON para o banco
+history-migrate:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} history --migrate
+
+# Mostra histórico em formato JSON
+history-json:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} history --json
+
 # Processa todos os arquivos (força reprocessamento, sem backup)
 force:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force 
@@ -304,11 +332,20 @@ help:
 	@echo "  img-backup: Processa apenas imagens (com backup)"
 	@echo "  dismiss: Marca uma entrada como desconsiderada"
 	@echo "    Exemplo: make dismiss find=\"21/04/2025 18:33:54\""
-	@echo "  fix: Corrige uma entrada específica"
+	@echo "  fix: Corrige uma entrada específica (banco de dados)"
 	@echo "    Exemplo: make fix find=\"24/04/2025 11:57:45\" value=\"39,47\" class=\"transferência\" desc=\"PIX para padaria\""
 	@echo "    Exemplo com dismiss: make fix find=\"24/04/2025 11:57:45\" dismiss=1"
 	@echo "    Exemplo com rotação: make fix find=\"24/04/2025 11:57:45\" rotate=\"90\""
 	@echo "    Exemplo com rotação e IA: make fix find=\"24/04/2025 11:57:45\" rotate=\"90\" ia=1"
+	@echo "  fix-json: Corrige uma entrada usando arquivo JSON (legado)"
+	@echo "    Exemplo: make fix-json find=\"24/04/2025 11:57:45\" value=\"39,47\""
+	@echo "  History (Banco de Dados):"
+	@echo "    history: Mostra histórico de comandos"
+	@echo "    history-stats: Mostra estatísticas do histórico"
+	@echo "    history-recent: Mostra comandos das últimas 24h"
+	@echo "    history-clear: Limpa todo o histórico"
+	@echo "    history-migrate: Migra dados do JSON para o banco"
+	@echo "    history-json: Mostra histórico em formato JSON"
 	@echo "  Django:"
 	@echo "    migrate: Executa migrações do banco de dados"
 	@echo "    makemigrations: Cria novas migrações"
