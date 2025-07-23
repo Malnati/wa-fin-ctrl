@@ -14,6 +14,34 @@ from pdf2image import convert_from_path
 from .models import EntradaFinanceira, ArquivoProcessado
 from .env import ATTR_FIN_DIR_OCR, ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT
 
+# ==== CONSTANTES ====
+# Mensagens de erro
+ERRO_ARQUIVO_NAO_ENCONTRADO = "Arquivo não encontrado"
+ERRO_CARREGAR_IMAGEM = "Erro ao carregar imagem"
+ERRO_NENHUM_TEXTO = "Nenhum texto detectado"
+ERRO_SUPORTE_PDF = "Erro: Suporte a PDF não disponível. Adicione as bibliotecas 'pdfplumber' e 'pdf2image' no Dockerfile para processar PDFs."
+
+# Extensões de arquivo
+EXTENSAO_PDF = ".pdf"
+EXTENSAO_JPG = ".jpg"
+EXTENSAO_JPEG = ".jpeg"
+EXTENSAO_PNG = ".png"
+
+# Configurações OCR
+IDIOMA_OCR = "eng"
+QUALIDADE_JPG = 85
+
+# Elementos XML
+ELEMENTO_OCR = "ocr"
+ELEMENTO_ENTRY = "entry"
+ATRIBUTO_ARQUIVO = "arquivo"
+
+# Status de arquivo
+STATUS_PROCESSADO = "processado"
+TIPO_IMAGEM = "imagem"
+TIPO_PDF = "pdf"
+TIPO_OUTRO = "outro"
+
 ocr_xml_lock = Lock()
 
 
@@ -43,18 +71,15 @@ def process_image_ocr(image_path):
                 if os.path.exists(imgs_path):
                     image_path = imgs_path
                 else:
-                    return "Arquivo não encontrado"
+                    return ERRO_ARQUIVO_NAO_ENCONTRADO
         elif not os.path.exists(image_path):
-            return "Arquivo não encontrado"
+            return ERRO_ARQUIVO_NAO_ENCONTRADO
         # 3. Se for PDF, aplica pdfplumber e fallback com OCR via pdf2image
-        if image_path.lower().endswith(".pdf"):
+        if image_path.lower().endswith(EXTENSAO_PDF):
             try:
                 pass
             except ImportError:
-                return (
-                    "Erro: Suporte a PDF não disponível. "
-                    "Adicione as bibliotecas 'pdfplumber' e 'pdf2image' no Dockerfile para processar PDFs."
-                )
+                return ERRO_SUPORTE_PDF
 
             texto_pdf = ""
 
@@ -82,7 +107,7 @@ def process_image_ocr(image_path):
                         _, thresh = cv2.threshold(
                             gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
                         )
-                        texto_pagina = pytesseract.image_to_string(thresh, lang="eng")
+                        texto_pagina = pytesseract.image_to_string(thresh, lang=IDIOMA_OCR)
                         texto_ocr.append(texto_pagina)
                     texto_pdf = "\n".join(texto_ocr).strip()
                     texto_pdf = re.sub(r"\n+", " ", texto_pdf)
@@ -94,18 +119,18 @@ def process_image_ocr(image_path):
             _converter_pdf_para_jpg(image_path)
 
             registrar_ocr_xml(os.path.basename(image_path), texto_pdf)
-            return texto_pdf if texto_pdf else "Nenhum texto detectado"
+            return texto_pdf if texto_pdf else ERRO_NENHUM_TEXTO
         # 4. Caso contrário, processa como imagem
         img = cv2.imread(image_path)
         if img is None:
-            return "Erro ao carregar imagem"
+            return ERRO_CARREGAR_IMAGEM
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        text = pytesseract.image_to_string(thresh, lang="eng")
+        text = pytesseract.image_to_string(thresh, lang=IDIOMA_OCR)
         text = re.sub(r"\n+", " ", text).strip()
         text = re.sub(r"\s+", " ", text)
         registrar_ocr_xml(os.path.basename(image_path), text)
-        return text if text else "Nenhum texto detectado"
+        return text if text else ERRO_NENHUM_TEXTO
     except Exception as e:
         return f"Erro no OCR: {str(e)}"
 
@@ -121,13 +146,13 @@ def registrar_ocr_xml(arquivo, texto, arq_xml=None):
             tree = ET.parse(arq_xml)
             root = tree.getroot()
         else:
-            root = ET.Element("ocr")
+            root = ET.Element(ELEMENTO_OCR)
             tree = ET.ElementTree(root)
         # Não duplica entradas
-        for entry in root.findall("entry"):
-            if entry.get("arquivo") == arquivo:
+        for entry in root.findall(ELEMENTO_ENTRY):
+            if entry.get(ATRIBUTO_ARQUIVO) == arquivo:
                 return  # Já existe, não sobrescreve
-        entry = ET.SubElement(root, "entry", {"arquivo": arquivo})
+        entry = ET.SubElement(root, ELEMENTO_ENTRY, {ATRIBUTO_ARQUIVO: arquivo})
         entry.text = texto
         tree.write(arq_xml, encoding="utf-8", xml_declaration=True)
 
@@ -140,11 +165,11 @@ def registrar_ocr_banco(arquivo, texto, processamento_id=None):
         arquivo_processado, created = ArquivoProcessado.objects.update_or_create(
             nome_arquivo=arquivo,
             defaults={
-                'tipo': 'imagem',  # Será atualizado se o arquivo existir
+                'tipo': TIPO_IMAGEM,  # Será atualizado se o arquivo existir
                 'tamanho': 0,
                 'data_processamento': timezone.now(),
                 'processamento_id': processamento_id,
-                'status': 'processado',
+                'status': STATUS_PROCESSADO,
                 'erro': ''
             }
         )
@@ -159,12 +184,12 @@ def registrar_ocr_banco(arquivo, texto, processamento_id=None):
         
         if arquivo_path:
             extensao = Path(arquivo_path).suffix.lower()
-            if extensao in ['.jpg', '.jpeg', '.png']:
-                tipo_arquivo = 'imagem'
-            elif extensao == '.pdf':
-                tipo_arquivo = 'pdf'
+            if extensao in [EXTENSAO_JPG, EXTENSAO_JPEG, EXTENSAO_PNG]:
+                tipo_arquivo = TIPO_IMAGEM
+            elif extensao == EXTENSAO_PDF:
+                tipo_arquivo = TIPO_PDF
             else:
-                tipo_arquivo = 'outro'
+                tipo_arquivo = TIPO_OUTRO
             
             arquivo_processado.tipo = tipo_arquivo
             arquivo_processado.tamanho = os.path.getsize(arquivo_path)
@@ -181,12 +206,12 @@ def _converter_pdf_para_jpg(pdf_path):
     """Converte um PDF para JPG mantendo o mesmo nome do arquivo original."""
     try:
         # Verificar se o arquivo é um PDF
-        if not pdf_path.lower().endswith(".pdf"):
+        if not pdf_path.lower().endswith(EXTENSAO_PDF):
             return
 
         # Verificar se já existe uma versão JPG
         nome_base = os.path.splitext(os.path.basename(pdf_path))[0]
-        jpg_path = os.path.join(ATTR_FIN_DIR_IMGS, f"{nome_base}.jpg")
+        jpg_path = os.path.join(ATTR_FIN_DIR_IMGS, f"{nome_base}{EXTENSAO_JPG}")
 
         if os.path.exists(jpg_path):
             print(f"📄 JPG já existe para {os.path.basename(pdf_path)}")
@@ -202,7 +227,7 @@ def _converter_pdf_para_jpg(pdf_path):
         if imagens:
             # Salvar como JPG
             imagem = imagens[0]
-            imagem.save(jpg_path, "JPEG", quality=85)
+            imagem.save(jpg_path, "JPEG", quality=QUALIDADE_JPG)
             print(f"✅ PDF convertido para JPG: {nome_base}.jpg")
         else:
             print(
