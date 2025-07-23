@@ -40,15 +40,38 @@ def cli():
 @click.option(
     "--backup", is_flag=True, help="Cria arquivos de backup antes do processamento"
 )
-def processar(force, entry, backup):
+@click.option(
+    "--parallel", is_flag=True, help="Usa processamento paralelo (recomendado)"
+)
+@click.option(
+    "--max-workers", type=int, default=4, help="Número máximo de workers paralelos"
+)
+def processar(force, entry, backup, parallel, max_workers):
     """Executa o processamento incremental dos comprovantes (PDFs + imagens)."""
     from .history import CommandHistory
 
     # Prepara argumentos para o histórico - inclui TODOS os argumentos
-    arguments = {"force": force, "entry": entry, "backup": backup}
+    arguments = {"force": force, "entry": entry, "backup": backup, "parallel": parallel, "max_workers": max_workers}
 
     try:
-        processar_incremental(force=force, entry=entry, backup=backup)
+        if parallel:
+            # Usa processamento paralelo
+            from .parallel_processor import processar_incremental_paralelo
+            resultado = processar_incremental_paralelo(
+                force=force, 
+                entry=entry, 
+                backup=backup, 
+                max_workers=max_workers
+            )
+            
+            if resultado and resultado.get('success'):
+                print("✅ Processamento paralelo concluído com sucesso!")
+            else:
+                print("❌ Erro no processamento paralelo")
+                raise Exception("Falha no processamento paralelo")
+        else:
+            # Usa processamento sequencial (legado)
+            processar_incremental(force=force, entry=entry, backup=backup)
 
         # Se foi modo forçado, move arquivos de volta para {ATTR_FIN_DIR_IMGS}/
         if force:
@@ -288,6 +311,85 @@ def api(host, port, reload, auto_reload):
     print("⏹️  Pressione Ctrl+C para parar o servidor")
 
     uvicorn.run("wa_fin_ctrl.api:app", host=host, port=port, reload=reload)
+
+
+@cli.command()
+def migrate():
+    """Migra dados dos arquivos CSV/XML para o banco SQLite."""
+    from .history import CommandHistory
+    from .migrator import migrar_dados_csv_para_sqlite
+
+    arguments = {"command": "migrate"}
+
+    try:
+        print("🔄 Iniciando migração de dados para SQLite...")
+        resultado = migrar_dados_csv_para_sqlite()
+        
+        if resultado and resultado.get('success'):
+            print("✅ Migração concluída com sucesso!")
+            
+            # Registra sucesso no histórico
+            history = CommandHistory()
+            history.record_command("migrate", arguments, True)
+        else:
+            print("❌ Erro na migração")
+            raise Exception("Falha na migração")
+            
+    except Exception as e:
+        # Registra falha no histórico
+        history = CommandHistory()
+        history.record_command("migrate", arguments, False)
+        raise e
+
+
+@cli.command()
+def export():
+    """Exporta dados do banco SQLite para arquivo CSV (compatibilidade)."""
+    from .history import CommandHistory
+    from .migrator import exportar_dados_para_csv
+
+    arguments = {"command": "export"}
+
+    try:
+        print("🔄 Exportando dados do SQLite para CSV...")
+        resultado = exportar_dados_para_csv()
+        
+        if resultado and resultado.get('success'):
+            print("✅ Exportação concluída com sucesso!")
+            
+            # Registra sucesso no histórico
+            history = CommandHistory()
+            history.record_command("export", arguments, True)
+        else:
+            print("❌ Erro na exportação")
+            raise Exception("Falha na exportação")
+            
+    except Exception as e:
+        # Registra falha no histórico
+        history = CommandHistory()
+        history.record_command("export", arguments, False)
+        raise e
+
+
+@cli.command()
+def check_consistency():
+    """Verifica consistência entre dados do banco e arquivos CSV/XML."""
+    from .migrator import verificar_consistencia_dados
+
+    try:
+        print("🔍 Verificando consistência de dados...")
+        relatorio = verificar_consistencia_dados()
+        
+        if relatorio.get('inconsistencias'):
+            print("⚠️  Inconsistências encontradas!")
+            return False
+        else:
+            print("✅ Dados consistentes!")
+            return True
+            
+    except Exception as e:
+        print(f"❌ Erro ao verificar consistência: {str(e)}")
+        return False
 
 
 @cli.command()
