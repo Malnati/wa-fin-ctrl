@@ -313,7 +313,7 @@ def processar_incremental_paralelo(force=False, entry=None, backup=False, max_wo
 
 
 def _descomprimir_zip_se_existir():
-    """Verifica se existe apenas um arquivo ZIP em input/ e o descomprime"""
+    """Verifica se existe apenas um arquivo ZIP no diretório de entrada e o descomprime"""
     input_dir = ATTR_FIN_DIR_INPUT
 
     # Verifica se o diretório input existe
@@ -321,7 +321,7 @@ def _descomprimir_zip_se_existir():
         print(f"Diretório {ATTR_FIN_DIR_INPUT} não encontrado!")
         return False
 
-    # Lista todos os arquivos no diretório input/
+    # Lista todos os arquivos no diretório de entrada
     todos_arquivos = os.listdir(input_dir)
 
     # Filtra apenas arquivos ZIP
@@ -353,7 +353,7 @@ def _descomprimir_zip_se_existir():
             lista_arquivos = zip_ref.namelist()
             print(f"Arquivos no ZIP: {len(lista_arquivos)} itens")
 
-            # Extrai todos os arquivos para o diretório input/
+            # Extrai todos os arquivos para o diretório de entrada
             zip_ref.extractall(input_dir)
 
             print(f"✅ Arquivo ZIP descomprimido com sucesso!")
@@ -363,7 +363,7 @@ def _descomprimir_zip_se_existir():
         os.remove(caminho_zip)
         print(f"Arquivo ZIP {arquivo_zip} removido após descompressão")
 
-        # Organiza arquivos extraídos - move tudo para input/ diretamente
+        # Organiza arquivos extraídos - move tudo para o diretório de entrada diretamente
         _organizar_arquivos_extraidos()
 
         return True
@@ -377,14 +377,14 @@ def _descomprimir_zip_se_existir():
 
 
 def _organizar_arquivos_extraidos():
-    """Move arquivos de subdiretórios para input/ diretamente e remove diretórios desnecessários"""
+    """Move arquivos de subdiretórios para o diretório de entrada diretamente e remove diretórios desnecessários"""
     input_dir = ATTR_FIN_DIR_INPUT
     extensoes_validas = (".jpg", ".jpeg", ".png", ".pdf", ".txt")
 
     arquivos_movidos = 0
     diretorios_removidos = 0
 
-    # Percorre todos os itens em input/
+    # Percorre todos os itens no diretório de entrada
     for item in os.listdir(input_dir):
         caminho_item = os.path.join(input_dir, item)
 
@@ -397,7 +397,7 @@ def _organizar_arquivos_extraidos():
                 diretorios_removidos += 1
                 continue
 
-            # Para outros diretórios, move arquivos válidos para input/
+            # Para outros diretórios, move arquivos válidos para o diretório de entrada
             print(f"Processando subdiretório: {item}")
             for arquivo in os.listdir(caminho_item):
                 caminho_arquivo = os.path.join(caminho_item, arquivo)
@@ -436,7 +436,7 @@ def _organizar_arquivos_extraidos():
 
 
 def _organizar_subdiretorios_se_necessario():
-    """Verifica se há subdiretórios em input/ e organiza arquivos se necessário"""
+    """Verifica se há subdiretórios no diretório de entrada e organiza arquivos se necessário"""
     input_dir = ATTR_FIN_DIR_INPUT
 
     if not os.path.exists(input_dir):
@@ -460,16 +460,16 @@ def _organizar_subdiretorios_se_necessario():
 
 
 def _mover_arquivos_processados():
-    """Move arquivos processados de input/ para imgs/"""
+    """Move arquivos processados do diretório de entrada para o diretório de imagens"""
     input_dir = ATTR_FIN_DIR_INPUT
     imgs_dir = ATTR_FIN_DIR_IMGS
     
-    # Garante que o diretório imgs/ existe
+    # Garante que o diretório de imagens existe
     if not os.path.exists(imgs_dir):
         os.makedirs(imgs_dir, exist_ok=True)
         print(f"Diretório {imgs_dir}/ criado")
     
-    # Lista arquivos de imagem e PDF em input/
+    # Lista arquivos de imagem e PDF no diretório de entrada
     extensoes_imagem = (".jpg", ".jpeg", ".png", ".pdf")
     arquivos_input = [
         f for f in os.listdir(input_dir) 
@@ -485,7 +485,7 @@ def _mover_arquivos_processados():
         origem = os.path.join(input_dir, arquivo)
         destino = os.path.join(imgs_dir, arquivo)
         
-        # Se já existe arquivo com mesmo nome em imgs/, adiciona sufixo
+        # Se já existe arquivo com mesmo nome no diretório de imagens, adiciona sufixo
         contador = 1
         arquivo_original = arquivo
         while os.path.exists(destino):
@@ -501,7 +501,7 @@ def _mover_arquivos_processados():
         except Exception as e:
             print(f"❌ Erro ao mover {arquivo_original}: {str(e)}")
     
-    # Verifica se ainda há arquivos em input/
+    # Verifica se ainda há arquivos no diretório de entrada
     arquivos_restantes = os.listdir(input_dir)
     if not arquivos_restantes:
         print(f"✅ Diretório {input_dir}/ está vazio - processamento concluído")
