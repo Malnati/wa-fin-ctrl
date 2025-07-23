@@ -16,6 +16,7 @@ from openai import OpenAI
 import base64
 from pathlib import Path
 import json
+from datetime import datetime
 from .reporter import (
     gerar_relatorio_html,
     gerar_relatorios_mensais_html,
@@ -717,8 +718,16 @@ def processar_incremental(force=False, entry=None, backup=False):
             # Registra no banco de dados (se configurado)
             try:
                 # Tenta registrar no banco Django se disponível
-                import os
                 import django
+                import sys
+                from pathlib import Path
+                
+                # Adiciona o diretório src ao PYTHONPATH
+                project_root = Path(__file__).resolve().parent.parent.parent
+                src_path = project_root / "src"
+                if str(src_path) not in sys.path:
+                    sys.path.insert(0, str(src_path))
+                
                 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
                 django.setup()
                 
