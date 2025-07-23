@@ -144,12 +144,6 @@ ATTR_FIN_DIR_MENSAGENS = os.getenv('ATTR_FIN_DIR_MENSAGENS', 'mensagens')
 ATTR_FIN_DIR_OCR = os.getenv('ATTR_FIN_DIR_OCR', 'ocr')
 ATTR_FIN_DIR_DOCS = os.getenv('ATTR_FIN_DIR_DOCS', 'docs')
 ATTR_FIN_DIR_DATA = os.getenv('ATTR_FIN_DIR_DATA', 'data')
-ATTR_FIN_ARQ_CALCULO = os.getenv('ATTR_FIN_ARQ_CALCULO', 'mensagens/calculo.csv')
-ATTR_FIN_ARQ_MENSAGENS = os.getenv('ATTR_FIN_ARQ_MENSAGENS', 'mensagens/mensagens.csv')
-ATTR_FIN_ARQ_DIAGNOSTICO = os.getenv('ATTR_FIN_ARQ_DIAGNOSTICO', 'mensagens/diagnostico.csv')
-ATTR_FIN_ARQ_CHAT = os.getenv('ATTR_FIN_ARQ_CHAT', '_chat.txt')
-ATTR_FIN_ARQ_OCR_XML = os.getenv('ATTR_FIN_ARQ_OCR_XML', 'ocr/extract.xml')
-ATTR_FIN_ARQ_HISTORY = os.getenv('ATTR_FIN_ARQ_HISTORY', 'data/history.json')
 
 # Configurações do Channels para WebSocket
 CHANNEL_LAYERS = {

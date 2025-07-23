@@ -13,8 +13,6 @@ import shutil
 from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_IMGS
 from .app import (
     processar_incremental,
-    verificar_totais,
-    corrigir_totalizadores_duplicados,
     dismiss_entry,
     fix_entry,
 )
@@ -186,28 +184,10 @@ def processar_img(force, entry, backup):
         raise e
 
 
-@cli.command()
-@click.argument("csv_file", type=click.Path(exists=True))
-def verificar(csv_file):
-    """Executa verificação dos totais no CSV informado."""
-    verificar_totais(csv_file)
 
 
-@cli.command()
-@click.argument("csv_file", type=click.Path(exists=True))
-def corrigir(csv_file):
-    """Corrige totalizadores duplicados no CSV informado."""
-    from .history import CommandHistory
 
-    arguments = {"csv_file": csv_file}
 
-    sucesso = corrigir_totalizadores_duplicados(csv_file)
-
-    # Registra no histórico
-    history = CommandHistory()
-    history.record_command("corrigir", arguments, sucesso)
-
-    exit(0 if sucesso else 1)
 
 
 @cli.command()
@@ -244,10 +224,7 @@ def prestacao():
 @click.option(
     "--ia", is_flag=True, help="Re-submete a imagem para o ChatGPT após rotação"
 )
-@click.option(
-    "--use-json", is_flag=True, help="Força o uso do arquivo JSON em vez do banco de dados"
-)
-def fix(data_hora, value, classification, description, dismiss, rotate, ia, use_json):
+def fix(data_hora, value, classification, description, dismiss, rotate, ia):
     """Corrige uma entrada específica em todos os arquivos CSV."""
     # Configura Django antes de usar os modelos
     import os
@@ -273,9 +250,8 @@ def fix(data_hora, value, classification, description, dismiss, rotate, ia, use_
         data_hora, value, classification, description, dismiss, rotate, ia
     )
 
-    # Registra no histórico usando o sistema apropriado
-    use_database = not use_json
-    history = CommandHistory(use_database=use_database)
+    # Registra no histórico
+    history = CommandHistory()
     history.record_command("fix", arguments, sucesso)
 
     exit(0 if sucesso else 1)
@@ -355,9 +331,7 @@ def api(host, port, reload, auto_reload):
 @click.option("--recent", type=int, help="Mostrar comandos das últimas N horas")
 @click.option("--stats", is_flag=True, help="Mostrar estatísticas do histórico")
 @click.option("--clear", is_flag=True, help="Limpar todo o histórico")
-@click.option("--migrate", is_flag=True, help="Migrar dados do JSON para o banco de dados")
-@click.option("--use-json", is_flag=True, help="Força o uso do arquivo JSON em vez do banco de dados")
-def history(command, limit, json_output, recent, stats, clear, migrate, use_json):
+def history(command, limit, json_output, recent, stats, clear):
     """Gerencia o histórico de comandos executados."""
     # Configura Django antes de usar os modelos
     import os
@@ -369,18 +343,9 @@ def history(command, limit, json_output, recent, stats, clear, migrate, use_json
     import json as json_module
 
     # Configura o sistema de histórico
-    use_database = not use_json
-    history_manager = CommandHistory(use_database=use_database)
+    history_manager = CommandHistory()
 
-    # Comando de migração
-    if migrate:
-        print("🔄 Iniciando migração do JSON para o banco de dados...")
-        success = history_manager.migrate_json_to_database()
-        if success:
-            print("✅ Migração concluída com sucesso!")
-        else:
-            print("❌ Erro na migração")
-        return
+
 
     # Comando de limpeza
     if clear:

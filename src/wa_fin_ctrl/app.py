@@ -503,61 +503,7 @@ def mover_arquivos_processados():
     return arquivos_movidos
 
 
-def incrementar_csv(novo_df, arquivo_csv):
-    """Incrementa um arquivo CSV existente com novos dados, evitando duplicatas"""
-    # Cria o diretório se não existir
-    diretorio = os.path.dirname(arquivo_csv)
-    if diretorio and not os.path.exists(diretorio):
-        os.makedirs(diretorio, exist_ok=True)
-        print(f"Diretório criado: {diretorio}")
 
-    if os.path.exists(arquivo_csv):
-        # Lê o CSV existente
-        df_existente = pd.read_csv(arquivo_csv)
-
-        # Identifica se é o CSV de anexos (tem colunas específicas) ou mensagens
-        eh_csv_anexos = "VALOR" in novo_df.columns and "DESCRICAO" in novo_df.columns
-
-        if eh_csv_anexos:
-            # inclui toda linha de df_anexos para relatório
-            novos_registros = novo_df.copy()
-        else:
-            # Para CSV de mensagens, filtra registros com OCR preenchido
-            if "OCR" in novo_df.columns:
-                mascara_novos = (
-                    novo_df["OCR"].notna()
-                    & (novo_df["OCR"] != "")
-                    & (novo_df["OCR"] != "Já processado anteriormente")
-                )
-                novos_registros = novo_df[mascara_novos].copy()
-            else:
-                # Se não tem coluna OCR, adiciona todos os novos registros
-                novos_registros = novo_df.copy()
-
-        # Adiciona coluna VALIDADE se não existir no CSV existente
-        if "VALIDADE" not in df_existente.columns:
-            df_existente["VALIDADE"] = ""
-            print(f"➕ Coluna VALIDADE adicionada ao CSV existente")
-
-        if len(novos_registros) > 0:
-            # Combina com os novos dados
-            df_combinado = pd.concat([df_existente, novos_registros], ignore_index=True)
-            print(
-                f"CSV {arquivo_csv} incrementado: {len(df_existente)} + {len(novos_registros)} = {len(df_combinado)} registros"
-            )
-        else:
-            df_combinado = df_existente
-            print(
-                f"CSV {arquivo_csv} mantido inalterado - nenhum registro novo encontrado"
-            )
-    else:
-        df_combinado = novo_df
-        print(f"CSV {arquivo_csv} criado com {len(novo_df)} registros")
-
-    # Salva o arquivo combinado
-    df_combinado.to_csv(arquivo_csv, index=False, quoting=1)
-
-    return df_combinado
 
 
 def normalize_sender(remetente):
@@ -908,88 +854,10 @@ def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
     return df_final
 
 
-def verificar_totais(csv_file):
-    """Verifica e exibe totais financeiros detalhados de um arquivo CSV"""
-    try:
-        if not os.path.exists(csv_file):
-            print(f"Arquivo {csv_file} não encontrado!")
-            return
-
-        df = pd.read_csv(csv_file)
-
-        def convert_to_float(value):
-            if pd.isna(value) or value == "":
-                return 0.0
-            try:
-                from .helper import normalize_value_to_brazilian_format
-
-                valor_brasileiro = normalize_value_to_brazilian_format(value)
-                return float(valor_brasileiro.replace(",", "."))
-            except:
-                return 0.0
-
-        ricardo_total = df["RICARDO"].apply(convert_to_float).sum()
-        rafael_total = df["RAFAEL"].apply(convert_to_float).sum()
-        valor_total = df["VALOR"].apply(convert_to_float).sum()
-
-        print("=== TOTAIS FINANCEIROS ===")
-        print(f"Total RICARDO (transferências): R$ {ricardo_total:.2f}")
-        print(f"Total RAFAEL (transferências): R$ {rafael_total:.2f}")
-        print(f"Total de transferências: R$ {(ricardo_total + rafael_total):.2f}")
-        print(f"Total VALOR (todos os comprovantes): R$ {valor_total:.2f}")
-        print()
-
-        print("=== DISTRIBUIÇÃO POR TIPO ===")
-        transferencias = df[df["CLASSIFICACAO"] == "Transferência"]
-        pagamentos = df[df["CLASSIFICACAO"] == "Pagamento"]
-        desconhecidos = df[df["CLASSIFICACAO"] == "desconhecido"]
-
-        transferencia_total = transferencias["VALOR"].apply(convert_to_float).sum()
-        pagamento_total = pagamentos["VALOR"].apply(convert_to_float).sum()
-        desconhecido_total = desconhecidos["VALOR"].apply(convert_to_float).sum()
-
-        print(f"Total em Transferências: R$ {transferencia_total:.2f}")
-        print(f"Total em Pagamentos: R$ {pagamento_total:.2f}")
-        print(f"Total em Desconhecidos: R$ {desconhecido_total:.2f}")
-        print(
-            f"Verificação: {transferencia_total + pagamento_total + desconhecido_total:.2f} = {valor_total:.2f}"
-        )
-
-        # Verificação de consistência
-        if (
-            abs(
-                (transferencia_total + pagamento_total + desconhecido_total)
-                - valor_total
-            )
-            < 0.01
-        ):
-            print("✅ Verificação: Totais consistentes!")
-        else:
-            print("❌ Aviso: Diferença detectada nos totais!")
-
-    except Exception as e:
-        print(f"Erro ao verificar totais: {str(e)}")
 
 
-def carregar_edits_json():
-    """Verifica diretório input/ por todos os arquivos .json e retorna um dict unificado"""
-    import_dir = ATTR_FIN_DIR_INPUT
-    edits = {}
-    # Verifica se o diretório existe
-    if not os.path.exists(import_dir):
-        return edits
-    # Itera todos os arquivos .json no diretório input/
-    for fname in os.listdir(import_dir):
-        if fname.lower().endswith(".json"):
-            path = os.path.join(import_dir, fname)
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    # Mescla conteúdo, chaves duplicadas serão sobrescritas pela última
-                    edits.update(data)
-            except Exception:
-                print(f"Aviso: não foi possível ler {path}")
-    return edits
+
+
 
 
 def diagnostico_erro_ocr(image_path, ocr_result):
@@ -1758,28 +1626,7 @@ def testar_verificacao_totais():
         return False
 
 
-def corrigir_totalizadores_duplicados(csv_file):
-    """Corrige totalizadores duplicados no arquivo CSV existente"""
-    try:
-        if not os.path.exists(csv_file):
-            print(f"Arquivo {csv_file} não encontrado!")
-            return False
 
-        print(f"Corrigindo totalizadores duplicados em {csv_file}...")
-        df = pd.read_csv(csv_file)
-
-        # Aplica a correção usando a função existente
-        df_corrigido = adicionar_totalizacao_mensal(df)
-
-        # Salva o arquivo corrigido
-        df_corrigido.to_csv(csv_file, index=False, quoting=1)
-
-        print(f"✅ Arquivo {csv_file} corrigido com sucesso!")
-        return True
-
-    except Exception as e:
-        print(f"❌ Erro ao corrigir totalizadores: {str(e)}")
-        return False
 
 
 def fix_entry(

@@ -396,8 +396,6 @@ process-parallel-backup:
 remove-all:
 	@$(MAKE) remove-reports
 	@$(MAKE) remove-baks
-	@$(MAKE) remove-ocr
-	@$(MAKE) remove-mensagens
 	@$(MAKE) remove-imgs
 	@$(MAKE) remove-tmp
 	@$(MAKE) remove-input
@@ -409,19 +407,15 @@ remove-baks:
 
 # Remove os data
 remove-data:
-	@rm -rfv ${ATTR_FIN_DIR_DATA}/*.json
+	@rm -rfv ${ATTR_FIN_DIR_DATA}/*
 
 # Remove as imagens
 remove-imgs:
 	@rm -rfv ${ATTR_FIN_DIR_IMGS}/*
 
-# Remove as mensagens
-remove-mensagens:
-	@rm -rfv ${ATTR_FIN_DIR_MENSAGENS}/*
 
-# Remove o OCR
-remove-ocr:
-	@rm -rfv ${ATTR_FIN_ARQ_OCR_XML}
+
+
 
 # Remove os relatórios
 remove-reports:
