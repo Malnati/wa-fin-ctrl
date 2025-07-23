@@ -1523,8 +1523,6 @@ def fix_entry(
 
                     # Converte valor original para formato brasileiro para comparação (apenas se novo_valor foi fornecido)
                     if novo_valor:
-                        from .helper import normalize_value_to_brazilian_format
-
                         valor_original_clean = normalize_value_to_brazilian_format(
                             valor_original
                         )
