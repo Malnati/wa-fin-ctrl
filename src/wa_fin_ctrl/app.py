@@ -1858,6 +1858,7 @@ def fix_entry(
 
         entrada_encontrada = False
         arquivo_anexo = None
+        alteracoes_aplicadas = []
 
         # Processa cada arquivo CSV
         for arquivo_csv in arquivos_csv:
@@ -1992,6 +1993,7 @@ def fix_entry(
                                 )
 
                         print(f"✅ Alterações aplicadas: {', '.join(alteracoes)}")
+                        alteracoes_aplicadas.extend(alteracoes)
                         continue
 
                     print(f" Valor original: R$ {valor_original}")
@@ -2082,8 +2084,9 @@ def fix_entry(
 
                     if alteracoes:
                         print(f"✅ Alterações aplicadas: {', '.join(alteracoes)}")
+                        alteracoes_aplicadas.extend(alteracoes)
                     else:
-                        print(f"ℹ️  Nenhuma alteração aplicada")
+                        print(f"ℹ️ Nenhuma alteração aplicada")
 
                 # Salva o arquivo CSV atualizado
                 df.to_csv(arquivo_csv, index=False)
@@ -2134,10 +2137,57 @@ def fix_entry(
 
             traceback.print_exc()
 
+        # Registra a correção no banco de dados SQLite
+        try:
+            from .history import record_fix_command_wrapper
+            
+            arguments = {
+                'data_hora': data_hora,
+                'value': novo_valor,
+                'classification': nova_classificacao,
+                'description': nova_descricao,
+                'dismiss': dismiss,
+                'rotate': rotate,
+                'ia': ia,
+            }
+            
+            record_fix_command_wrapper(data_hora, arguments, True, use_database=True)
+            print("📝 Correção registrada no banco de dados SQLite")
+            
+        except Exception as e:
+            print(f"⚠️ Erro ao registrar correção no banco: {str(e)}")
+            # Fallback para JSON se o banco falhar
+            try:
+                record_fix_command_wrapper(data_hora, arguments, True, use_database=False)
+                print("📝 Correção registrada no arquivo JSON (fallback)")
+            except Exception as e2:
+                print(f"⚠️ Erro ao registrar correção no JSON: {str(e2)}")
+
         return True
 
     except Exception as e:
         print(f"❌ Erro durante a correção: {str(e)}")
+        
+        # Registra erro no banco de dados
+        try:
+            from .history import record_fix_command_wrapper
+            
+            arguments = {
+                'data_hora': data_hora,
+                'value': novo_valor,
+                'classification': nova_classificacao,
+                'description': nova_descricao,
+                'dismiss': dismiss,
+                'rotate': rotate,
+                'ia': ia,
+            }
+            
+            record_fix_command_wrapper(data_hora, arguments, False, use_database=True)
+            print("📝 Erro registrado no banco de dados SQLite")
+            
+        except Exception as e2:
+            print(f"⚠️ Erro ao registrar falha no banco: {str(e2)}")
+        
         return False
 
 
