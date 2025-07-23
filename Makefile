@@ -470,7 +470,7 @@ kill-api:
 	fi
 
 kill-front:
-	@PID=$$(pgrep -f "npm run dev"); \
+	@PID=$$(pgrep -f "node .*wa-fin-ctrl"); \
 	if [ -n "$$PID" ]; then \
 		echo "Encerrando front-end (PID=$$PID)"; \
 		kill -9 $$PID; \
@@ -481,10 +481,10 @@ kill-front:
 kill-all: kill-api kill-front
 
 ps-api:
-	ps aux | grep "python manage.py runserver 0.0.0.0:8000"
+	ps aux | grep "manage.py"
 
 ps-front:
-	ps aux | grep "npm run dev"
+	ps aux | grep "node .*wa-fin-ctrl"
 
 ps-all: ps-api ps-front
 
