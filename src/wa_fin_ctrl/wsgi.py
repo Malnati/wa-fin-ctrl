@@ -1,3 +1,7 @@
+# wsgi.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/wsgi.py
+# Configuração WSGI do projeto Django
+
 """
 WSGI config for wa_fin_ctrl project.
 
