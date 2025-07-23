@@ -10,6 +10,37 @@ from .env import *
 from datetime import datetime
 import calendar
 
+# ==== CONSTANTES ====
+# Nomes de pessoas
+NOME_RICARDO = "Ricardo"
+NOME_RAFAEL = "Rafael"
+
+# Nomes de colunas CSV
+COLUNA_DATA = "DATA"
+COLUNA_HORA = "HORA"
+COLUNA_REMETENTE = "REMETENTE"
+COLUNA_CLASSIFICACAO = "CLASSIFICACAO"
+COLUNA_RICARDO = "RICARDO"
+COLUNA_RAFAEL = "RAFAEL"
+COLUNA_ANEXO = "ANEXO"
+COLUNA_DESCRICAO = "DESCRICAO"
+COLUNA_VALOR = "VALOR"
+COLUNA_OCR = "OCR"
+COLUNA_VALIDADE = "VALIDADE"
+COLUNA_DATA_DT = "DATA_DT"
+COLUNA_MES_ANO = "MES_ANO"
+
+# Valores especiais
+TOTAL_MES = "TOTAL MÊS"
+CLASSIFICACAO_TOTAL = "TOTAL"
+HORA_TOTAL = "23:59:00"
+PREFIXO_TOTAL = "TOTAL_"
+DESCRICAO_TOTAL = "Total do mês"
+JA_PROCESSADO = "Já processado anteriormente"
+
+# Formato de data
+FORMATO_DATA = "%d/%m/%Y"
+
 
 def normalize_value_to_brazilian_format(valor):
     """
@@ -269,10 +300,10 @@ def normalize_sender(remetente):
     if not remetente or pd.isna(remetente):
         return ""
     remetente_str = str(remetente).strip()
-    if "Ricardo" in remetente_str:
-        return "Ricardo"
-    elif "Rafael" in remetente_str:
-        return "Rafael"
+    if NOME_RICARDO in remetente_str:
+        return NOME_RICARDO
+    elif NOME_RAFAEL in remetente_str:
+        return NOME_RAFAEL
     else:
         return remetente_str
 
@@ -287,45 +318,45 @@ def adicionar_totalizacao_mensal(df):
         except:
             return 0.0
 
-    df["DATA_DT"] = pd.to_datetime(df["DATA"], format="%d/%m/%Y", errors="coerce")
-    df_sem_totais = df[df["REMETENTE"] != "TOTAL MÊS"].copy()
-    df_sem_totais = df_sem_totais.sort_values("DATA_DT").reset_index(drop=True)
+    df[COLUNA_DATA_DT] = pd.to_datetime(df[COLUNA_DATA], format=FORMATO_DATA, errors="coerce")
+    df_sem_totais = df[df[COLUNA_REMETENTE] != TOTAL_MES].copy()
+    df_sem_totais = df_sem_totais.sort_values(COLUNA_DATA_DT).reset_index(drop=True)
     linhas_totalizacao = []
-    df_sem_totais["MES_ANO"] = df_sem_totais["DATA_DT"].dt.to_period("M")
-    meses_unicos = df_sem_totais["MES_ANO"].dropna().unique()
+    df_sem_totais[COLUNA_MES_ANO] = df_sem_totais[COLUNA_DATA_DT].dt.to_period("M")
+    meses_unicos = df_sem_totais[COLUNA_MES_ANO].dropna().unique()
     for mes_periodo in sorted(meses_unicos):
-        dados_mes = df_sem_totais[df_sem_totais["MES_ANO"] == mes_periodo]
-        total_ricardo = dados_mes["RICARDO"].apply(convert_to_float).sum()
-        total_rafael = dados_mes["RAFAEL"].apply(convert_to_float).sum()
+        dados_mes = df_sem_totais[df_sem_totais[COLUNA_MES_ANO] == mes_periodo]
+        total_ricardo = dados_mes[COLUNA_RICARDO].apply(convert_to_float).sum()
+        total_rafael = dados_mes[COLUNA_RAFAEL].apply(convert_to_float).sum()
         if total_ricardo > 0 or total_rafael > 0:
             ano = mes_periodo.year
             mes = mes_periodo.month
             ultimo_dia = calendar.monthrange(ano, mes)[1]
             linha_total = {
-                "DATA": f"{ultimo_dia:02d}/{mes:02d}/{ano}",
-                "HORA": "23:59:00",
-                "REMETENTE": "TOTAL MÊS",
-                "CLASSIFICACAO": "TOTAL",
-                "RICARDO": f"{total_ricardo:.2f}" if total_ricardo > 0 else "",
-                "RAFAEL": f"{total_rafael:.2f}" if total_rafael > 0 else "",
-                "ANEXO": f"TOTAL_{mes:02d}_{ano}",
-                "DESCRICAO": f"Total do mês {mes:02d}/{ano}",
-                "VALOR": "",
-                "OCR": "",
-                "VALIDADE": "",
-                "DATA_DT": datetime(ano, mes, ultimo_dia, 23, 59),
-                "MES_ANO": mes_periodo,
+                COLUNA_DATA: f"{ultimo_dia:02d}/{mes:02d}/{ano}",
+                COLUNA_HORA: HORA_TOTAL,
+                COLUNA_REMETENTE: TOTAL_MES,
+                COLUNA_CLASSIFICACAO: CLASSIFICACAO_TOTAL,
+                COLUNA_RICARDO: f"{total_ricardo:.2f}" if total_ricardo > 0 else "",
+                COLUNA_RAFAEL: f"{total_rafael:.2f}" if total_rafael > 0 else "",
+                COLUNA_ANEXO: f"{PREFIXO_TOTAL}{mes:02d}_{ano}",
+                COLUNA_DESCRICAO: f"{DESCRICAO_TOTAL} {mes:02d}/{ano}",
+                COLUNA_VALOR: "",
+                COLUNA_OCR: "",
+                COLUNA_VALIDADE: "",
+                COLUNA_DATA_DT: datetime(ano, mes, ultimo_dia, 23, 59),
+                COLUNA_MES_ANO: mes_periodo,
             }
             linhas_totalizacao.append(linha_total)
     if linhas_totalizacao:
         df_totalizacao = pd.DataFrame(linhas_totalizacao)
         df_combinado = pd.concat([df_sem_totais, df_totalizacao], ignore_index=True)
-        df_combinado = df_combinado.sort_values(["DATA_DT", "HORA"]).reset_index(
+        df_combinado = df_combinado.sort_values([COLUNA_DATA_DT, COLUNA_HORA]).reset_index(
             drop=True
         )
     else:
         df_combinado = df_sem_totais
-    df_combinado = df_combinado.drop(columns=["DATA_DT", "MES_ANO"])
+    df_combinado = df_combinado.drop(columns=[COLUNA_DATA_DT, COLUNA_MES_ANO])
     print(f"Adicionadas {len(linhas_totalizacao)} linhas de totalização mensal")
     return df_combinado
 
@@ -333,23 +364,23 @@ def adicionar_totalizacao_mensal(df):
 def incrementar_csv(novo_df, arquivo_csv):
     if os.path.exists(arquivo_csv):
         df_existente = pd.read_csv(arquivo_csv)
-        eh_csv_anexos = "VALOR" in novo_df.columns and "DESCRICAO" in novo_df.columns
+        eh_csv_anexos = COLUNA_VALOR in novo_df.columns and COLUNA_DESCRICAO in novo_df.columns
         if eh_csv_anexos:
             novos_registros = novo_df.copy()
         else:
-            if "OCR" in novo_df.columns:
+            if COLUNA_OCR in novo_df.columns:
                 mascara_novos = (
-                    novo_df["OCR"].notna()
-                    & (novo_df["OCR"] != "")
-                    & (novo_df["OCR"] != "Já processado anteriormente")
+                    novo_df[COLUNA_OCR].notna()
+                    & (novo_df[COLUNA_OCR] != "")
+                    & (novo_df[COLUNA_OCR] != JA_PROCESSADO)
                 )
                 novos_registros = novo_df[mascara_novos].copy()
             else:
                 novos_registros = novo_df.copy()
 
         # Adiciona coluna VALIDADE se não existir no CSV existente
-        if "VALIDADE" not in df_existente.columns:
-            df_existente["VALIDADE"] = ""
+        if COLUNA_VALIDADE not in df_existente.columns:
+            df_existente[COLUNA_VALIDADE] = ""
             print(f"➕ Coluna VALIDADE adicionada ao CSV existente")
         if len(novos_registros) > 0:
             df_combinado = pd.concat([df_existente, novos_registros], ignore_index=True)
