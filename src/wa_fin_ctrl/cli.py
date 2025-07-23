@@ -244,8 +244,17 @@ def prestacao():
 @click.option(
     "--ia", is_flag=True, help="Re-submete a imagem para o ChatGPT após rotação"
 )
-def fix(data_hora, value, classification, description, dismiss, rotate, ia):
+@click.option(
+    "--use-json", is_flag=True, help="Força o uso do arquivo JSON em vez do banco de dados"
+)
+def fix(data_hora, value, classification, description, dismiss, rotate, ia, use_json):
     """Corrige uma entrada específica em todos os arquivos CSV."""
+    # Configura Django antes de usar os modelos
+    import os
+    import django
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
+    django.setup()
+    
     from .history import CommandHistory
 
     # Prepara argumentos para o histórico - inclui TODOS os argumentos
@@ -264,8 +273,9 @@ def fix(data_hora, value, classification, description, dismiss, rotate, ia):
         data_hora, value, classification, description, dismiss, rotate, ia
     )
 
-    # Registra no histórico
-    history = CommandHistory()
+    # Registra no histórico usando o sistema apropriado
+    use_database = not use_json
+    history = CommandHistory(use_database=use_database)
     history.record_command("fix", arguments, sucesso)
 
     exit(0 if sucesso else 1)
@@ -274,26 +284,33 @@ def fix(data_hora, value, classification, description, dismiss, rotate, ia):
 @cli.command()
 @click.argument("data_hora", type=str)
 def dismiss(data_hora):
-    """Marca uma entrada como desconsiderada (dismiss) em todos os arquivos CSV."""
+    """Marca uma entrada como desconsiderada."""
+    # Configura Django antes de usar os modelos
+    import os
+    import django
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
+    django.setup()
+    
     from .history import CommandHistory
 
     # Prepara argumentos para o histórico
-    arguments = {"data_hora": data_hora}
+    arguments = {
+        "data_hora": data_hora,
+        "dismiss": True,
+    }
 
     # Executa o comando
     sucesso = dismiss_entry(data_hora)
 
     # Registra no histórico
-    history = CommandHistory()
+    history = CommandHistory(use_database=True)
     history.record_command("dismiss", arguments, sucesso)
 
     exit(0 if sucesso else 1)
 
 
 @cli.command()
-@click.option(
-    "--host", default="127.0.0.1", help="Host para servir a API (padrão: 127.0.0.1)"
-)
+@click.option("--host", default="127.0.0.1", help="Host para servir a API (padrão: 127.0.0.1)")
 @click.option("--port", default=8000, help="Porta para servir a API (padrão: 8000)")
 @click.option(
     "--reload", is_flag=True, help="Habilita reload automático durante desenvolvimento"
@@ -302,100 +319,130 @@ def dismiss(data_hora):
     "--auto-reload", is_flag=True, help="Força reload automático após comandos críticos"
 )
 def api(host, port, reload, auto_reload):
-    """Inicia o servidor da API REST FastAPI."""
-    import uvicorn
-    from .api import app
+    """Inicia a API REST Django."""
+    import subprocess
+    import sys
 
-    print(f"🚀 Iniciando API REST em http://{host}:{port}")
-    print(f"📚 Documentação: http://{host}:{port}/docs")
-    print(f"🔍 Health check: http://{host}:{port}/health")
-    print(f"📊 Página principal: http://{host}:{port}/")
-    print(f"📋 Lista de relatórios: http://{host}:{port}/api/reports")
-    print(f"ℹ️  Info da API: http://{host}:{port}/api/info")
+    # Configura variáveis de ambiente se necessário
+    env_vars = []
     if auto_reload:
-        print(f"🔄 Auto-reload habilitado após comandos críticos")
-    print("⏹️  Pressione Ctrl+C para parar o servidor")
+        env_vars.extend(["--reload"])
 
-    uvicorn.run("wa_fin_ctrl.api:app", host=host, port=port, reload=reload)
+    # Comando para iniciar o servidor Django
+    cmd = [
+        sys.executable,
+        "manage.py",
+        "runserver",
+        f"{host}:{port}",
+    ] + env_vars
 
+    print(f"🚀 Iniciando API Django em http://{host}:{port}")
+    print(f"📝 Comando: {' '.join(cmd)}")
 
-
+    try:
+        subprocess.run(cmd, check=True)
+    except KeyboardInterrupt:
+        print("\n👋 Servidor interrompido pelo usuário")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Erro ao iniciar servidor: {e}")
+        sys.exit(1)
 
 
 @cli.command()
 @click.option("--command", type=str, help="Filtrar por comando específico")
 @click.option("--limit", type=int, help="Limitar número de registros")
-@click.option("--json", is_flag=True, help="Saída em formato JSON")
+@click.option("--json", "json_output", is_flag=True, help="Saída em formato JSON")
 @click.option("--recent", type=int, help="Mostrar comandos das últimas N horas")
 @click.option("--stats", is_flag=True, help="Mostrar estatísticas do histórico")
 @click.option("--clear", is_flag=True, help="Limpar todo o histórico")
-def history(command, limit, json, recent, stats, clear):
-    """Exibe o histórico de comandos executados."""
+@click.option("--migrate", is_flag=True, help="Migrar dados do JSON para o banco de dados")
+@click.option("--use-json", is_flag=True, help="Força o uso do arquivo JSON em vez do banco de dados")
+def history(command, limit, json_output, recent, stats, clear, migrate, use_json):
+    """Gerencia o histórico de comandos executados."""
+    # Configura Django antes de usar os modelos
+    import os
+    import django
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
+    django.setup()
+    
     from .history import CommandHistory
+    import json as json_module
 
-    history_manager = CommandHistory()
+    # Configura o sistema de histórico
+    use_database = not use_json
+    history_manager = CommandHistory(use_database=use_database)
 
-    # Comando para limpar histórico
-    if clear:
-        history_manager.clear_history()
+    # Comando de migração
+    if migrate:
+        print("🔄 Iniciando migração do JSON para o banco de dados...")
+        success = history_manager.migrate_json_to_database()
+        if success:
+            print("✅ Migração concluída com sucesso!")
+        else:
+            print("❌ Erro na migração")
         return
 
-    # Comando para mostrar estatísticas
+    # Comando de limpeza
+    if clear:
+        if click.confirm("Tem certeza que deseja limpar todo o histórico?"):
+            history_manager.clear_history()
+        return
+
+    # Comando de estatísticas
     if stats:
         stats_data = history_manager.get_statistics()
-        if json:
-            import json as json_module
-
-            print(json_module.dumps(stats_data, ensure_ascii=False, indent=2))
+        if json_output:
+            print(json_module.dumps(stats_data, indent=2, ensure_ascii=False))
         else:
             print("📊 Estatísticas do Histórico:")
             print(f"  Total de comandos: {stats_data['total_commands']}")
             print(f"  Comandos bem-sucedidos: {stats_data['successful_commands']}")
-            print(f"  Comandos com falha: {stats_data['failed_commands']}")
-            print(f"  Primeiro comando: {stats_data['first_command']}")
-            print(f"  Último comando: {stats_data['last_command']}")
-            print("\n  Tipos de comando:")
-            for cmd, count in stats_data["command_types"].items():
-                print(f"    {cmd}: {count}")
+            print(f"  Comandos com erro: {stats_data['failed_commands']}")
+            print(f"  Tipo de armazenamento: {stats_data['storage_type']}")
+            if stats_data['first_command']:
+                print(f"  Primeiro comando: {stats_data['first_command']}")
+            if stats_data['last_command']:
+                print(f"  Último comando: {stats_data['last_command']}")
+            if stats_data['command_types']:
+                print("  Tipos de comando:")
+                for cmd, count in stats_data['command_types'].items():
+                    print(f"    {cmd}: {count}")
         return
 
     # Obter histórico
     if recent:
-        entries = history_manager.get_recent_commands(recent)
+        history_data = history_manager.get_recent_commands(recent)
     elif command:
-        entries = history_manager.get_command_history(command, limit)
+        history_data = history_manager.get_command_history(command, limit)
     else:
-        entries = history_manager.get_history(limit)
+        history_data = history_manager.get_history(limit)
 
-    if not entries:
-        print("📭 Nenhum registro encontrado no histórico.")
-        return
-
-    if json:
-        import json as json_module
-
-        print(json_module.dumps(entries, ensure_ascii=False, indent=2))
+    # Exibir histórico
+    if json_output:
+        print(json_module.dumps(history_data, indent=2, ensure_ascii=False))
     else:
-        print(f"📋 Histórico de Comandos ({len(entries)} registros): ")
+        if not history_data:
+            print("ℹ️ Nenhum comando encontrado no histórico")
+            return
+
+        print(f"📝 Histórico de Comandos ({len(history_data)} registros):")
+        print(f"💾 Armazenamento: {history_manager.get_statistics()['storage_type']}")
         print("-" * 80)
 
-        for entry in entries:
-            timestamp = entry["execution"]
-            cmd = entry["command"]
-            success = "✅" if entry["success"] else "❌"
-
-            print(f"[{entry['index']}] {timestamp} - {cmd} {success}")
-
-            # Mostrar argumentos de forma legível
-            args = entry["arguments"]
-            if args:
-                print("  Argumentos:")
-                for key, value in args.items():
-                    if isinstance(value, bool):
-                        value_str = "Sim" if value else "Não"
-                    else:
-                        value_str = str(value)
-                    print(f"    {key}: {value_str}")
+        for entry in history_data:
+            index = entry.get('index', 'N/A')
+            execution = entry.get('execution', 'N/A')
+            cmd = entry.get('command', 'N/A')
+            success = "✅" if entry.get('success', False) else "❌"
+            
+            print(f"{success} [{index}] {execution} - {cmd}")
+            
+            # Mostra argumentos se disponíveis
+            arguments = entry.get('arguments', {})
+            if arguments:
+                for key, value in arguments.items():
+                    if value:  # Só mostra valores não vazios
+                        print(f"    {key}: {value}")
             print()
 
 
