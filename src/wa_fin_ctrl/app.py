@@ -736,7 +736,6 @@ def processar_incremental(force=False, entry=None, backup=False):
                 
                 if valor_total:
                     # Converte valor para formato brasileiro
-                    from .helper import normalize_value_to_brazilian_format
                     valor_brasileiro = normalize_value_to_brazilian_format(valor_total)
                     valor_float = float(valor_brasileiro.replace(',', '.'))
                     
