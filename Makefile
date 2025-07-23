@@ -418,10 +418,28 @@ rebuild: remove-all copy-july process api
 reload: process api
 
 kill-api:
-	kill -9 $(pgrep -f "python manage.py runserver 0.0.0.0:8000")
+	@PID=$$(pgrep -f "python manage.py runserver 0.0.0.0:8000"); \
+	if [ -n "$$PID" ]; then \
+		echo "Encerrando API (PID=$$PID)"; \
+		kill -9 $$PID; \
+	else \
+		echo "Nenhum processo da API encontrado."; \
+	fi
 
 kill-front:
-	kill -9 $(pgrep -f "npm run dev")
+	@PID=$$(pgrep -f "npm run dev"); \
+	if [ -n "$$PID" ]; then \
+		echo "Encerrando front-end (PID=$$PID)"; \
+		kill -9 $$PID; \
+	else \
+		echo "Nenhum processo do front-end encontrado."; \
+	fi
+	
+ps-api:
+	ps aux | grep "python manage.py runserver 0.0.0.0:8000"
+
+ps-front:
+	ps aux | grep "npm run dev"
 
 
 .PHONY: help install run server api copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia
