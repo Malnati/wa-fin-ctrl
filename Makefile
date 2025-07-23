@@ -345,6 +345,30 @@ process:
 process-backup:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --backup
 
+# Processa arquivos em paralelo (recomendado)
+process-parallel:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --parallel --max-workers 4
+
+# Processa arquivos em paralelo com backup
+process-parallel-backup:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --parallel --max-workers 4 --backup
+
+# Migra dados CSV/XML para SQLite
+migrate:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} migrate
+
+# Exporta dados SQLite para CSV
+export:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} export
+
+# Verifica consistência de dados
+check-consistency:
+	poetry run python ${ATTR_FIN_ARQ_MAIN} check-consistency
+
+# Testa a migração
+test-migration:
+	python test_migracao.py
+
 # Remove todos os arquivos
 remove-all:
 	@$(MAKE) remove-reports
