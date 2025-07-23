@@ -506,10 +506,9 @@ kill-front:
 kill-all: kill-api kill-front
 
 ps-api:
-	ps aux | grep "manage.py"
+	@lsof -ti:8000 2>/dev/null | xargs ps -p 2>/dev/null || echo "Nenhum processo encontrado na porta 8000"
 
 ps-front:
-	@echo "Processos do frontend (porta 4779):"
 	@lsof -ti:4779 2>/dev/null | xargs ps -p 2>/dev/null || echo "Nenhum processo encontrado na porta 4779"
 
 ps-all: ps-api ps-front
