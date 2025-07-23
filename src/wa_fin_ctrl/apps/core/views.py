@@ -289,13 +289,23 @@ def list_reports(request):
             # Formata valor
             valor_str = f"{entrada.valor:.2f}".replace('.', ',') if entrada.valor else ""
             
-            # Determina valores por pessoa (simplificado)
+            # Determina valores por pessoa baseado na classificação
             valor_ricardo = ""
             valor_rafael = ""
             if entrada.valor > 0:
-                if entrada.classificacao in ['transferência', 'pagamento']:
-                    # Lógica simplificada - pode ser melhorada
+                # Se é transferência, vai para Ricardo
+                if entrada.classificacao.lower() in ['transferência', 'transferencia']:
                     valor_ricardo = valor_str
+                # Se é pagamento, vai para Rafael  
+                elif entrada.classificacao.lower() in ['pagamento']:
+                    valor_rafael = valor_str
+                # Para outros tipos, distribui baseado na descrição
+                else:
+                    desc_lower = entrada.descricao.lower() if entrada.descricao else ""
+                    if any(keyword in desc_lower for keyword in ['uber', 'restaurante', 'supermercado', 'padaria', 'farmácia', 'farmacia']):
+                        valor_ricardo = valor_str
+                    else:
+                        valor_rafael = valor_str
             
             rows.append({
                 "data": data_str,
