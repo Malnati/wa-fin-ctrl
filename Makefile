@@ -482,11 +482,11 @@ dev:
 	@echo "Iniciando ambiente de desenvolvimento..."
 	@$(MAKE) kill-all 2>/dev/null || true
 	@$(MAKE) api
-	@sleep 2
+	@sleep 3
 	@$(MAKE) front
-	@echo "Ambiente de desenvolvimento iniciado!"
-	@echo "API: http://localhost:8000"
-	@echo "Frontend: http://localhost:4779"
+	@echo "✅ Ambiente de desenvolvimento iniciado!"
+	@echo "🌐 API: http://localhost:8000"
+	@echo "⚛️  Frontend: http://localhost:4779"
 
 # Inicia API e frontend com limpeza prévia
 dev-fresh: api front-fresh
