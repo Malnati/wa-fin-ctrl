@@ -359,8 +359,10 @@ help:
 	@echo "    kill-front: Encerra o frontend"
 	@echo "    reload-front: Recarrega o frontend"
 	@echo "  Desenvolvimento:"
-	@echo "    dev: Inicia API e frontend juntos"
+	@echo "    dev: Inicia API e frontend juntos (recomendado)"
 	@echo "    dev-fresh: Inicia API e frontend com limpeza prévia"
+	@echo "    api: Inicia apenas a API Django"
+	@echo "    front: Inicia apenas o frontend React"
 	@echo "  Processos:"
 	@echo "    ps-api: Mostra processos da API"
 	@echo "    ps-front: Mostra processos do frontend"
@@ -476,7 +478,15 @@ rebuild: remove-all copy-july process api
 reload: process api
 
 # Inicia API e frontend juntos
-dev: api front
+dev:
+	@echo "Iniciando ambiente de desenvolvimento..."
+	@$(MAKE) kill-all 2>/dev/null || true
+	@$(MAKE) api
+	@sleep 2
+	@$(MAKE) front
+	@echo "Ambiente de desenvolvimento iniciado!"
+	@echo "API: http://localhost:8000"
+	@echo "Frontend: http://localhost:4779"
 
 # Inicia API e frontend com limpeza prévia
 dev-fresh: api front-fresh
@@ -520,11 +530,11 @@ reload-front: kill-front front
 # Limpa e reinstala dependências do frontend
 front-clean:
 	@echo "Limpando dependências do frontend..."
-	@cd frontend && rm -rf node_modules package-lock.json
-	@cd frontend && npm install
+	@cd frontend && rm -rf node_modules package-lock.json || true
+	@cd frontend && npm install || true
 	@echo "Dependências do frontend reinstaladas"
 
 # Inicia frontend com limpeza prévia
 front-fresh: front-clean front
 
-.PHONY: help install run server api copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia
+.PHONY: help install run server api copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia dev front api
