@@ -7,6 +7,8 @@
 VAR_FIN_OPENAI_API_KEY=${OPENAI_API_KEY}
 # Diretórios de dados
 VAR_FIN_DIR_DATA=data
+# Diretórios de db
+VAR_FIN_DIR_DB=db
 # Diretórios de entrada e saída
 VAR_FIN_DIR_INPUT=input
 # Diretórios de imagens
@@ -26,17 +28,17 @@ VAR_FIN_DIR_SRC=src
 # Diretórios de templates
 VAR_FIN_DIR_TEMPLATES=templates
 # Arquivos de cálculo
-VAR_FIN_ARQ_CALCULO=mensagens/calculo.csv
+VAR_FIN_ARQ_CALCULO=${VAR_FIN_DIR_MENSAGENS}/calculo.csv
 # Arquivos de mensagens
-VAR_FIN_ARQ_MENSAGENS=mensagens/mensagens.csv
+VAR_FIN_ARQ_MENSAGENS=${VAR_FIN_DIR_MENSAGENS}/mensagens.csv
 # Arquivos de diagnóstico
 VAR_FIN_ARQ_DIAGNOSTICO=diagnostico.csv
 # Arquivo de banco de dados
-VAR_FIN_ARQ_DB=db/db.sqlite3
+VAR_FIN_ARQ_DB=${VAR_FIN_DIR_DB}/db.sqlite3
 # Arquivos de chat
 VAR_FIN_ARQ_CHAT=_chat.txt
 # Arquivos de OCR
-VAR_FIN_ARQ_OCR_XML=ocr/extract.xml
+VAR_FIN_ARQ_OCR_XML=${VAR_FIN_DIR_OCR}/extract.xml
 # Arquivo principal
 VAR_FIN_ARQ_MAIN=wa-fin.py
 # Arquivos de relatórios
@@ -61,6 +63,7 @@ VAR_FIN_ARQ_MASSA_OCTOBER=massa/10 WhatsApp Chat - NFs e comprovantes tia Claudi
 # Exporta as variáveis de ambiente para o shell
 export ATTR_FIN_OPENAI_API_KEY=${VAR_FIN_OPENAI_API_KEY}
 export ATTR_FIN_DIR_DATA=${VAR_FIN_DIR_DATA}
+export ATTR_FIN_DIR_DB=${VAR_FIN_DIR_DB}
 export ATTR_FIN_DIR_INPUT=${VAR_FIN_DIR_INPUT}
 export ATTR_FIN_DIR_IMGS=${VAR_FIN_DIR_IMGS}
 export ATTR_FIN_DIR_MASSA=${VAR_FIN_DIR_MASSA}
@@ -102,13 +105,14 @@ check_poetry_installed:
 
 # Cria os diretórios necessários
 create-directories:
-	@echo "Criando diretórios: ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}, ${ATTR_FIN_DIR_MENSAGENS}, ${ATTR_FIN_DIR_OCR}, ${ATTR_FIN_DIR_DOCS}, ${ATTR_FIN_DIR_SRC}, ${ATTR_FIN_DIR_TEMPLATES}"
-	@mkdir -pv "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" "${ATTR_FIN_DIR_DOCS}" "${ATTR_FIN_DIR_SRC}" "${ATTR_FIN_DIR_TEMPLATES}"
+	@echo "Criando diretórios: ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}, ${ATTR_FIN_DIR_MENSAGENS}, ${ATTR_FIN_DIR_OCR}, ${ATTR_FIN_DIR_DOCS}, ${ATTR_FIN_DIR_SRC}, ${ATTR_FIN_DIR_TEMPLATES}, ${ATTR_FIN_DIR_DB}"
+	@mkdir -pv "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" "${ATTR_FIN_DIR_DOCS}" "${ATTR_FIN_DIR_SRC}" "${ATTR_FIN_DIR_TEMPLATES}" "${ATTR_FIN_DIR_DB}"
 
 # Exibe as variáveis de ambiente
 show-variables:
 	@echo "VAR_FIN_OPENAI_API_KEY: ${VAR_FIN_OPENAI_API_KEY}"
 	@echo "VAR_FIN_DIR_DATA: ${VAR_FIN_DIR_DATA}"
+	@echo "VAR_FIN_DIR_DB: ${VAR_FIN_DIR_DB}"
 	@echo "VAR_FIN_DIR_INPUT: ${VAR_FIN_DIR_INPUT}"
 	@echo "VAR_FIN_DIR_IMGS: ${VAR_FIN_DIR_IMGS}"
 	@echo "VAR_FIN_DIR_MASSA: ${VAR_FIN_DIR_MASSA}"
@@ -140,6 +144,7 @@ show-variables:
 	@echo "VAR_FIN_ARQ_MASSA_OCTOBER: ${VAR_FIN_ARQ_MASSA_OCTOBER}"
 	@echo "ATTR_FIN_OPENAI_API_KEY: ${ATTR_FIN_OPENAI_API_KEY}"
 	@echo "ATTR_FIN_DIR_DATA: ${ATTR_FIN_DIR_DATA}"
+	@echo "ATTR_FIN_DIR_DB: ${ATTR_FIN_DIR_DB}"
 	@echo "ATTR_FIN_DIR_INPUT: ${ATTR_FIN_DIR_INPUT}"
 	@echo "ATTR_FIN_DIR_IMGS: ${ATTR_FIN_DIR_IMGS}"
 	@echo "ATTR_FIN_DIR_MASSA: ${ATTR_FIN_DIR_MASSA}"
@@ -438,8 +443,13 @@ remove-data:
 remove-imgs:
 	@rm -rfv ${ATTR_FIN_DIR_IMGS}/*
 
+# Remove o diretório de OCR
+remove-ocr:
+	@rm -rfv ${ATTR_FIN_DIR_OCR}/*
 
-
+# Remove o diretório de mensagens
+remove-mensagens:
+	@rm -rfv ${ATTR_FIN_DIR_MENSAGENS}/*
 
 
 # Remove os relatórios
