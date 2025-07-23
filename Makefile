@@ -31,6 +31,8 @@ VAR_FIN_ARQ_CALCULO=mensagens/calculo.csv
 VAR_FIN_ARQ_MENSAGENS=mensagens/mensagens.csv
 # Arquivos de diagnóstico
 VAR_FIN_ARQ_DIAGNOSTICO=diagnostico.csv
+# Arquivo de banco de dados
+VAR_FIN_ARQ_DB=db/db.sqlite3
 # Arquivos de chat
 VAR_FIN_ARQ_CHAT=_chat.txt
 # Arquivos de OCR
@@ -88,6 +90,7 @@ export ATTR_FIN_ARQ_MASSA_JULY=${VAR_FIN_ARQ_MASSA_JULY}
 export ATTR_FIN_ARQ_MASSA_AUGUST=${VAR_FIN_ARQ_MASSA_AUGUST}
 export ATTR_FIN_ARQ_MASSA_SEPTEMBER=${VAR_FIN_ARQ_MASSA_SEPTEMBER}
 export ATTR_FIN_ARQ_MASSA_OCTOBER=${VAR_FIN_ARQ_MASSA_OCTOBER}
+export ATTR_FIN_ARQ_DB=${VAR_FIN_ARQ_DB}
 
 # Verificar se Poetry está disponível
 check_poetry_installed:
@@ -166,7 +169,8 @@ show-variables:
 	@echo "ATTR_FIN_ARQ_MASSA_AUGUST: ${ATTR_FIN_ARQ_MASSA_AUGUST}"
 	@echo "ATTR_FIN_ARQ_MASSA_SEPTEMBER: ${ATTR_FIN_ARQ_MASSA_SEPTEMBER}"
 	@echo "ATTR_FIN_ARQ_MASSA_OCTOBER: ${ATTR_FIN_ARQ_MASSA_OCTOBER}"
-
+	@echo "ATTR_FIN_ARQ_DB: ${ATTR_FIN_ARQ_DB}"
+	
 # Dependências dos comandos principais
 install: check_poetry_installed create-directories
 run: check_poetry_installed install
