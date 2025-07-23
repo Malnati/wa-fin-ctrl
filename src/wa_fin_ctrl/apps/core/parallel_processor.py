@@ -267,17 +267,22 @@ def processar_incremental_paralelo(force=False, entry=None, backup=False, max_wo
         arquivos_erro = len([r for r in resultados if not r['success']])
         arquivos_pulados = len([r for r in resultados if r.get('skipped')])
         
+        # PASSO 4: Move arquivos processados para imgs/
+        print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
+        arquivos_movidos = _mover_arquivos_processados()
+        
         processamento.status = 'concluido'
         processamento.data_hora_fim = timezone.now()
         processamento.arquivos_processados = arquivos_processados
         processamento.arquivos_erro = arquivos_erro
-        processamento.mensagem = f"Processamento concluído: {arquivos_processados} processados, {arquivos_erro} erros, {arquivos_pulados} pulados"
+        processamento.mensagem = f"Processamento concluído: {arquivos_processados} processados, {arquivos_erro} erros, {arquivos_pulados} pulados, {arquivos_movidos} movidos"
         processamento.save()
         
         print(f"\n=== RESUMO DO PROCESSAMENTO ===")
         print(f"✅ Arquivos processados: {arquivos_processados}")
         print(f"❌ Arquivos com erro: {arquivos_erro}")
         print(f"⏭️  Arquivos pulados: {arquivos_pulados}")
+        print(f"📁 Arquivos movidos: {arquivos_movidos}")
         print(f"📊 Total de arquivos: {len(arquivos)}")
         
         return {
@@ -286,6 +291,7 @@ def processar_incremental_paralelo(force=False, entry=None, backup=False, max_wo
             'arquivos_processados': arquivos_processados,
             'arquivos_erro': arquivos_erro,
             'arquivos_pulados': arquivos_pulados,
+            'arquivos_movidos': arquivos_movidos,
             'total_arquivos': len(arquivos),
             'processamento_id': processamento.id
         }
@@ -451,6 +457,59 @@ def _organizar_subdiretorios_se_necessario():
 
     # Organiza arquivos dos subdiretórios
     _organizar_arquivos_extraidos()
+
+
+def _mover_arquivos_processados():
+    """Move arquivos processados de input/ para imgs/"""
+    input_dir = ATTR_FIN_DIR_INPUT
+    imgs_dir = ATTR_FIN_DIR_IMGS
+    
+    # Garante que o diretório imgs/ existe
+    if not os.path.exists(imgs_dir):
+        os.makedirs(imgs_dir, exist_ok=True)
+        print(f"Diretório {imgs_dir}/ criado")
+    
+    # Lista arquivos de imagem e PDF em input/
+    extensoes_imagem = (".jpg", ".jpeg", ".png", ".pdf")
+    arquivos_input = [
+        f for f in os.listdir(input_dir) 
+        if os.path.isfile(os.path.join(input_dir, f)) and f.lower().endswith(extensoes_imagem)
+    ]
+    
+    if not arquivos_input:
+        print(f"Nenhum arquivo para mover de {input_dir}/")
+        return 0
+    
+    arquivos_movidos = 0
+    for arquivo in arquivos_input:
+        origem = os.path.join(input_dir, arquivo)
+        destino = os.path.join(imgs_dir, arquivo)
+        
+        # Se já existe arquivo com mesmo nome em imgs/, adiciona sufixo
+        contador = 1
+        arquivo_original = arquivo
+        while os.path.exists(destino):
+            nome, ext = os.path.splitext(arquivo_original)
+            arquivo = f"{nome}_{contador}{ext}"
+            destino = os.path.join(imgs_dir, arquivo)
+            contador += 1
+        
+        try:
+            shutil.move(origem, destino)
+            print(f"Movido: {arquivo_original} -> {imgs_dir}/")
+            arquivos_movidos += 1
+        except Exception as e:
+            print(f"❌ Erro ao mover {arquivo_original}: {str(e)}")
+    
+    # Verifica se ainda há arquivos em input/
+    arquivos_restantes = os.listdir(input_dir)
+    if not arquivos_restantes:
+        print(f"✅ Diretório {input_dir}/ está vazio - processamento concluído")
+    else:
+        print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
+    
+    print(f"✅ {arquivos_movidos} arquivos movidos para {imgs_dir}/")
+    return arquivos_movidos
 
 
 def processar_por_tipo_paralelo(tipo='todos', force=False, max_workers=4):
