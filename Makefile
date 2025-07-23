@@ -170,7 +170,7 @@ show-variables:
 	@echo "ATTR_FIN_ARQ_MASSA_SEPTEMBER: ${ATTR_FIN_ARQ_MASSA_SEPTEMBER}"
 	@echo "ATTR_FIN_ARQ_MASSA_OCTOBER: ${ATTR_FIN_ARQ_MASSA_OCTOBER}"
 	@echo "ATTR_FIN_ARQ_DB: ${ATTR_FIN_ARQ_DB}"
-	
+
 # Dependências dos comandos principais
 install: check_poetry_installed create-directories
 run: check_poetry_installed install
@@ -420,10 +420,15 @@ remove-all:
 	@$(MAKE) remove-tmp
 	@$(MAKE) remove-input
 	@$(MAKE) remove-data
+	@$(MAKE) remove-db
 
 # Remove os backups
 remove-baks:
 	@rm -fv *.bak
+
+# Remove o banco de dados
+remove-db:
+	@rm -rfv ${ATTR_FIN_ARQ_DB}
 
 # Remove os data
 remove-data:
