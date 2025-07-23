@@ -1,0 +1,12 @@
+---
+description: >
+  Sempre que executar um comando que pode bloquear a interface interativa (ex: comandos com saída longa ou que aguardam input), certifique-se de prevenir esse bloqueio. 
+  Para isso, utilize uma das seguintes estratégias:
+  - Execute o comando em segundo plano (com `&`);
+  - Encadeie o comando com `| cat` para forçar o flush da saída;
+  - Use `| cut`, `| grep`, ou outro pipe que processe a saída automaticamente;
+  - Redirecione a saída para `/dev/null` ou para um arquivo temporário, se apropriado.
+  Caso o comando seja enviado para segundo plano (`&`), o processo poderá ser monitorado ou recuperado posteriormente utilizando seu PID (identificador de processo).
+globs:
+alwaysApply: true
+---
