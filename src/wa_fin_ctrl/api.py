@@ -203,6 +203,7 @@ async def fix(
                         "ia": ia,
                         "dismiss": dismiss,
                         "last_update": _last_update_time,
+                        "storage": "database",  # Indica que foi salvo no banco
                     },
                 },
             )
