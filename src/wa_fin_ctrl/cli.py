@@ -119,8 +119,8 @@ def processar(force, entry, backup, parallel, max_workers):
 def processar_pdf(force, entry, backup):
     """
     Processa apenas arquivos .pdf:
-    - Extrai texto via OCR e registra em ocr-extract.xml
-    - Atualiza {ATTR_FIN_ARQ_CALCULO} (somente entradas PDF)
+    - Extrai texto via OCR e salva no banco de dados
+    - Processa dados e salva no banco de dados
     """
     from .history import CommandHistory
 
@@ -160,8 +160,8 @@ def processar_pdf(force, entry, backup):
 def processar_img(force, entry, backup):
     """
     Processa apenas arquivos de imagem:
-    - Extrai texto via OCR e registra em ocr-extract.xml
-    - Atualiza {ATTR_FIN_ARQ_CALCULO} (somente entradas IMG)
+    - Extrai texto via OCR e salva no banco de dados
+    - Processa dados e salva no banco de dados
     """
     from .history import CommandHistory
 

@@ -16,19 +16,18 @@ ocr_xml_lock = Lock()
 
 
 def process_image_ocr(image_path):
-    """Processa uma imagem ou PDF e extrai texto usando OCR, consultando o XML incremental antes."""
+    """Processa uma imagem ou PDF e extrai texto usando OCR."""
     try:
-        arq_xml = ATTR_FIN_ARQ_OCR_XML
-        # 1. Consulta o XML incremental
-        if os.path.exists(arq_xml):
-            try:
-                tree = ET.parse(arq_xml)
-                root = tree.getroot()
-                for entry in root.findall("entry"):
-                    if entry.get("arquivo") == os.path.basename(image_path):
-                        return entry.text or ""
-            except Exception:
-                pass  # Se falhar, ignora e tenta extrair normalmente
+        # 1. Consulta o banco de dados primeiro
+        try:
+            from .models import EntradaFinanceira
+            entrada = EntradaFinanceira.objects.filter(
+                arquivo_origem=os.path.basename(image_path)
+            ).first()
+            if entrada and entrada.ocr_texto:
+                return entrada.ocr_texto
+        except Exception:
+            pass  # Se falhar, ignora e tenta extrair normalmente
         # 2. Resolve caminho real
         if os.path.exists(image_path):
             pass
@@ -111,7 +110,7 @@ def process_image_ocr(image_path):
         return f"Erro no OCR: {str(e)}"
 
 
-def registrar_ocr_xml(arquivo, texto, arq_xml=ATTR_FIN_ARQ_OCR_XML):
+def registrar_ocr_xml(arquivo, texto, arq_xml=None):
     """Registra extração OCR no arquivo XML incrementalmente, sem sobrescrever entradas existentes."""
     # Mantém compatibilidade com o XML para transição gradual
     with ocr_xml_lock:

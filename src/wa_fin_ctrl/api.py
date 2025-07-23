@@ -409,18 +409,10 @@ async def generate_reports(force: bool = Form(False), backup: bool = Form(True))
     """
     try:
         from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-        from .env import ATTR_FIN_ARQ_CALCULO
-
-        # Verifica se o arquivo de cálculo existe
-        if not os.path.exists(ATTR_FIN_ARQ_CALCULO):
-            raise HTTPException(
-                status_code=400,
-                detail="Arquivo de cálculo não encontrado. Execute o processamento primeiro.",
-            )
 
         # Gera relatórios
-        gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
-        gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
+        gerar_relatorio_html(backup=backup)
+        gerar_relatorios_mensais_html(backup=backup)
 
         return JSONResponse(
             status_code=200,
@@ -430,7 +422,6 @@ async def generate_reports(force: bool = Form(False), backup: bool = Form(True))
                 "data": {
                     "force": force,
                     "backup": backup,
-                    "calculation_file": ATTR_FIN_ARQ_CALCULO,
                 },
             },
         )
@@ -453,14 +444,12 @@ async def api_entries(month: str = None):
         import pandas as pd
         from datetime import datetime
         
-        if not os.path.exists(ATTR_FIN_ARQ_CALCULO):
-            raise HTTPException(
-                status_code=404,
-                detail="Arquivo de cálculo não encontrado. Execute o processamento primeiro."
-            )
-        
-        # Carrega o CSV
-        df = pd.read_csv(ATTR_FIN_ARQ_CALCULO, dtype=str)
+        # Dados agora vêm do banco de dados
+        # TODO: Implementar consulta ao banco de dados
+        raise HTTPException(
+            status_code=501,
+            detail="Endpoint em desenvolvimento - dados agora vêm do banco de dados"
+        )
         
         # Filtra por mês se especificado
         if month:

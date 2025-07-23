@@ -410,18 +410,10 @@ def generate_reports(request):
 
         # Importa a função de geração de relatórios
         from wa_fin_ctrl.reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-        from wa_fin_ctrl.env import ATTR_FIN_ARQ_CALCULO
-
-        # Verifica se o arquivo de cálculo existe
-        if not os.path.exists(ATTR_FIN_ARQ_CALCULO):
-            return JsonResponse(
-                {"error": "Arquivo de cálculo não encontrado. Execute o processamento primeiro."},
-                status=400
-            )
 
         # Gera os relatórios
-        resultado = gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
-        resultado_mensal = gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
+        resultado = gerar_relatorio_html(backup=backup)
+        resultado_mensal = gerar_relatorios_mensais_html(backup=backup)
 
         # Atualiza timestamp
         update_last_modified()

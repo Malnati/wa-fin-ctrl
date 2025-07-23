@@ -14,19 +14,9 @@ ocr_xml_lock = Lock()
 
 
 def process_image_ocr(image_path):
-    """Processa uma imagem ou PDF e extrai texto usando OCR, consultando o XML incremental antes."""
+    """Processa uma imagem ou PDF e extrai texto usando OCR."""
     try:
-        arq_xml = ATTR_FIN_ARQ_OCR_XML
-        # 1. Consulta o XML incremental
-        if os.path.exists(arq_xml):
-            try:
-                tree = ET.parse(arq_xml)
-                root = tree.getroot()
-                for entry in root.findall("entry"):
-                    if entry.get("arquivo") == os.path.basename(image_path):
-                        return entry.text or ""
-            except Exception:
-                pass  # Se falhar, ignora e tenta extrair normalmente
+        # OCR agora é processado diretamente sem consulta a XML
         # 2. Resolve caminho real
         if os.path.exists(image_path):
             pass
@@ -109,25 +99,34 @@ def process_image_ocr(image_path):
         return f"Erro no OCR: {str(e)}"
 
 
-def registrar_ocr_xml(arquivo, texto, arq_xml=ATTR_FIN_ARQ_OCR_XML):
-    """Registra extração OCR no arquivo XML incrementalmente, sem sobrescrever entradas existentes."""
-    with ocr_xml_lock:
-        dir_ocr = os.path.dirname(arq_xml)
-        if dir_ocr and not os.path.exists(dir_ocr):
-            os.makedirs(dir_ocr, exist_ok=True)
-        if os.path.exists(arq_xml):
-            tree = ET.parse(arq_xml)
-            root = tree.getroot()
+def registrar_ocr_xml(arquivo, texto, arq_xml=None):
+    """Registra extração OCR no banco de dados."""
+    try:
+        from .apps.core.models import EntradaFinanceira
+        from datetime import datetime
+        
+        # Busca entrada existente pelo nome do arquivo
+        entrada = EntradaFinanceira.objects.filter(
+            arquivo_origem=arquivo
+        ).first()
+        
+        if entrada:
+            # Atualiza o texto OCR se já existe
+            entrada.ocr_texto = texto
+            entrada.save()
         else:
-            root = ET.Element("ocr")
-            tree = ET.ElementTree(root)
-        # Não duplica entradas
-        for entry in root.findall("entry"):
-            if entry.get("arquivo") == arquivo:
-                return  # Já existe, não sobrescreve
-        entry = ET.SubElement(root, "entry", {"arquivo": arquivo})
-        entry.text = texto
-        tree.write(arq_xml, encoding="utf-8", xml_declaration=True)
+            # Cria nova entrada se não existe
+            EntradaFinanceira.objects.create(
+                data_hora=datetime.now(),
+                arquivo_origem=arquivo,
+                ocr_texto=texto,
+                desconsiderada=False
+            )
+            
+        print(f"📝 OCR registrado no banco: {arquivo}")
+        
+    except Exception as e:
+        print(f"⚠️ Erro ao registrar OCR no banco: {str(e)}")
 
 
 def _converter_pdf_para_jpg(pdf_path):

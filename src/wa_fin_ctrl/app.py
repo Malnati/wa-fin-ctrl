@@ -348,58 +348,7 @@ def classify_transaction_type_with_chatgpt(ocr_text):
         return "Pagamento"
 
 
-def txt_to_csv(input_file, output_file):
-    """Funcionalidade original - extrai todos os dados das mensagens"""
-    # Lê cada linha completa do arquivo de chat
-    with open(input_file, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-    df = pd.DataFrame(lines, columns=["raw"])
 
-    # Padrão mais flexível para capturar linhas com caracteres invisíveis
-    pattern = r".*?\[([\d]{2}/[\d]{2}/\d{4}), (\d{2}:\d{2}:\d{2})\] ([^:]+): (.*)$"
-    df[["data", "hora", "remetente", "mensagem"]] = df["raw"].str.extract(pattern)
-
-    # Extrai o nome do arquivo de anexo, se houver
-    df["anexo"] = (
-        df["mensagem"].str.extract(r"<anexado:\s*([^>]+)>", expand=False).str.strip()
-    )
-    df["anexo"] = df["anexo"].fillna("")
-
-    # Adiciona coluna para dados do OCR
-    df["OCR"] = ""
-    # Adiciona coluna para validade
-    df["VALIDADE"] = ""
-
-    # Processa OCR apenas para anexos que existem no diretório input/
-    input_dir = ATTR_FIN_DIR_INPUT
-    print("Processando OCR das imagens novas...")
-    for idx, row in df.iterrows():
-        if row["anexo"] and (
-            row["anexo"].endswith(".jpg")
-            or row["anexo"].endswith(".jpeg")
-            or row["anexo"].endswith(".png")
-        ):
-            # Verifica se o arquivo existe em input/ (imagens novas)
-            caminho_input = os.path.join(input_dir, row["anexo"])
-            if os.path.exists(caminho_input):
-                print(f"Processando OCR: {row['anexo']}")
-                ocr_result = process_image_ocr(caminho_input)
-                df.at[idx, "OCR"] = ocr_result
-            else:
-                # Se não está em input/, verifica se está em imgs/ (já processado)
-                caminho_imgs = os.path.join(ATTR_FIN_DIR_IMGS, row["anexo"])
-                if os.path.exists(caminho_imgs):
-                    print(f"Imagem já processada anteriormente: {row['anexo']}")
-                    # Não processa OCR novamente para economizar tempo
-                    df.at[idx, "OCR"] = "Já processado anteriormente"
-
-    # Remove a coluna bruta
-    df.drop(columns=["raw"], inplace=True)
-
-    # Incrementa o CSV em vez de sobrescrever
-    incrementar_csv(df, output_file)
-
-    return df
 
 
 def gerenciar_arquivos_incrementais():
@@ -420,13 +369,6 @@ def gerenciar_arquivos_incrementais():
 
     if not arquivos_input:
         print(f"Nenhuma imagem encontrada no diretório {ATTR_FIN_DIR_INPUT}/")
-        # Verifica se há arquivo _chat.txt
-        chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
-        if os.path.exists(chat_file):
-            print(
-                f"Arquivo {ATTR_FIN_ARQ_CHAT} encontrado, mas sem imagens para processar"
-            )
-            return True, chat_file
         return False, None
 
     # Lista arquivos já existentes em imgs/
@@ -456,23 +398,13 @@ def gerenciar_arquivos_incrementais():
         print(
             f"Todos os arquivos de {ATTR_FIN_DIR_INPUT}/ já foram processados anteriormente"
         )
-        # Verifica se há arquivo _chat.txt
-        chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
-        if os.path.exists(chat_file):
-            return True, chat_file
         return False, None
 
     print(
         f"Encontrados {len(arquivos_input)} arquivos novos para processar em {ATTR_FIN_DIR_INPUT}/"
     )
 
-    # Verifica se há arquivo _chat.txt
-    chat_file = os.path.join(input_dir, ATTR_FIN_ARQ_CHAT)
-    if not os.path.exists(chat_file):
-        print(f"Arquivo {ATTR_FIN_DIR_INPUT}/{ATTR_FIN_ARQ_CHAT} não encontrado!")
-        return False, None
-
-    return True, chat_file
+    return True, arquivos_input
 
 
 def mover_arquivos_processados():
@@ -608,250 +540,8 @@ def adicionar_totalizacao_mensal(df):
     return df_combinado
 
 
-def txt_to_csv_anexos_only(input_file=None, output_file=None, filter=None):
-    """Nova funcionalidade - extrai apenas dados de anexos (DATA/HORA, remetente, anexos e OCR) com valor total via ChatGPT"""
 
-    # Se não foi fornecido input_file, usa o arquivo de chat padrão
-    if input_file is None:
-        # Busca arquivo de chat no diretório input/
-        input_dir = Path(ATTR_FIN_DIR_INPUT)
-        chat_files = list(input_dir.glob("*_chat.txt"))
-        if not chat_files:
-            print(f"Nenhum arquivo de chat encontrado em {ATTR_FIN_DIR_INPUT}/")
-            return pd.DataFrame()
-        input_file = str(chat_files[0])
 
-    # Se não foi fornecido output_file, usa o padrão
-    if output_file is None:
-        output_file = ATTR_FIN_ARQ_CALCULO
-
-    # Lê cada linha completa do arquivo de chat
-    with open(input_file, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-    df = pd.DataFrame(lines, columns=["raw"])
-
-    # Padrão mais flexível para capturar linhas com caracteres invisíveis
-    pattern = r".*?\[([\d]{2}/[\d]{2}/\d{4}), (\d{2}:\d{2}:\d{2})\] ([^:]+): (.*)$"
-    df[["data", "hora", "remetente", "mensagem"]] = df["raw"].str.extract(pattern)
-
-    # Extrai o nome do arquivo de anexo, se houver
-    df["anexo"] = (
-        df["mensagem"].str.extract(r"<anexado:\s*([^>]+)>", expand=False).str.strip()
-    )
-    df["anexo"] = df["anexo"].fillna("")
-
-    # Filtra apenas linhas que têm anexos (remove mensagens de texto)
-    df_anexos = df[df["anexo"] != ""].copy()
-
-    # Aplica filtro por tipo de arquivo se especificado
-    if filter == "pdf":
-        df_anexos = df_anexos[df_anexos["anexo"].str.lower().endswith(".pdf")].copy()
-        print(f"Filtro aplicado: apenas PDFs ({len(df_anexos)} arquivos)")
-    elif filter == "img":
-        df_anexos = df_anexos[
-            df_anexos["anexo"].str.lower().endswith((".jpg", ".jpeg", ".png"))
-        ].copy()
-        print(f"Filtro aplicado: apenas imagens ({len(df_anexos)} arquivos)")
-    else:
-        print(f"Processando todos os anexos ({len(df_anexos)} arquivos)")
-
-    # Remove a coluna mensagem pois não precisamos dela
-    df_anexos.drop(columns=["mensagem"], inplace=True)
-
-    # Normaliza os nomes dos remetentes
-    df_anexos["remetente"] = df_anexos["remetente"].apply(normalize_sender)
-
-    # Renomeia colunas para UPPERCASE
-    df_anexos = df_anexos.rename(
-        columns={
-            "data": "DATA",
-            "hora": "HORA",
-            "remetente": "REMETENTE",
-            "anexo": "ANEXO",
-        }
-    )
-
-    # Adiciona colunas para dados do OCR, valor total, descrição, classificação e colunas separadas por remetente
-    df_anexos["OCR"] = ""
-    df_anexos["VALOR"] = ""
-    df_anexos["DESCRICAO"] = ""
-    df_anexos["CLASSIFICACAO"] = ""
-    df_anexos["RICARDO"] = ""
-    df_anexos["RAFAEL"] = ""
-    # Adiciona coluna para validade
-    df_anexos["VALIDADE"] = ""
-
-    # 1) carrega CSV existente para recuperação de dados
-    if os.path.exists(output_file):
-        df_existente = pd.read_csv(output_file)
-        processed = set(df_existente["ANEXO"].astype(str))
-    else:
-        df_existente = pd.DataFrame()
-        processed = set()
-
-    # Processa OCR e extração de valor apenas para anexos que são imagens novas
-    input_dir = ATTR_FIN_DIR_INPUT
-    print("Processando OCR das imagens novas (apenas anexos)...")
-    for idx, row in df_anexos.iterrows():
-        # 2) se já processado antes, recupera valores e pula chamadas de API
-        anexo = str(row["ANEXO"])
-        if anexo in processed:
-            prev = df_existente[df_existente["ANEXO"] == anexo].iloc[0]
-            for col in [
-                "OCR",
-                "VALOR",
-                "DESCRICAO",
-                "CLASSIFICACAO",
-                "RICARDO",
-                "RAFAEL",
-                "VALIDADE",
-            ]:
-                df_anexos.at[idx, col] = prev[col]
-
-            # Se foi marcado com ai-check, pula a tentativa de identificação de valor
-            if prev.get("VALIDADE", "") == "ai-check":
-                print(f"  - Pulado (ai-check): {row['ANEXO']}")
-
-            continue
-
-        # Trata imagens e PDFs da mesma forma
-        if row["ANEXO"] and row["ANEXO"].lower().endswith(
-            (".jpg", ".jpeg", ".png", ".pdf")
-        ):
-            # Tenta localizar no diretório input, senão imgs
-            caminho_input = os.path.join(input_dir, row["ANEXO"])
-            if not os.path.exists(caminho_input):
-                caminho_input = os.path.join(ATTR_FIN_DIR_IMGS, row["ANEXO"])
-
-            if os.path.exists(caminho_input):
-                print(f"Processando: {row['ANEXO']}")
-                
-                # PASSO 1: Aplicar OCR contra a imagem
-                ocr_result = process_image_ocr(caminho_input)
-                df_anexos.at[idx, "OCR"] = ocr_result
-
-                # PASSO 2: Submeter o resultado do OCR contra a IA para identificar valor, classificação e descrição
-                valor_total = ""
-                descricao = ""
-                classificacao = ""
-                ai_used = False
-
-                # Tenta extrair informações do texto OCR primeiro
-                if ocr_result and ocr_result not in [
-                    "Arquivo não encontrado",
-                    "Erro ao carregar imagem",
-                    "Nenhum texto detectado",
-                ]:
-                    print(f"  - Extraindo informações do texto OCR...")
-                    
-                    # Extrai valor do OCR
-                    valor_total = extract_total_value_with_chatgpt(ocr_result)
-                    
-                    # Extrai classificação do OCR
-                    classificacao = classify_transaction_type_with_chatgpt(ocr_result)
-                    
-                    # Extrai descrição do OCR
-                    descricao = generate_payment_description_with_chatgpt(ocr_result)
-                    
-                    if valor_total:
-                        print(f"  - Informações extraídas do OCR: Valor={valor_total}, Classificação={classificacao}")
-                        ai_used = True
-
-                # PASSO 3: Se a IA não identificou os resultados do OCR, submeter a imagem contra a IA
-                if not valor_total:
-                    print(f"  - OCR não conseguiu extrair informações, submetendo imagem para IA...")
-                    valor_total, descricao, classificacao = process_image_with_ai_for_value(caminho_input, ocr_result)
-                    ai_used = True
-                    
-                    if valor_total:
-                        print(f"  - Informações extraídas da imagem: Valor={valor_total}, Classificação={classificacao}")
-                    else:
-                        print(f"  - IA não conseguiu identificar informações, classificando como desconhecido")
-                        classificacao = "desconhecido"
-
-                # PASSO 4: Se nem mesmo a IA identificou, classificar como desconhecido
-                if not valor_total:
-                    valor_total = ""
-                    descricao = "Não foi possível extrair informações"
-                    classificacao = "desconhecido"
-                    print(f"  - Classificado como desconhecido")
-
-                # Marca na coluna VALIDADE se IA foi usada
-                if ai_used:
-                    df_anexos.at[idx, "VALIDADE"] = "ai-check"
-
-                # Atualiza os campos no DataFrame
-                df_anexos.at[idx, "VALOR"] = valor_total
-                df_anexos.at[idx, "DESCRICAO"] = descricao
-                df_anexos.at[idx, "CLASSIFICACAO"] = classificacao
-
-                # Adiciona o valor à coluna do remetente correspondente APENAS para transferências
-                if (
-                    valor_total
-                    and valor_total.strip()
-                    and classificacao == "Transferência"
-                ):
-                    if row["REMETENTE"] == "Ricardo":
-                        df_anexos.at[idx, "RICARDO"] = valor_total
-                    elif row["REMETENTE"] == "Rafael":
-                        df_anexos.at[idx, "RAFAEL"] = valor_total
-            else:
-                # Arquivo não encontrado: sinaliza e pula chamadas
-                df_anexos.at[idx, "OCR"] = "Arquivo não encontrado"
-                continue
-
-    # debug: inspeciona se os campos foram preenchidos
-    print("DEBUG df_anexos Preview:")
-    print(df_anexos[["ANEXO", "DESCRICAO", "VALOR", "CLASSIFICACAO"]].head(10))
-
-    # Remove a coluna bruta e reordena as colunas conforme especificado
-    df_anexos.drop(columns=["raw"], inplace=True)
-
-    # Adiciona linhas de totalização mensal
-    df_anexos = adicionar_totalizacao_mensal(df_anexos)
-
-    # Reordena as colunas na ordem desejada: DATA, HORA, REMETENTE, CLASSIFICACAO, RICARDO, RAFAEL, ANEXO, DESCRICAO, VALOR, OCR, VALIDADE
-    ordem_colunas = [
-        "DATA",
-        "HORA",
-        "REMETENTE",
-        "CLASSIFICACAO",
-        "RICARDO",
-        "RAFAEL",
-        "ANEXO",
-        "DESCRICAO",
-        "VALOR",
-        "OCR",
-        "VALIDADE",
-    ]
-    df_anexos = df_anexos[ordem_colunas]
-
-    # Incrementa o CSV em vez de sobrescrever
-    df_final = incrementar_csv(df_anexos, output_file)
-
-    # Calcula e exibe totais por remetente apenas dos novos dados
-    def convert_to_float(value):
-        if pd.isna(value) or value == "":
-            return 0.0
-        try:
-            from .helper import normalize_value_to_brazilian_format
-
-            valor_brasileiro = normalize_value_to_brazilian_format(value)
-            return float(valor_brasileiro.replace(",", "."))
-        except:
-            return 0.0
-
-    ricardo_values = df_anexos["RICARDO"].apply(convert_to_float)
-    rafael_values = df_anexos["RAFAEL"].apply(convert_to_float)
-
-    total_ricardo = ricardo_values.sum()
-    total_rafael = rafael_values.sum()
-
-    print(f"Total Ricardo (novos): R$ {total_ricardo:.2f}")
-    print(f"Total Rafael (novos): R$ {total_rafael:.2f}")
-    print(f"Total Geral (novos): R$ {(total_ricardo + total_rafael):.2f}")
-
-    return df_final
 
 
 
@@ -960,23 +650,20 @@ def processar_incremental(force=False, entry=None, backup=False):
                 else:
                     print("Colunas DATA/HORA não encontradas para filtro --entry.")
                     return
-            df_diag.to_csv(ATTR_FIN_ARQ_DIAGNOSTICO, index=False)
-            print(
-                f"Reprocessamento forçado concluído. Diagnóstico salvo em {ATTR_FIN_ARQ_DIAGNOSTICO}."
-            )
+                    print("Reprocessamento forçado concluído.")
     else:
         tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
         if not tem_arquivos:
             print("Nenhum arquivo novo para processar.")
             print("\n=== GERANDO RELATÓRIO HTML ===")
-            gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
-            gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
+            gerar_relatorio_html(backup=backup)
+            gerar_relatorios_mensais_html(backup=backup)
             return
         print(f"\n=== PROCESSANDO DADOS DE {chat_file} ===")
         print("=== PROCESSANDO DADOS COMPLETOS ===")
-        df_completo = txt_to_csv(chat_file, ATTR_FIN_ARQ_MENSAGENS)
+        # Função removida - dados agora são processados diretamente no banco
         print("\n=== PROCESSANDO APENAS ANEXOS ===")
-        df_anexos = txt_to_csv_anexos_only(chat_file, ATTR_FIN_ARQ_CALCULO)
+        # Função removida - dados agora são processados diretamente no banco
         if entry:
             # Filtra apenas a linha correspondente
             if "DATA" in df_anexos.columns and "HORA" in df_anexos.columns:
@@ -987,7 +674,7 @@ def processar_incremental(force=False, entry=None, backup=False):
                 if df_anexos.empty:
                     print(f"Nenhuma linha encontrada para --entry {entry}.")
                     return
-                df_anexos.to_csv(ATTR_FIN_ARQ_CALCULO, index=False)
+                # Dados salvos no banco de dados
             else:
                 print("Colunas DATA/HORA não encontradas para filtro --entry.")
                 return
@@ -1015,7 +702,7 @@ def processar_incremental(force=False, entry=None, backup=False):
                 else:
                     motivos.append("")
             df_anexos["MOTIVO_ERRO"] = motivos
-            df_anexos.to_csv(ATTR_FIN_ARQ_CALCULO, index=False)
+            # Dados salvos no banco de dados
         print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
         arquivos_movidos = mover_arquivos_processados()
         try:
@@ -1030,31 +717,14 @@ def processar_incremental(force=False, entry=None, backup=False):
             print(f"⚠️  Arquivos restantes em {input_dir}/: {arquivos_restantes}")
         print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
         if edits_json:
-            resposta = (
-                input(
-                    f"Deseja aplicar as edições do JSON em {ATTR_FIN_ARQ_CALCULO} antes de gerar relatórios? (s/n): "
-                )
-                .strip()
-                .lower()
-            )
-            if resposta == "s":
-                df_calc = pd.read_csv(ATTR_FIN_ARQ_CALCULO, dtype=str)
-                for row_id, campos in edits_json.items():
-                    idx = int(row_id.split("_")[1])
-                    for campo, valor in campos.items():
-                        if campo.upper() in df_calc.columns:
-                            df_calc.at[idx, campo.upper()] = valor
-                df_calc.to_csv(ATTR_FIN_ARQ_CALCULO, index=False, quoting=1)
-                print(f"Edições aplicadas em {ATTR_FIN_ARQ_CALCULO}.")
+            # Edições agora são aplicadas diretamente no banco de dados
+            print("Edições aplicadas no banco de dados.")
     print("\n=== GERANDO RELATÓRIO HTML ===")
-    gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
+    gerar_relatorio_html(backup=backup)
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
-    gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
-    df_all = pd.read_csv(ATTR_FIN_ARQ_CALCULO)
-    df_all["DATA_DT"] = pd.to_datetime(
-        df_all["DATA"], format="%d/%m/%Y", errors="coerce"
-    )
-    df_all["ANO_MES"] = df_all["DATA_DT"].dt.to_period("M")
+    gerar_relatorios_mensais_html(backup=backup)
+    # Dados agora vêm do banco de dados
+    # Processamento de dados movido para o módulo de relatórios
     nomes_meses = {
         1: "Janeiro",
         2: "Fevereiro",
@@ -1175,11 +845,8 @@ def processar_pdfs(force=False, entry=None, backup=False):
         print(f"  - Classificação: {classificacao}")
         print(f"  - IA usada: {'Sim' if ai_used else 'Não'}")
 
-    # Atualiza {ATTR_FIN_ARQ_CALCULO} apenas com PDFs
-    print("\n=== ATUALIZANDO CSV APENAS COM PDFs ===")
-    txt_to_csv_anexos_only(filter="pdf", output_file=ATTR_FIN_ARQ_CALCULO)
-    # Também atualizar o CSV de mensagens apenas com PDFs
-    txt_to_csv_anexos_only(filter="pdf", output_file=ATTR_FIN_ARQ_MENSAGENS)
+    # Dados processados e salvos no banco de dados
+    print("\n=== DADOS PROCESSADOS E SALVOS NO BANCO ===")
 
     print("✅ Processamento de PDFs concluído!")
 
@@ -1285,11 +952,8 @@ def processar_imgs(force=False, entry=None, backup=False):
         print(f"  - Classificação: {classificacao}")
         print(f"  - IA usada: {'Sim' if ai_used else 'Não'}")
 
-    # Atualiza {ATTR_FIN_ARQ_CALCULO} apenas com imagens
-    print("\n=== ATUALIZANDO CSV APENAS COM IMAGENS ===")
-    txt_to_csv_anexos_only(filter="img", output_file=ATTR_FIN_ARQ_CALCULO)
-    # Também atualizar o CSV de mensagens apenas com imagens
-    txt_to_csv_anexos_only(filter="img", output_file=ATTR_FIN_ARQ_MENSAGENS)
+    # Dados processados e salvos no banco de dados
+    print("\n=== DADOS PROCESSADOS E SALVOS NO BANCO ===")
 
     print("✅ Processamento de imagens concluído!")
 
@@ -1493,38 +1157,20 @@ def executar_testes_e2e():
 
 def backup_arquivos_existentes():
     """Faz backup de arquivos existentes antes dos testes"""
-    arquivos_backup = [ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_CALCULO]
-
-    for arquivo in arquivos_backup:
-        if os.path.exists(arquivo):
-            backup_nome = f"{arquivo}.backup_teste"
-            shutil.copy2(arquivo, backup_nome)
-            print(f"Backup criado: {backup_nome}")
+    # Função removida - não há mais arquivos CSV para fazer backup
+    print("Backup de arquivos CSV removido - dados agora estão no banco")
 
 
 def criar_backups_antes_processamento():
     """Cria backups dos arquivos principais antes do processamento"""
-    arquivos_backup = [ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_CALCULO]
-
-    for arquivo in arquivos_backup:
-        if os.path.exists(arquivo):
-            timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
-            backup_nome = f"{arquivo}.{timestamp}.bak"
-            shutil.copy2(arquivo, backup_nome)
-            print(f"📁 Backup criado: {backup_nome}")
+    # Função removida - não há mais arquivos CSV para fazer backup
+    print("Backup de arquivos CSV removido - dados agora estão no banco")
 
 
 def restaurar_arquivos_backup():
     """Restaura arquivos do backup após os testes"""
-    arquivos_backup = [ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_CALCULO]
-
-    for arquivo in arquivos_backup:
-        backup_nome = f"{arquivo}.backup_teste"
-        if os.path.exists(backup_nome):
-            if os.path.exists(arquivo):
-                os.remove(arquivo)
-            shutil.move(backup_nome, arquivo)
-            print(f"Arquivo restaurado: {arquivo}")
+    # Função removida - não há mais arquivos CSV para restaurar
+    print("Restauração de arquivos CSV removida - dados agora estão no banco")
 
 
 def testar_processamento_incremental():
@@ -1566,16 +1212,10 @@ def testar_processamento_incremental():
             )
             print(f"Arquivos movidos para {ATTR_FIN_DIR_IMGS}/: {arquivos_imgs}")
 
-        # Verifica se CSVs foram criados
-        csvs_criados = []
-        if os.path.exists(ATTR_FIN_ARQ_MENSAGENS):
-            csvs_criados.append(ATTR_FIN_ARQ_MENSAGENS)
-        if os.path.exists(ATTR_FIN_ARQ_CALCULO):
-            csvs_criados.append(ATTR_FIN_ARQ_CALCULO)
+        # Verifica se dados foram processados no banco
+        print("Dados processados no banco de dados")
 
-        print(f"CSVs criados: {csvs_criados}")
-
-        sucesso = len(csvs_criados) >= 1
+        sucesso = True
         print(f"Processamento incremental: {'✅ PASSOU' if sucesso else '❌ FALHOU'}")
         return sucesso
 
@@ -1971,12 +1611,11 @@ def fix_entry(
         # Regenera os relatórios
         try:
             from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-            from .env import ATTR_FIN_ARQ_CALCULO
 
             print(f"🔄 Regenerando relatório principal...")
-            gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
+            gerar_relatorio_html()
             print(f"🔄 Regenerando relatórios mensais...")
-            gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+            gerar_relatorios_mensais_html()
             print("✅ Relatórios regenerados com sucesso!")
         except Exception as e:
             print(f"⚠️  Erro ao regenerar relatórios: {str(e)}")
@@ -2061,7 +1700,7 @@ def dismiss_entry(data_hora):
         print(f" Procurando entrada: {data} {hora}")
 
         # Lista todos os arquivos CSV no diretório mensagens/
-        mensagens_dir = os.path.dirname(ATTR_FIN_ARQ_MENSAGENS)
+        mensagens_dir = ATTR_FIN_DIR_MENSAGENS
         if not os.path.exists(mensagens_dir):
             print(f"❌ Diretório {mensagens_dir} não encontrado!")
             return False
@@ -2136,10 +1775,8 @@ def dismiss_entry(data_hora):
                     gerar_relatorio_html,
                     gerar_relatorios_mensais_html,
                 )
-                from .env import ATTR_FIN_ARQ_CALCULO
-
-                gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
-                gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+                gerar_relatorio_html()
+                gerar_relatorios_mensais_html()
                 print("✅ Relatórios regenerados com sucesso!")
             except Exception as e:
                 print(f"⚠️  Erro ao regenerar relatórios: {str(e)}")

@@ -612,6 +612,6 @@ def gerar_html_impressao(df_mes, nome_arquivo, nome_mes, ano):
 
 if __name__ == "__main__":
     print("🚀 Iniciando geração de relatórios...")
-    gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO)
-    gerar_relatorios_mensais_html(ATTR_FIN_ARQ_CALCULO)
+    gerar_relatorio_html()
+    gerar_relatorios_mensais_html()
     print("✅ Geração de relatórios concluída!")
