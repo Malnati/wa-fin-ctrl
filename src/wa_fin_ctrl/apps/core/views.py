@@ -144,18 +144,26 @@ def fix_entry_view(request):
 @require_http_methods(["POST"])
 def process_files(request):
     """
-    Processa arquivos incrementalmente.
+    Processa arquivos incrementalmente usando processamento paralelo.
     Equivalente ao comando: make process
     """
     try:
         # Obtém os parâmetros do POST
         force = request.POST.get('force', 'false').lower() == 'true'
         backup = request.POST.get('backup', 'false').lower() == 'true'
+        max_workers = int(request.POST.get('max_workers', '4'))
 
-        # Chama a função de processamento
-        resultado = processar_incremental(force=force, backup=backup)
+        # Importa o processador paralelo
+        from .parallel_processor import processar_incremental_paralelo
 
-        if resultado:
+        # Chama a função de processamento paralelo
+        resultado = processar_incremental_paralelo(
+            force=force, 
+            backup=backup, 
+            max_workers=max_workers
+        )
+
+        if resultado and resultado.get('success'):
             # Atualiza timestamp
             update_last_modified()
 
@@ -167,17 +175,18 @@ def process_files(request):
 
             return JsonResponse({
                 "success": True,
-                "message": "Processamento concluído com sucesso",
+                "message": "Processamento paralelo concluído com sucesso",
                 "data": {
                     "force": force,
                     "backup": backup,
+                    "max_workers": max_workers,
                     "resultado": resultado,
                     "last_update": _last_update_time,
                 }
             })
         else:
             return JsonResponse(
-                {"error": "Erro durante o processamento"},
+                {"error": "Erro durante o processamento paralelo"},
                 status=500
             )
 
@@ -238,166 +247,110 @@ def upload_file(request):
 @require_http_methods(["GET"])
 def list_reports(request):
     """
-    Retorna dados financeiros em formato JSON.
+    Retorna dados financeiros em formato JSON usando banco de dados.
     Aceita parâmetro de query opcional 'month' no formato MM-YYYY.
     """
     try:
-        import pandas as pd
         from datetime import datetime
-        import xml.etree.ElementTree as ET
-        import os
-        from .env import ATTR_FIN_ARQ_CALCULO, ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_OCR_XML
-        
-        # Verifica se os arquivos existem
-        if not os.path.exists(ATTR_FIN_ARQ_CALCULO):
-            return JsonResponse(
-                {"error": "Arquivo de cálculo não encontrado. Execute o processamento primeiro."},
-                status=404
-            )
-        
-        # Carrega o CSV de cálculo
-        df_calculo = pd.read_csv(ATTR_FIN_ARQ_CALCULO, dtype=str)
+        from django.utils import timezone
+        from .models import EntradaFinanceira, ArquivoProcessado
         
         # Filtra por mês se especificado
         month = request.GET.get('month')
+        entradas = EntradaFinanceira.objects.all()
+        
         if month:
             try:
                 # Converte o parâmetro month (MM-YYYY) para filtro
                 month_num, year = month.split('-')
-                df_calculo['DATA_DT'] = pd.to_datetime(df_calculo['DATA'], format='%d/%m/%Y', errors='coerce')
-                df_calculo = df_calculo[
-                    (df_calculo['DATA_DT'].dt.year == int(year)) & 
-                    (df_calculo['DATA_DT'].dt.month == int(month_num))
-                ]
+                start_date = timezone.make_aware(datetime(int(year), int(month_num), 1))
+                if int(month_num) == 12:
+                    end_date = timezone.make_aware(datetime(int(year) + 1, 1, 1))
+                else:
+                    end_date = timezone.make_aware(datetime(int(year), int(month_num) + 1, 1))
+                
+                entradas = entradas.filter(
+                    data_hora__gte=start_date,
+                    data_hora__lt=end_date
+                )
             except (ValueError, AttributeError):
                 return JsonResponse(
                     {"error": "Formato de mês inválido. Use MM-YYYY (ex: 01-2025)"},
                     status=400
                 )
         
-        # Carrega dados de mensagens se existir
-        mensagens_data = []
-        if os.path.exists(ATTR_FIN_ARQ_MENSAGENS):
-            try:
-                df_mensagens = pd.read_csv(ATTR_FIN_ARQ_MENSAGENS, dtype=str)
-                if month:
-                    df_mensagens['data_dt'] = pd.to_datetime(df_mensagens['data'], format='%d/%m/%Y', errors='coerce')
-                    df_mensagens = df_mensagens[
-                        (df_mensagens['data_dt'].dt.year == int(year)) & 
-                        (df_mensagens['data_dt'].dt.month == int(month_num))
-                    ]
-                
-                for _, row in df_mensagens.iterrows():
-                    def safe_get(val, default=''):
-                        if pd.isna(val) or val is None or str(val).strip() == '' or str(val).lower() == 'nan':
-                            return default
-                        return str(val)
-                    
-                    mensagens_data.append({
-                        "data": safe_get(row.get('data', '')),
-                        "hora": safe_get(row.get('hora', '')),
-                        "remetente": safe_get(row.get('remetente', '')),
-                        "mensagem": safe_get(row.get('mensagem', '')),
-                        "anexo": safe_get(row.get('anexo', '')),
-                        "ocr": safe_get(row.get('OCR', '')),
-                        "validade": safe_get(row.get('VALIDADE', ''))
-                    })
-            except Exception as e:
-                print(f"Erro ao carregar mensagens.csv: {e}")
-        
-        # Carrega dados do XML se existir
-        xml_data = []
-        if os.path.exists(ATTR_FIN_ARQ_OCR_XML):
-            try:
-                tree = ET.parse(ATTR_FIN_ARQ_OCR_XML)
-                root = tree.getroot()
-                
-                for page in root.findall('.//page'):
-                    page_data = {
-                        "page_number": page.get('number', ''),
-                        "width": page.get('width', ''),
-                        "height": page.get('height', ''),
-                        "text_blocks": []
-                    }
-                    
-                    for text_block in page.findall('.//text'):
-                        text_data = {
-                            "text": text_block.text or '',
-                            "x": text_block.get('x', ''),
-                            "y": text_block.get('y', ''),
-                            "width": text_block.get('width', ''),
-                            "height": text_block.get('height', '')
-                        }
-                        page_data["text_blocks"].append(text_data)
-                    
-                    xml_data.append(page_data)
-            except Exception as e:
-                print(f"Erro ao carregar extract.xml: {e}")
-        
-        # Converte DataFrame para lista de dicionários
+        # Converte queryset para lista de dicionários
         rows = []
-        for _, row in df_calculo.iterrows():
-            # Converte valores monetários para float
-            valor_ricardo = row.get('RICARDO', '')
-            valor_rafael = row.get('RAFAEL', '')
+        for entrada in entradas:
+            # Formata data e hora
+            data_str = entrada.data_hora.strftime("%d/%m/%Y")
+            hora_str = entrada.data_hora.strftime("%H:%M:%S")
             
-            def parse_float(val):
-                try:
-                    if val is None or str(val).strip() == '' or str(val).lower() == 'nan':
-                        return 0.0
-                    return float(str(val).replace('.', '').replace(',', '.'))
-                except Exception:
-                    return 0.0
+            # Formata valor
+            valor_str = f"{entrada.valor:.2f}".replace('.', ',') if entrada.valor else ""
             
-            valor_ricardo_float = parse_float(valor_ricardo)
-            valor_rafael_float = parse_float(valor_rafael)
-            
-            def safe_get(val, default=''):
-                if pd.isna(val) or val is None or str(val).strip() == '' or str(val).lower() == 'nan':
-                    return default
-                return str(val)
+            # Determina valores por pessoa (simplificado)
+            valor_ricardo = ""
+            valor_rafael = ""
+            if entrada.valor > 0:
+                if entrada.classificacao in ['transferência', 'pagamento']:
+                    # Lógica simplificada - pode ser melhorada
+                    valor_ricardo = valor_str
             
             rows.append({
-                "data": safe_get(row.get('DATA', '')),
-                "hora": safe_get(row.get('HORA', '')),
-                "remetente": safe_get(row.get('REMETENTE', '')),
-                "classificacao": safe_get(row.get('CLASSIFICACAO', '')),
-                "ricardo": safe_get(valor_ricardo),
-                "ricardo_float": valor_ricardo_float,
-                "rafael": safe_get(valor_rafael),
-                "rafael_float": valor_rafael_float,
-                "anexo": safe_get(row.get('ANEXO', '')),
-                "descricao": safe_get(row.get('DESCRICAO', '')),
-                "valor": safe_get(row.get('VALOR', '')),
-                "ocr": safe_get(row.get('OCR', '')),
-                "validade": safe_get(row.get('VALIDADE', '')),
-                "motivo_erro": safe_get(row.get('MOTIVO_ERRO', ''))
+                "data": data_str,
+                "hora": hora_str,
+                "remetente": "Sistema",  # Campo não disponível no modelo atual
+                "classificacao": entrada.classificacao,
+                "ricardo": valor_ricardo,
+                "ricardo_float": float(valor_ricardo.replace(',', '.')) if valor_ricardo else 0.0,
+                "rafael": valor_rafael,
+                "rafael_float": float(valor_rafael.replace(',', '.')) if valor_rafael else 0.0,
+                "anexo": entrada.arquivo_origem,
+                "descricao": entrada.descricao,
+                "valor": valor_str,
+                "ocr": "",  # Campo não disponível no modelo atual
+                "validade": "dismiss" if entrada.desconsiderada else "",
+                "motivo_erro": ""
+            })
+        
+        # Busca dados de arquivos processados
+        arquivos_data = []
+        arquivos = ArquivoProcessado.objects.all()
+        for arquivo in arquivos:
+            arquivos_data.append({
+                "arquivo": arquivo.nome_arquivo,
+                "tipo": arquivo.tipo,
+                "status": arquivo.status,
+                "data_processamento": arquivo.data_processamento.strftime("%d/%m/%Y %H:%M:%S") if arquivo.data_processamento else "",
+                "erro": arquivo.erro
             })
         
         # Calcula totalizadores
-        total_ricardo = sum(r['ricardo_float'] for r in rows if r.get('validade') != 'dismiss' and isinstance(r['ricardo_float'], float))
-        total_rafael = sum(r['rafael_float'] for r in rows if r.get('validade') != 'dismiss' and isinstance(r['rafael_float'], float))
+        total_ricardo = sum(r['ricardo_float'] for r in rows if r.get('validade') != 'dismiss')
+        total_rafael = sum(r['rafael_float'] for r in rows if r.get('validade') != 'dismiss')
+        total_geral = total_ricardo + total_rafael
         
         totalizadores = {
             "ricardo": f"{total_ricardo:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
             "ricardo_float": total_ricardo,
             "rafael": f"{total_rafael:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
-            "rafael_float": total_rafael
+            "rafael_float": total_rafael,
+            "geral": f"{total_geral:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+            "geral_float": total_geral
         }
         
         # Prepara resposta
         response_data = {
             "rows": rows,
-            "mensagens": mensagens_data,
-            "xml_data": xml_data,
+            "arquivos": arquivos_data,
             "totalizadores": totalizadores,
             "timestamp": datetime.now().isoformat(),
             "is_editable": True,
-            "tem_motivo": any(row.get("motivo_erro") and row.get("motivo_erro") != "nan" for row in rows),
+            "tem_motivo": False,  # Campo não disponível no modelo atual
             "periodo": month if month else "Todos os períodos",
             "total_registros": len(rows),
-            "total_mensagens": len(mensagens_data),
-            "total_paginas_xml": len(xml_data)
+            "total_arquivos": len(arquivos_data)
         }
         
         return JsonResponse(response_data)
@@ -528,62 +481,70 @@ def health(request):
 @require_http_methods(["GET"])
 def api_entries(request):
     """
-    Retorna entradas financeiras em formato JSON.
+    Retorna entradas financeiras em formato JSON usando banco de dados.
     Aceita parâmetro de query opcional 'month' no formato YYYY-MM.
     """
     try:
-        from .env import ATTR_FIN_ARQ_CALCULO
-        import pandas as pd
         from datetime import datetime
-        
-        if not os.path.exists(ATTR_FIN_ARQ_CALCULO):
-            return JsonResponse(
-                {"error": "Arquivo de cálculo não encontrado. Execute o processamento primeiro."},
-                status=404
-            )
-        
-        # Carrega o CSV
-        df = pd.read_csv(ATTR_FIN_ARQ_CALCULO, dtype=str)
+        from django.utils import timezone
+        from .models import EntradaFinanceira
         
         # Filtra por mês se especificado
         month = request.GET.get('month')
+        entradas = EntradaFinanceira.objects.all()
+        
         if month:
             try:
                 # Converte o parâmetro month (YYYY-MM) para filtro
                 year, month_num = month.split('-')
-                df['DATA_DT'] = pd.to_datetime(df['DATA'], format='%d/%m/%Y', errors='coerce')
-                df = df[
-                    (df['DATA_DT'].dt.year == int(year)) & 
-                    (df['DATA_DT'].dt.month == int(month_num))
-                ]
+                start_date = timezone.make_aware(datetime(int(year), int(month_num), 1))
+                if int(month_num) == 12:
+                    end_date = timezone.make_aware(datetime(int(year) + 1, 1, 1))
+                else:
+                    end_date = timezone.make_aware(datetime(int(year), int(month_num) + 1, 1))
+                
+                entradas = entradas.filter(
+                    data_hora__gte=start_date,
+                    data_hora__lt=end_date
+                )
             except (ValueError, AttributeError):
                 return JsonResponse(
                     {"error": "Formato de mês inválido. Use YYYY-MM (ex: 2024-01)"},
                     status=400
                 )
         
-        # Converte DataFrame para lista de dicionários
+        # Converte queryset para lista de dicionários
         rows = []
-        for index, row in df.iterrows():
-            data = str(row.get("DATA", ""))
-            hora = str(row.get("HORA", ""))
-            data_hora = f"{data} {hora}" if data != "nan" and hora != "nan" else ""
+        for index, entrada in enumerate(entradas):
+            data = entrada.data_hora.strftime("%d/%m/%Y")
+            hora = entrada.data_hora.strftime("%H:%M:%S")
+            data_hora = f"{data} {hora}"
             
-            # Determina se é linha de total
-            remetente = str(row.get("REMETENTE", ""))
-            is_total_row = remetente == "TOTAL MÊS"
+            # Determina se é linha de total (baseado na classificação)
+            is_total_row = entrada.classificacao == "TOTAL"
+            
+            # Formata valor
+            valor_str = f"{entrada.valor:.2f}".replace('.', ',') if entrada.valor else ""
+            
+            # Determina valores por pessoa (simplificado)
+            valor_ricardo = ""
+            valor_rafael = ""
+            if entrada.valor > 0:
+                if entrada.classificacao in ['transferência', 'pagamento']:
+                    # Lógica simplificada - pode ser melhorada
+                    valor_ricardo = valor_str
             
             # Prepara dados da linha
             row_data = {
                 "identificador_unico": f"{index}_{data}_{hora}",
                 "data_hora": data_hora,
-                "classificacao": str(row.get("CLASSIFICACAO", "")),
-                "ricardo": str(row.get("RICARDO", "")),
-                "rafael": str(row.get("RAFAEL", "")),
-                "anexo": str(row.get("ANEXO", "")),
-                "descricao": str(row.get("DESCRICAO", "")),
-                "ocr": str(row.get("OCR", "")),
-                "motivo": str(row.get("MOTIVO", "")),
+                "classificacao": entrada.classificacao,
+                "ricardo": valor_ricardo,
+                "rafael": valor_rafael,
+                "anexo": entrada.arquivo_origem,
+                "descricao": entrada.descricao,
+                "ocr": "",  # Campo não disponível no modelo atual
+                "motivo": "",  # Campo não disponível no modelo atual
                 "row_class": "total-row" if is_total_row else "normal-row",
                 "data": data,
                 "receitas": "",
@@ -593,15 +554,9 @@ def api_entries(request):
             
             # Para impressão, calcula receitas/despesas/saldo
             if not is_total_row:
-                valor = str(row.get("VALOR", "0"))
-                try:
-                    from .helper import normalize_value_to_brazilian_format
-                    valor_float = float(normalize_value_to_brazilian_format(valor).replace(",", "."))
-                except:
-                    valor_float = 0.0
+                valor_float = entrada.valor or 0.0
                 
-                classificacao = str(row.get("CLASSIFICACAO", "")).lower()
-                if classificacao == "transferência":
+                if entrada.classificacao.lower() == "transferência":
                     row_data["receitas"] = f"{valor_float:.2f}".replace(".", ",")
                 else:
                     row_data["despesas"] = f"{valor_float:.2f}".replace(".", ",")
@@ -617,7 +572,7 @@ def api_entries(request):
             "totalizadores": totalizadores,
             "timestamp": datetime.now().isoformat(),
             "is_editable": True,
-            "tem_motivo": any(row.get("motivo") and row.get("motivo") != "nan" for row in rows),
+            "tem_motivo": False,  # Campo não disponível no modelo atual
             "periodo": month if month else "Todos os períodos"
         }
         
