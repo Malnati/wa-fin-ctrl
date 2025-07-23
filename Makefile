@@ -408,7 +408,7 @@ server:
 
 # Inicia a API REST (Django)
 api:
-	poetry run python manage.py runserver 0.0.0.0:8000
+	poetry run python manage.py runserver 0.0.0.0:8000 &
 
 front:
 	cd frontend && npm run dev &
@@ -416,5 +416,12 @@ front:
 rebuild: remove-all copy-july process api
 
 reload: process api
+
+kill-api:
+	kill -9 $(pgrep -f "python manage.py runserver 0.0.0.0:8000")
+
+kill-front:
+	kill -9 $(pgrep -f "npm run dev")
+
 
 .PHONY: help install run server api copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia
