@@ -238,37 +238,163 @@ def upload_file(request):
 @require_http_methods(["GET"])
 def list_reports(request):
     """
-    Lista todos os relatórios HTML disponíveis.
+    Retorna dados financeiros em formato JSON.
+    Aceita parâmetro de query opcional 'month' no formato MM-YYYY.
     """
     try:
-        reports_dir = ATTR_FIN_DIR_DOCS
-        if not os.path.exists(reports_dir):
-            return JsonResponse({"reports": []})
-
-        # Busca todos os arquivos HTML
-        html_files = glob.glob(os.path.join(reports_dir, "*.html"))
+        import pandas as pd
+        from datetime import datetime
+        import xml.etree.ElementTree as ET
+        import os
+        from .env import ATTR_FIN_ARQ_CALCULO, ATTR_FIN_ARQ_MENSAGENS, ATTR_FIN_ARQ_OCR_XML
         
-        reports = []
-        for file_path in html_files:
-            filename = os.path.basename(file_path)
-            file_size = os.path.getsize(file_path)
-            file_mtime = os.path.getmtime(file_path)
+        # Verifica se os arquivos existem
+        if not os.path.exists(ATTR_FIN_ARQ_CALCULO):
+            return JsonResponse(
+                {"error": "Arquivo de cálculo não encontrado. Execute o processamento primeiro."},
+                status=404
+            )
+        
+        # Carrega o CSV de cálculo
+        df_calculo = pd.read_csv(ATTR_FIN_ARQ_CALCULO, dtype=str)
+        
+        # Filtra por mês se especificado
+        month = request.GET.get('month')
+        if month:
+            try:
+                # Converte o parâmetro month (MM-YYYY) para filtro
+                month_num, year = month.split('-')
+                df_calculo['DATA_DT'] = pd.to_datetime(df_calculo['DATA'], format='%d/%m/%Y', errors='coerce')
+                df_calculo = df_calculo[
+                    (df_calculo['DATA_DT'].dt.year == int(year)) & 
+                    (df_calculo['DATA_DT'].dt.month == int(month_num))
+                ]
+            except (ValueError, AttributeError):
+                return JsonResponse(
+                    {"error": "Formato de mês inválido. Use MM-YYYY (ex: 01-2025)"},
+                    status=400
+                )
+        
+        # Carrega dados de mensagens se existir
+        mensagens_data = []
+        if os.path.exists(ATTR_FIN_ARQ_MENSAGENS):
+            try:
+                df_mensagens = pd.read_csv(ATTR_FIN_ARQ_MENSAGENS, dtype=str)
+                if month:
+                    df_mensagens['data_dt'] = pd.to_datetime(df_mensagens['data'], format='%d/%m/%Y', errors='coerce')
+                    df_mensagens = df_mensagens[
+                        (df_mensagens['data_dt'].dt.year == int(year)) & 
+                        (df_mensagens['data_dt'].dt.month == int(month_num))
+                    ]
+                
+                for _, row in df_mensagens.iterrows():
+                    mensagens_data.append({
+                        "data": row.get('data', '') or '',
+                        "hora": row.get('hora', '') or '',
+                        "remetente": row.get('remetente', '') or '',
+                        "mensagem": row.get('mensagem', '') or '',
+                        "anexo": row.get('anexo', '') or '',
+                        "ocr": row.get('OCR', '') or '',
+                        "validade": row.get('VALIDADE', '') or ''
+                    })
+            except Exception as e:
+                print(f"Erro ao carregar mensagens.csv: {e}")
+        
+        # Carrega dados do XML se existir
+        xml_data = []
+        if os.path.exists(ATTR_FIN_ARQ_OCR_XML):
+            try:
+                tree = ET.parse(ATTR_FIN_ARQ_OCR_XML)
+                root = tree.getroot()
+                
+                for page in root.findall('.//page'):
+                    page_data = {
+                        "page_number": page.get('number', ''),
+                        "width": page.get('width', ''),
+                        "height": page.get('height', ''),
+                        "text_blocks": []
+                    }
+                    
+                    for text_block in page.findall('.//text'):
+                        text_data = {
+                            "text": text_block.text or '',
+                            "x": text_block.get('x', ''),
+                            "y": text_block.get('y', ''),
+                            "width": text_block.get('width', ''),
+                            "height": text_block.get('height', '')
+                        }
+                        page_data["text_blocks"].append(text_data)
+                    
+                    xml_data.append(page_data)
+            except Exception as e:
+                print(f"Erro ao carregar extract.xml: {e}")
+        
+        # Converte DataFrame para lista de dicionários
+        rows = []
+        for _, row in df_calculo.iterrows():
+            # Converte valores monetários para float
+            valor_ricardo = row.get('RICARDO', '')
+            valor_rafael = row.get('RAFAEL', '')
             
-            reports.append({
-                "filename": filename,
-                "size": file_size,
-                "modified": file_mtime,
-                "url": f"/reports/{filename}"
+            def parse_float(val):
+                try:
+                    if val is None or str(val).strip() == '' or str(val).lower() == 'nan':
+                        return 0.0
+                    return float(str(val).replace('.', '').replace(',', '.'))
+                except Exception:
+                    return 0.0
+            
+            valor_ricardo_float = parse_float(valor_ricardo)
+            valor_rafael_float = parse_float(valor_rafael)
+            
+            rows.append({
+                "data": row.get('DATA', '') or '',
+                "hora": row.get('HORA', '') or '',
+                "remetente": row.get('REMETENTE', '') or '',
+                "classificacao": row.get('CLASSIFICACAO', '') or '',
+                "ricardo": valor_ricardo or '',
+                "ricardo_float": valor_ricardo_float,
+                "rafael": valor_rafael or '',
+                "rafael_float": valor_rafael_float,
+                "anexo": row.get('ANEXO', '') or '',
+                "descricao": row.get('DESCRICAO', '') or '',
+                "valor": row.get('VALOR', '') or '',
+                "ocr": row.get('OCR', '') or '',
+                "validade": row.get('VALIDADE', '') or '',
+                "motivo_erro": row.get('MOTIVO_ERRO', '') or ''
             })
-
-        # Ordena por data de modificação (mais recente primeiro)
-        reports.sort(key=lambda x: x["modified"], reverse=True)
-
-        return JsonResponse({"reports": reports})
-
+        
+        # Calcula totalizadores
+        total_ricardo = sum(r['ricardo_float'] for r in rows if r.get('validade') != 'dismiss' and isinstance(r['ricardo_float'], float))
+        total_rafael = sum(r['rafael_float'] for r in rows if r.get('validade') != 'dismiss' and isinstance(r['rafael_float'], float))
+        
+        totalizadores = {
+            "ricardo": f"{total_ricardo:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+            "ricardo_float": total_ricardo,
+            "rafael": f"{total_rafael:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+            "rafael_float": total_rafael
+        }
+        
+        # Prepara resposta
+        response_data = {
+            "rows": rows,
+            "mensagens": mensagens_data,
+            "xml_data": xml_data,
+            "totalizadores": totalizadores,
+            "timestamp": datetime.now().isoformat(),
+            "is_editable": True,
+            "tem_motivo": any(row.get("motivo_erro") and row.get("motivo_erro") != "nan" for row in rows),
+            "periodo": month if month else "Todos os períodos",
+            "total_registros": len(rows),
+            "total_mensagens": len(mensagens_data),
+            "total_paginas_xml": len(xml_data)
+        }
+        
+        return JsonResponse(response_data)
+        
     except Exception as e:
         return JsonResponse(
-            {"error": f"Erro ao listar relatórios: {str(e)}"},
+            {"error": f"Erro ao carregar dados: {str(e)}"},
             status=500
         )
 
@@ -367,7 +493,8 @@ def api_info(request):
             "POST /fix - Corrigir entrada",
             "POST /process - Processar arquivos",
             "POST /upload - Upload de arquivo",
-            "GET /api/reports - Listar relatórios",
+            "GET /api/reports - Dados financeiros (JSON)",
+            "GET /api/reports?month=MM-YYYY - Dados por mês",
             "GET /reports/{filename} - Obter relatório",
             "POST /reports/generate - Gerar relatórios",
             "GET /api/info - Informações da API",
