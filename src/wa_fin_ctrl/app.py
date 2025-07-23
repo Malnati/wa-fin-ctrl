@@ -596,6 +596,10 @@ def processar_incremental(force=False, entry=None, backup=False):
         return
     print("\n=== VERIFICANDO SUBDIRETÓRIOS ===")
     organizar_subdiretorios_se_necessario()
+    
+    print("\n=== PROCESSANDO ARQUIVO DE CHAT ===")
+    mensagens_info = processar_arquivo_chat()
+    
     input_dir = ATTR_FIN_DIR_INPUT
     if force:
         arquivos = [
@@ -683,6 +687,25 @@ def processar_incremental(force=False, entry=None, backup=False):
             caminho = os.path.join(input_dir, arquivo)
             print(f"Processando arquivo: {arquivo}")
             
+            # Busca informações do chat para este arquivo
+            info_chat = mensagens_info.get(arquivo, {})
+            data_hora_chat = None
+            remetente_chat = None
+            
+            if info_chat:
+                data_chat = info_chat.get('data', '')
+                hora_chat = info_chat.get('hora', '')
+                remetente_chat = info_chat.get('remetente', '')
+                
+                if data_chat and hora_chat:
+                    try:
+                        # Converte data/hora do chat para datetime
+                        data_hora_str = f"{data_chat} {hora_chat}"
+                        data_hora_chat = datetime.strptime(data_hora_str, "%d/%m/%Y %H:%M:%S")
+                        print(f"  📅 Data/hora do chat: {data_hora_str} - {remetente_chat}")
+                    except ValueError:
+                        print(f"  ⚠️  Erro ao converter data/hora do chat: {data_chat} {hora_chat}")
+            
             # Processa OCR
             ocr_result = process_image_ocr(caminho)
             
@@ -708,15 +731,23 @@ def processar_incremental(force=False, entry=None, backup=False):
                     valor_brasileiro = normalize_value_to_brazilian_format(valor_total)
                     valor_float = float(valor_brasileiro.replace(',', '.'))
                     
+                    # Usa data/hora do chat se disponível, senão usa agora
+                    data_hora_entrada = data_hora_chat if data_hora_chat else timezone.now()
+                    
+                    # Adiciona informação do remetente na descrição se disponível
+                    descricao_completa = descricao or ""
+                    if remetente_chat:
+                        descricao_completa = f"[{remetente_chat}] {descricao_completa}"
+                    
                     EntradaFinanceira.objects.create(
-                        data_hora=timezone.now(),
+                        data_hora=data_hora_entrada,
                         valor=valor_float,
-                        descricao=descricao or "",
+                        descricao=descricao_completa,
                         classificacao=classificacao or "outros",
                         arquivo_origem=arquivo,
                         desconsiderada=False
                     )
-                    print(f"✅ Entrada registrada no banco: {arquivo}")
+                    print(f"✅ Entrada registrada no banco: {arquivo} - R$ {valor_brasileiro}")
                 else:
                     print(f"⚠️  Nenhum valor extraído para: {arquivo}")
                     
@@ -2081,3 +2112,57 @@ def process_image_with_ai_for_value(image_path, ocr_text):
     except Exception as e:
         print(f"Erro ao processar imagem com IA: {str(e)}")
         return "", "", "desconhecido"
+
+
+def processar_arquivo_chat():
+    """
+    Processa o arquivo _chat.txt para extrair informações de data, hora e remetente
+    das mensagens do WhatsApp.
+    
+    Returns:
+        dict: Dicionário com informações das mensagens indexadas por nome do arquivo anexo
+    """
+    chat_file = os.path.join(ATTR_FIN_DIR_INPUT, ATTR_FIN_ARQ_CHAT)
+    
+    if not os.path.exists(chat_file):
+        print(f"⚠️  Arquivo {ATTR_FIN_ARQ_CHAT} não encontrado em {ATTR_FIN_DIR_INPUT}/")
+        return {}
+    
+    print(f"📄 Processando arquivo de chat: {ATTR_FIN_ARQ_CHAT}")
+    
+    # Padrão para extrair data, hora, remetente e anexo
+    # [18/04/2025, 12:45:03] Ricardo: ‎<anexado: 00000006-PHOTO-2025-04-18-12-45-53.jpg>
+    pattern = r'\[(\d{2}/\d{2}/\d{4}), (\d{2}:\d{2}:\d{2})\] ([^:]+): .*?<anexado: ([^>]+)>'
+    
+    mensagens_info = {}
+    
+    try:
+        with open(chat_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+            
+        # Encontra todas as mensagens com anexos
+        matches = re.findall(pattern, content, re.MULTILINE | re.DOTALL)
+        
+        for match in matches:
+            data, hora, remetente, anexo = match
+            
+            # Normaliza o nome do remetente
+            remetente_normalizado = normalize_sender(remetente.strip())
+            
+            # Armazena as informações
+            mensagens_info[anexo] = {
+                'data': data,
+                'hora': hora,
+                'remetente': remetente_normalizado,
+                'remetente_original': remetente.strip()
+            }
+            
+            print(f"  📎 {anexo}: {data} {hora} - {remetente_normalizado}")
+        
+        print(f"✅ Processadas {len(mensagens_info)} mensagens com anexos")
+        
+    except Exception as e:
+        print(f"❌ Erro ao processar arquivo de chat: {str(e)}")
+        return {}
+    
+    return mensagens_info
