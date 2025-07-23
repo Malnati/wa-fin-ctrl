@@ -55,8 +55,14 @@ def processar(force, entry, backup, parallel, max_workers):
 
     try:
         if parallel:
+            # Configura Django antes de importar módulos que usam modelos
+            import os
+            import django
+            os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
+            django.setup()
+            
             # Usa processamento paralelo
-            from .parallel_processor import processar_incremental_paralelo
+            from .apps.core.parallel_processor import processar_incremental_paralelo
             resultado = processar_incremental_paralelo(
                 force=force, 
                 entry=entry, 
@@ -313,83 +319,7 @@ def api(host, port, reload, auto_reload):
     uvicorn.run("wa_fin_ctrl.api:app", host=host, port=port, reload=reload)
 
 
-@cli.command()
-def migrate():
-    """Migra dados dos arquivos CSV/XML para o banco SQLite."""
-    from .history import CommandHistory
-    from .migrator import migrar_dados_csv_para_sqlite
 
-    arguments = {"command": "migrate"}
-
-    try:
-        print("🔄 Iniciando migração de dados para SQLite...")
-        resultado = migrar_dados_csv_para_sqlite()
-        
-        if resultado and resultado.get('success'):
-            print("✅ Migração concluída com sucesso!")
-            
-            # Registra sucesso no histórico
-            history = CommandHistory()
-            history.record_command("migrate", arguments, True)
-        else:
-            print("❌ Erro na migração")
-            raise Exception("Falha na migração")
-            
-    except Exception as e:
-        # Registra falha no histórico
-        history = CommandHistory()
-        history.record_command("migrate", arguments, False)
-        raise e
-
-
-@cli.command()
-def export():
-    """Exporta dados do banco SQLite para arquivo CSV (compatibilidade)."""
-    from .history import CommandHistory
-    from .migrator import exportar_dados_para_csv
-
-    arguments = {"command": "export"}
-
-    try:
-        print("🔄 Exportando dados do SQLite para CSV...")
-        resultado = exportar_dados_para_csv()
-        
-        if resultado and resultado.get('success'):
-            print("✅ Exportação concluída com sucesso!")
-            
-            # Registra sucesso no histórico
-            history = CommandHistory()
-            history.record_command("export", arguments, True)
-        else:
-            print("❌ Erro na exportação")
-            raise Exception("Falha na exportação")
-            
-    except Exception as e:
-        # Registra falha no histórico
-        history = CommandHistory()
-        history.record_command("export", arguments, False)
-        raise e
-
-
-@cli.command()
-def check_consistency():
-    """Verifica consistência entre dados do banco e arquivos CSV/XML."""
-    from .migrator import verificar_consistencia_dados
-
-    try:
-        print("🔍 Verificando consistência de dados...")
-        relatorio = verificar_consistencia_dados()
-        
-        if relatorio.get('inconsistencias'):
-            print("⚠️  Inconsistências encontradas!")
-            return False
-        else:
-            print("✅ Dados consistentes!")
-            return True
-            
-    except Exception as e:
-        print(f"❌ Erro ao verificar consistência: {str(e)}")
-        return False
 
 
 @cli.command()
