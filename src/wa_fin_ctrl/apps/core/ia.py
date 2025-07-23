@@ -7,6 +7,30 @@ from openai import OpenAI
 from .helper import convert_to_brazilian_format
 from .env import *
 
+# ==== CONSTANTES ====
+# Mensagens de erro OCR
+ERRO_ARQUIVO_NAO_ENCONTRADO = "Arquivo não encontrado"
+ERRO_CARREGAR_IMAGEM = "Erro ao carregar imagem"
+ERRO_NENHUM_TEXTO = "Nenhum texto detectado"
+
+# Modelo OpenAI
+MODELO_GPT = "gpt-3.5-turbo"
+
+# Configurações de tokens
+MAX_TOKENS_VALOR = 50
+MAX_TOKENS_DESCRICAO = 30
+TEMPERATURA_BAIXA = 0.1
+TEMPERATURA_MEDIA = 0.3
+
+# Valores de resposta
+VALOR_NENHUM = "NENHUM"
+DESCRICAO_PADRAO = "Pagamento"
+
+# Prompts do sistema
+PROMPT_SISTEMA_VALOR = "Você é um especialista em análise de comprovantes financeiros. Extraia apenas o valor total das transações."
+PROMPT_SISTEMA_DESCRICAO = "Você é um especialista em análise de comprovantes financeiros. Crie descrições concisas e úteis para categorizações de gastos."
+PROMPT_SISTEMA_CLASSIFICACAO = "Você é um especialista em análise de comprovantes financeiros. Classifique transações como Transferência ou Pagamento."
+
 
 def extract_total_value_with_chatgpt(ocr_text):
     try:
@@ -14,9 +38,9 @@ def extract_total_value_with_chatgpt(ocr_text):
         if not api_key:
             return ""
         if not ocr_text or ocr_text in [
-            "Arquivo não encontrado",
-            "Erro ao carregar imagem",
-            "Nenhum texto detectado",
+            ERRO_ARQUIVO_NAO_ENCONTRADO,
+            ERRO_CARREGAR_IMAGEM,
+            ERRO_NENHUM_TEXTO,
         ]:
             return ""
         client = OpenAI(api_key=api_key)
@@ -32,20 +56,20 @@ def extract_total_value_with_chatgpt(ocr_text):
         Valor total:
         """
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=MODELO_GPT,
             messages=[
                 {
                     "role": "system",
-                    "content": "Você é um especialista em análise de comprovantes financeiros. Extraia apenas o valor total das transações.",
+                    "content": PROMPT_SISTEMA_VALOR,
                 },
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=50,
-            temperature=0.1,
+            max_tokens=MAX_TOKENS_VALOR,
+            temperature=TEMPERATURA_BAIXA,
         )
         valor = response.choices[0].message.content.strip()
         valor = re.sub(r"[^\d,.]", "", valor)
-        if not valor or valor.upper() == "NENHUM" or len(valor) == 0:
+        if not valor or valor.upper() == VALOR_NENHUM or len(valor) == 0:
             return ""
         from .helper import normalize_value_to_brazilian_format
 
@@ -61,9 +85,9 @@ def generate_payment_description_with_chatgpt(ocr_text):
         if not api_key:
             return ""
         if not ocr_text or ocr_text in [
-            "Arquivo não encontrado",
-            "Erro ao carregar imagem",
-            "Nenhum texto detectado",
+            ERRO_ARQUIVO_NAO_ENCONTRADO,
+            ERRO_CARREGAR_IMAGEM,
+            ERRO_NENHUM_TEXTO,
         ]:
             return ""
         client = OpenAI(api_key=api_key)
@@ -80,24 +104,24 @@ def generate_payment_description_with_chatgpt(ocr_text):
         Descrição:
         """
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=MODELO_GPT,
             messages=[
                 {
                     "role": "system",
-                    "content": "Você é um especialista em análise de comprovantes financeiros. Crie descrições concisas e úteis para categorizações de gastos.",
+                    "content": PROMPT_SISTEMA_DESCRICAO,
                 },
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=30,
-            temperature=0.3,
+            max_tokens=MAX_TOKENS_DESCRICAO,
+            temperature=TEMPERATURA_MEDIA,
         )
         descricao = response.choices[0].message.content.strip()
         descricao = re.sub(r'["\']', "", descricao)
         if not descricao or len(descricao.strip()) == 0:
-            return "Pagamento"
+            return DESCRICAO_PADRAO
         return descricao.strip()
     except Exception as e:
-        return "Pagamento"
+        return DESCRICAO_PADRAO
 
 
 def classify_transaction_type_with_chatgpt(ocr_text):
@@ -106,9 +130,9 @@ def classify_transaction_type_with_chatgpt(ocr_text):
         if not api_key:
             return ""
         if not ocr_text or ocr_text in [
-            "Arquivo não encontrado",
-            "Erro ao carregar imagem",
-            "Nenhum texto detectado",
+            ERRO_ARQUIVO_NAO_ENCONTRADO,
+            ERRO_CARREGAR_IMAGEM,
+            ERRO_NENHUM_TEXTO,
         ]:
             return ""
         client = OpenAI(api_key=api_key)
@@ -123,16 +147,16 @@ def classify_transaction_type_with_chatgpt(ocr_text):
         Classificação:
         """
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=MODELO_GPT,
             messages=[
                 {
                     "role": "system",
-                    "content": "Você é um especialista em análise de comprovantes financeiros. Classifique transações como Transferência ou Pagamento.",
+                    "content": PROMPT_SISTEMA_CLASSIFICACAO,
                 },
                 {"role": "user", "content": prompt},
             ],
             max_tokens=10,
-            temperature=0.1,
+            temperature=TEMPERATURA_BAIXA,
         )
         classificacao = response.choices[0].message.content.strip()
         classificacao = re.sub(r'["\']', "", classificacao)
