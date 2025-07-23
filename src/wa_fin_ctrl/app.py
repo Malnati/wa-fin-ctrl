@@ -1656,7 +1656,6 @@ def fix_entry(
 
         # Registra a correção no banco de dados SQLite
         try:
-            from .history import record_fix_command_wrapper
             
             arguments = {
                 'data_hora': data_hora,
@@ -1687,7 +1686,6 @@ def fix_entry(
         
         # Registra erro no banco de dados
         try:
-            from .history import record_fix_command_wrapper
             
             arguments = {
                 'data_hora': data_hora,
