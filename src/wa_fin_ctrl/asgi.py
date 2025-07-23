@@ -1,3 +1,7 @@
+# asgi.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/asgi.py
+# Configuração ASGI do projeto Django
+
 """
 ASGI config for wa_fin_ctrl project.
 
@@ -16,7 +20,7 @@ from channels.auth import AuthMiddlewareStack
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wa_fin_ctrl.settings")
 
 # Importa as rotas WebSocket do core
-from wa_fin_ctrl.apps.core.routing import websocket_urlpatterns
+from .apps.core.routing import websocket_urlpatterns
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
