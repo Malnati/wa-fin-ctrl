@@ -97,3 +97,52 @@ class ArquivoProcessado(models.Model):
     
     def __str__(self):
         return f"{self.nome_arquivo} - {self.tipo} - {self.status}"
+
+
+class CorrecaoHistorico(models.Model):
+    """Modelo para registrar histórico de correções (fix)"""
+    
+    COMANDO_CHOICES = [
+        ('fix', 'Correção de Entrada'),
+        ('dismiss', 'Marcar como Desconsiderada'),
+        ('rotate', 'Rotação de Imagem'),
+        ('ia', 'Reprocessamento com IA'),
+    ]
+    
+    index = models.AutoField(primary_key=True)
+    execution = models.DateTimeField(auto_now_add=True)
+    command = models.CharField(max_length=20, choices=COMANDO_CHOICES)
+    
+    # Campos específicos do fix
+    data_hora_entrada = models.DateTimeField()
+    valor_original = models.CharField(max_length=20, blank=True)
+    valor_novo = models.CharField(max_length=20, blank=True)
+    classificacao_original = models.CharField(max_length=20, blank=True)
+    classificacao_nova = models.CharField(max_length=20, blank=True)
+    descricao_original = models.CharField(max_length=500, blank=True)
+    descricao_nova = models.CharField(max_length=500, blank=True)
+    
+    # Campos de controle
+    dismiss = models.BooleanField(default=False)
+    rotate_degrees = models.IntegerField(null=True, blank=True)
+    ia_reprocessamento = models.BooleanField(default=False)
+    
+    # Resultado
+    success = models.BooleanField(default=True)
+    mensagem_erro = models.TextField(blank=True)
+    
+    # Relacionamento com entrada financeira (opcional)
+    entrada_financeira = models.ForeignKey(
+        EntradaFinanceira, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True
+    )
+    
+    class Meta:
+        ordering = ['-execution']
+        verbose_name = 'Histórico de Correção'
+        verbose_name_plural = 'Históricos de Correções'
+    
+    def __str__(self):
+        return f"{self.command} - {self.data_hora_entrada} - {'✅' if self.success else '❌'}"
