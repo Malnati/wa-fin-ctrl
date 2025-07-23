@@ -14,10 +14,15 @@ from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from datetime import datetime
+from django.utils import timezone
+from .parallel_processor import processar_incremental_paralelo
+from .models import EntradaFinanceira, ArquivoProcessado
 
 # Importa as funções do módulo app.py
-from wa_fin_ctrl.app import processar_incremental, fix_entry
-from wa_fin_ctrl.env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
+from ..app import processar_incremental, fix_entry
+from ..env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
+from ..reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
 
 # Importa funções para WebSocket
 from .consumers import broadcast_reload_sync
@@ -154,9 +159,6 @@ def process_files(request):
         backup = request.POST.get('backup', 'false').lower() == 'true'
         max_workers = int(request.POST.get('max_workers', '4'))
 
-        # Importa o processador paralelo
-        from .parallel_processor import processar_incremental_paralelo
-
         # Chama a função de processamento paralelo
         resultado = processar_incremental_paralelo(
             force=force, 
@@ -252,10 +254,6 @@ def list_reports(request):
     Aceita parâmetro de query opcional 'month' no formato MM-YYYY.
     """
     try:
-        from datetime import datetime
-        from django.utils import timezone
-        from .models import EntradaFinanceira, ArquivoProcessado
-        
         # Filtra por mês se especificado
         month = request.GET.get('month')
         entradas = EntradaFinanceira.objects.all()
@@ -408,9 +406,6 @@ def generate_reports(request):
         force = request.POST.get('force', 'false').lower() == 'true'
         backup = request.POST.get('backup', 'true').lower() == 'true'
 
-        # Importa a função de geração de relatórios
-        from wa_fin_ctrl.reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-
         # Gera os relatórios
         resultado = gerar_relatorio_html(backup=backup)
         resultado_mensal = gerar_relatorios_mensais_html(backup=backup)
@@ -488,10 +483,6 @@ def api_entries(request):
     Aceita parâmetro de query opcional 'month' no formato YYYY-MM.
     """
     try:
-        from datetime import datetime
-        from django.utils import timezone
-        from .models import EntradaFinanceira
-        
         # Filtra por mês se especificado
         month = request.GET.get('month')
         entradas = EntradaFinanceira.objects.all()
