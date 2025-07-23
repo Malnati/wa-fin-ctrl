@@ -1643,8 +1643,6 @@ def fix_entry(
 
         # Regenera os relatórios
         try:
-            from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
-
             print(f"🔄 Regenerando relatório principal...")
             gerar_relatorio_html()
             print(f"🔄 Regenerando relatórios mensais...")
