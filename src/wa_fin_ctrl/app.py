@@ -1341,8 +1341,6 @@ def fix_entry(
                 return False
 
             # Converte valor para formato americano padronizado
-            from .helper import parse_value_from_input
-
             novo_valor = parse_value_from_input(novo_valor)
             try:
                 float(novo_valor)
