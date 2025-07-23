@@ -17,6 +17,9 @@ import os
 # BASE_DIR deve ser a raiz do projeto (onde está manage.py)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+# Importa variáveis de ambiente do projeto
+from .env import ATTR_FIN_ARQ_DB
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -83,7 +86,7 @@ ASGI_APPLICATION = "wa_fin_ctrl.asgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db" / "db.sqlite3",
+        "NAME": BASE_DIR / ATTR_FIN_ARQ_DB,
     }
 }
 
@@ -134,16 +137,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Configurações específicas do projeto
-ATTR_FIN_OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', None)
-ATTR_FIN_DIR_INPUT = os.getenv('ATTR_FIN_DIR_INPUT', 'input')
-ATTR_FIN_DIR_IMGS = os.getenv('ATTR_FIN_DIR_IMGS', 'imgs')
-ATTR_FIN_DIR_MASSA = os.getenv('ATTR_FIN_DIR_MASSA', 'massa')
-ATTR_FIN_DIR_TMP = os.getenv('ATTR_FIN_DIR_TMP', 'tmp')
-ATTR_FIN_DIR_MENSAGENS = os.getenv('ATTR_FIN_DIR_MENSAGENS', 'mensagens')
-ATTR_FIN_DIR_OCR = os.getenv('ATTR_FIN_DIR_OCR', 'ocr')
-ATTR_FIN_DIR_DOCS = os.getenv('ATTR_FIN_DIR_DOCS', 'docs')
-ATTR_FIN_DIR_DATA = os.getenv('ATTR_FIN_DIR_DATA', 'data')
+# Configurações específicas do projeto são importadas de env.py
 
 # Configurações do Channels para WebSocket
 CHANNEL_LAYERS = {
