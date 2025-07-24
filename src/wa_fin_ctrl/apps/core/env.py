@@ -19,3 +19,11 @@ ATTR_FIN_DIR_DOCS = os.getenv("ATTR_FIN_DIR_DOCS", "docs")
 ATTR_FIN_ARQ_DB = os.getenv("ATTR_FIN_ARQ_DB", "db/db.sqlite3")
 ATTR_FIN_ARQ_CHAT = os.getenv("ATTR_FIN_ARQ_CHAT", "_chat.txt")
 
+# ==== CONSTANTES DE BANCO DE DADOS ====
+ATTR_FIN_DIR_DB = os.getenv("ATTR_FIN_DIR_DB", "db")
+ATTR_FIN_TABELA_MIGRATIONS = "django_migrations"
+ATTR_FIN_MSG_BANCO_INICIALIZANDO = "🗄️  Inicializando banco de dados..."
+ATTR_FIN_MSG_BANCO_INICIALIZADO = "✅ Banco de dados inicializado com sucesso!"
+ATTR_FIN_MSG_ERRO_BANCO = "⚠️  Erro ao verificar/inicializar banco:"
+ATTR_FIN_MSG_COMANDO_MANUAL = "💡 Execute manualmente: poetry run python manage.py migrate"
+
