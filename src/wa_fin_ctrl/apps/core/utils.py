@@ -13,9 +13,10 @@ from .env import (
     ATTR_FIN_DIR_INPUT,
     ATTR_FIN_DIR_IMGS,
     ATTR_FIN_DIR_MASSA,
-    ATTR_FIN_DIR_TMP,
-    ATTR_FIN_DIR_MENSAGENS,
-    ATTR_FIN_DIR_OCR,
+    # Removido: diretórios obsoletos
+# ATTR_FIN_DIR_TMP,
+# ATTR_FIN_DIR_MENSAGENS,
+ATTR_FIN_DIR_OCR,
     ATTR_FIN_DIR_DOCS,
 )
 
