@@ -35,9 +35,6 @@ from .apps.core.utils import (
     descomprimir_zip_se_existir,
     organizar_subdiretorios_se_necessario,
     mover_arquivos_processados,
-    backup_arquivos_existentes,
-    criar_backups_antes_processamento,
-    restaurar_arquivos_backup,
     diagnostico_erro_ocr,
 )
 
@@ -85,10 +82,9 @@ def processar_incremental(force=False, entry=None, backup=False):
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
 
-    # Se backup foi solicitado, cria backups antes do processamento
+    # Backup não é mais necessário com banco SQLite unificado
     if backup:
-        print("=== CRIANDO BACKUPS ===")
-        criar_backups_antes_processamento()
+        print("⚠️  Opção --backup não é mais necessária com banco SQLite unificado")
 
     # Edições agora são aplicadas diretamente no banco de dados
     print("Edições serão aplicadas diretamente no banco de dados, se existirem.")
@@ -283,10 +279,9 @@ def processar_pdfs(force=False, entry=None, backup=False):
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
 
-    # Se backup foi solicitado, cria backups antes do processamento
+    # Backup não é mais necessário com banco SQLite unificado
     if backup:
-        print("=== CRIANDO BACKUPS ===")
-        criar_backups_antes_processamento()
+        print("⚠️  Opção --backup não é mais necessária com banco SQLite unificado")
 
     input_dir = Path(ATTR_FIN_DIR_INPUT)
 
@@ -385,10 +380,9 @@ def processar_imgs(force=False, entry=None, backup=False):
             print("Formato de --entry inválido. Use: DD/MM/AAAA HH:MM:SS")
             return
 
-    # Se backup foi solicitado, cria backups antes do processamento
+    # Backup não é mais necessário com banco SQLite unificado
     if backup:
-        print("=== CRIANDO BACKUPS ===")
-        criar_backups_antes_processamento()
+        print("⚠️  Opção --backup não é mais necessária com banco SQLite unificado")
 
     input_dir = Path(ATTR_FIN_DIR_INPUT)
 
@@ -488,8 +482,8 @@ def processar_imgs(force=False, entry=None, backup=False):
     """Executa testes End-to-End completos do sistema"""
     print("\n=== INICIANDO TESTES E2E ===")
 
-    # Backup de arquivos existentes
-    backup_arquivos_existentes()
+    # Backup não é mais necessário com banco SQLite unificado
+    print("⚠️  Backup de arquivos não é mais necessário com banco SQLite unificado")
 
     try:
         # Testa processamento incremental
@@ -529,8 +523,8 @@ def processar_imgs(force=False, entry=None, backup=False):
             return False
 
     finally:
-        # Restaura arquivos originais
-        restaurar_arquivos_backup()
+        # Restauração não é mais necessária com banco SQLite unificado
+        print("⚠️  Restauração de arquivos não é mais necessária com banco SQLite unificado")
 
 
 
