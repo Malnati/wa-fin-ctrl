@@ -77,7 +77,8 @@ def descomprimir_zip_se_existir() -> bool:
     return True
 
 
-def organizar_arquivos_extraidos() -> None:
+# Removido: função não utilizada externamente
+# def organizar_arquivos_extraidos() -> None:
     """Organiza arquivos extraídos de subdiretórios para o diretório principal"""
     input_dir = ATTR_FIN_DIR_INPUT
     
