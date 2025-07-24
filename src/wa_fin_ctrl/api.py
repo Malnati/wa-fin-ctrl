@@ -30,7 +30,7 @@ import signal
 import sys
 from .apps.core.env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
 from .app import processar_incremental, fix_entry
-from .apps.core.reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+# Removido: geração de relatórios HTML não é mais necessária com React
 from .apps.core.helper import normalize_value_to_brazilian_format
 from .apps.core.utils import (
     _calcular_totalizadores_pessoas,
@@ -413,8 +413,8 @@ async def generate_reports(force: bool = Form(False), backup: bool = Form(True))
     """
     try:
         # Gera relatórios
-        gerar_relatorio_html(backup=backup)
-        gerar_relatorios_mensais_html(backup=backup)
+        # Removido: geração de relatórios HTML não é mais necessária com React
+        print("Relatórios HTML removidos - use frontend React")
 
         return JSONResponse(
             status_code=200,
