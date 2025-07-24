@@ -224,8 +224,7 @@ copy:
 	@cat ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/app.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/cli.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/helper.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/ia.py \
 	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/ocr.py \
 	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/env.py \
-	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/template.py \
-	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/reporter.py \
+	# Removido: módulos de relatórios HTML não são mais necessários com React
 	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/check.py >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo copiado para a área de transferência"
