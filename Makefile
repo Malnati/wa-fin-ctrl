@@ -427,21 +427,7 @@ pdf-backup:
 
 # Processa arquivos incrementalmente (sem backup)
 process:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} processar 
-
-# Processa arquivos incrementalmente (com backup)
-process-backup:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --backup
-
-# Processa arquivos em paralelo (recomendado)
-process-parallel:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --parallel --max-workers 4
-
-# Processa arquivos em paralelo com backup
-process-parallel-backup:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --parallel --max-workers 4 --backup
-
-
 
 # Remove todos os arquivos
 remove-all:
