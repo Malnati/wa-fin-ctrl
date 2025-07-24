@@ -21,7 +21,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Importa variáveis de ambiente do projeto
-from .env import ATTR_FIN_ARQ_DB
+from .apps.core.env import ATTR_FIN_ARQ_DB
 
 
 # Quick-start development settings - unsuitable for production

@@ -23,7 +23,7 @@ from .apps.core.reporter import (
 # Adiciona imports para PDF
 
 from .apps.core.ocr import registrar_ocr_xml, process_image_ocr
-from .env import *
+from .apps.core.env import *
 from .apps.core.helper import convert_to_brazilian_format, normalize_value_to_brazilian_format, parse_value_from_input
 from .apps.core.history import record_fix_command_wrapper
 from .apps.core.models import EntradaFinanceira

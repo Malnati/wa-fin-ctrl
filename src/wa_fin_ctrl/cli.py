@@ -16,7 +16,7 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
 django.setup()
 
-from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_IMGS
+from .apps.core.env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_IMGS
 from .app import (
     processar_incremental,
     processar_pdfs,
