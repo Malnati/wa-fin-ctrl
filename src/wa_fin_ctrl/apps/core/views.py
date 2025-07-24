@@ -201,8 +201,10 @@ def process_files(request):
         # Obtém os parâmetros do POST
         force = request.POST.get(CHAVE_FORCE, 'false').lower() == 'true'
         backup = request.POST.get(CHAVE_BACKUP, 'false').lower() == 'true'
-    if backup:
-        print("⚠️  Opção backup não é mais necessária com banco SQLite unificado")
+        
+        if backup:
+            print("⚠️  Opção backup não é mais necessária com banco SQLite unificado")
+        
         max_workers = int(request.POST.get(CHAVE_MAX_WORKERS, '4'))
 
         # Chama a função de processamento paralelo
@@ -451,8 +453,9 @@ def generate_reports(request):
         # Obtém os parâmetros do POST
         force = request.POST.get(CHAVE_FORCE, 'false').lower() == 'true'
         backup = request.POST.get(CHAVE_BACKUP, 'true').lower() == 'true'
-    if backup:
-        print("⚠️  Opção backup não é mais necessária com banco SQLite unificado")
+        
+        if backup:
+            print("⚠️  Opção backup não é mais necessária com banco SQLite unificado")
 
         # Removido: geração de relatórios HTML não é mais necessária com React
         resultado = "Relatórios HTML removidos - use frontend React"
