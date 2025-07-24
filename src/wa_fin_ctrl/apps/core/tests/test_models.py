@@ -1,10 +1,6 @@
-# tests.py
-# Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/tests.py
-# Testes Django padrão para o banco de dados
-
 from django.test import TestCase
 from django.utils import timezone
-from .models import Processamento, EntradaFinanceira, ArquivoProcessado, CorrecaoHistorico
+from ..models import Processamento, EntradaFinanceira, ArquivoProcessado, CorrecaoHistorico
 
 
 class BancoDeDadosTestCase(TestCase):
@@ -184,4 +180,4 @@ class BancoDeDadosTestCase(TestCase):
             views = [row[0] for row in cursor.fetchall()]
             
             # Nota: Views podem não existir se foram criadas pelo DDL customizado
-            # mas não são necessárias para o funcionamento básico do Django
+            # mas não são necessárias para o funcionamento básico do Django 
