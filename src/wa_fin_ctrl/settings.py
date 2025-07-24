@@ -65,8 +65,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            BASE_DIR / "templates",
-            BASE_DIR / "src" / "wa_fin_ctrl" / "apps" / "core" / "templates",
+            # Removido: templates HTML não são mais necessários com React
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -127,13 +126,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = "static/"
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-    BASE_DIR / "src" / "wa_fin_ctrl" / "apps" / "core" / "static",
-]
-STATIC_ROOT = BASE_DIR / "staticfiles"
+# Nota: Frontend React gerencia seus próprios arquivos estáticos
+# Não há arquivos estáticos no backend Django
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
