@@ -8,6 +8,12 @@ VAR_FIN_OPENAI_API_KEY=${OPENAI_API_KEY}
 
 # Diretórios de db
 VAR_FIN_DIR_DB=db
+# Constantes de banco de dados
+VAR_FIN_TABELA_MIGRATIONS=django_migrations
+VAR_FIN_MSG_BANCO_INICIALIZANDO=🗄️  Inicializando banco de dados...
+VAR_FIN_MSG_BANCO_INICIALIZADO=✅ Banco de dados inicializado com sucesso!
+VAR_FIN_MSG_ERRO_BANCO=⚠️  Erro ao verificar/inicializar banco:
+VAR_FIN_MSG_COMANDO_MANUAL=💡 Execute manualmente: poetry run python manage.py migrate
 # Diretórios de entrada e saída
 VAR_FIN_DIR_INPUT=input
 # Diretórios de imagens
@@ -98,6 +104,12 @@ export ATTR_FIN_ARQ_MASSA_AUGUST=${VAR_FIN_ARQ_MASSA_AUGUST}
 export ATTR_FIN_ARQ_MASSA_SEPTEMBER=${VAR_FIN_ARQ_MASSA_SEPTEMBER}
 export ATTR_FIN_ARQ_MASSA_OCTOBER=${VAR_FIN_ARQ_MASSA_OCTOBER}
 export ATTR_FIN_ARQ_DB=${VAR_FIN_ARQ_DB}
+export ATTR_FIN_DIR_DB=${VAR_FIN_DIR_DB}
+export ATTR_FIN_TABELA_MIGRATIONS=${VAR_FIN_TABELA_MIGRATIONS}
+export ATTR_FIN_MSG_BANCO_INICIALIZANDO=${VAR_FIN_MSG_BANCO_INICIALIZANDO}
+export ATTR_FIN_MSG_BANCO_INICIALIZADO=${VAR_FIN_MSG_BANCO_INICIALIZADO}
+export ATTR_FIN_MSG_ERRO_BANCO=${VAR_FIN_MSG_ERRO_BANCO}
+export ATTR_FIN_MSG_COMANDO_MANUAL=${VAR_FIN_MSG_COMANDO_MANUAL}
 
 # Verificar se Poetry está disponível
 check_poetry_installed:
@@ -334,13 +346,14 @@ db-test:
 	@echo "🧪 Testando banco de dados..."
 	poetry run python manage.py test wa_fin_ctrl.apps.core.tests
 
-# Processa todos os arquivos (força reprocessamento, sem backup)
+# Processa todos os arquivos (força reprocessamento)
 force:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force 
 	
 # Processa todos os arquivos (força reprocessamento, com backup)
-force-backup:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force --backup
+# REMOVIDO: backup não é mais necessário com banco SQLite unificado
+# force-backup:
+# 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force --backup
 
 # Exibe a mensagem de ajuda
 help:
@@ -349,14 +362,10 @@ help:
 	@echo "  help: Exibe esta mensagem de ajuda"
 	@echo "  install: Instala as dependências do projeto"
 	@echo "  run: Executa o script principal"
-	@echo "  process: Processa arquivos incrementalmente (sem backup)"
-	@echo "  process-backup: Processa arquivos incrementalmente (com backup)"
-	@echo "  force: Processa todos os arquivos (força reprocessamento, sem backup)"
-	@echo "  force-backup: Processa todos os arquivos (força reprocessamento, com backup)"
-	@echo "  pdf: Processa apenas PDFs (sem backup)"
-	@echo "  pdf-backup: Processa apenas PDFs (com backup)"
-	@echo "  img: Processa apenas imagens (sem backup)"
-	@echo "  img-backup: Processa apenas imagens (com backup)"
+	@echo "  process: Processa arquivos incrementalmente"
+	@echo "  force: Processa todos os arquivos (força reprocessamento)"
+	@echo "  pdf: Processa apenas PDFs"
+	@echo "  img: Processa apenas imagens"
 	@echo "  dismiss: Marca uma entrada como desconsiderada"
 	@echo "    Exemplo: make dismiss find=\"21/04/2025 18:33:54\""
 	@echo "  fix: Corrige uma entrada específica (banco de dados)"
@@ -405,27 +414,29 @@ help:
 	@echo "    kill-all: Encerra todos os processos"
 	@echo "  copy: Copia a estrutura do projeto para a área de transferência"
 
-# Processa apenas imagens (sem backup)
+# Processa apenas imagens
 img:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} img
 
 # Processa apenas imagens (com backup)
-img-backup:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} img --backup
+# REMOVIDO: backup não é mais necessário com banco SQLite unificado
+# img-backup:
+# 	poetry run python ${ATTR_FIN_ARQ_MAIN} img --backup
 
 # Instala as dependências do projeto
 install:
 	poetry install --no-interaction --no-root
 
-# Processa apenas PDFs (sem backup)
+# Processa apenas PDFs
 pdf:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} pdf
 
 # Processa apenas PDFs (com backup)
-pdf-backup:
-	poetry run python ${ATTR_FIN_ARQ_MAIN} pdf --backup
+# REMOVIDO: backup não é mais necessário com banco SQLite unificado
+# pdf-backup:
+# 	poetry run python ${ATTR_FIN_ARQ_MAIN} pdf --backup
 
-# Processa arquivos incrementalmente (sem backup)
+# Processa arquivos incrementalmente
 process:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --parallel --max-workers 4
 
