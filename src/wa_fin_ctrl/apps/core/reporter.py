@@ -10,7 +10,8 @@ import xml.etree.ElementTree as ET
 import re
 from pathlib import Path
 from .env import *
-from .template import TemplateRenderer
+# Removido: TemplateRenderer não é mais necessário (sem templates J2)
+# from .template import TemplateRenderer
 from .helper import normalize_value_to_brazilian_format
 from .utils import (
     _calcular_totalizadores_pessoas,
@@ -19,7 +20,7 @@ from .utils import (
 
 # ==== CONSTANTES ====
 # Arquivos
-ARQUIVO_EXTRACT_XML = "extract.xml"
+# ARQUIVO_EXTRACT_XML = "extract.xml"  # Removido: arquivo OCR não é mais necessário
 
 # Extensões de arquivo
 EXTENSAO_PDF = ".pdf"
@@ -49,22 +50,78 @@ VALOR_VAZIO = ""
 
 def _carregar_ocr_map():
     """Carrega o mapeamento de arquivos para textos OCR do arquivo extract.xml."""
+    # Removido: arquivo OCR não é mais necessário (dados no banco)
     ocr_map = {}
-    try:
-        xml_path = os.path.join(ATTR_FIN_DIR_OCR, ARQUIVO_EXTRACT_XML)
-        if os.path.exists(xml_path):
-            tree = ET.parse(xml_path)
-            root = tree.getroot()
-            for entry in root.findall(ELEMENTO_ENTRY):
-                arquivo = entry.get(ATRIBUTO_ARQUIVO, "")
-                texto = entry.text or ""
-                ocr_map[arquivo] = texto
-            print(f"📄 Carregados {len(ocr_map)} registros OCR de {xml_path}")
-        else:
-            print(f"⚠️  Arquivo OCR não encontrado: {xml_path}")
-    except Exception as e:
-        print(f"❌ Erro ao carregar OCR: {str(e)}")
+    print("📄 OCR carregado do banco de dados unificado")
     return ocr_map
+
+
+def _gerar_html_simples(context, output_path):
+    """Gera HTML simples sem templates J2"""
+    try:
+        # Cria o diretório se necessário
+        output_dir = os.path.dirname(output_path)
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+        
+        # Gera HTML básico
+        html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Relatório Financeiro</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 20px; }}
+        table {{ border-collapse: collapse; width: 100%; }}
+        th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+        th {{ background-color: #f2f2f2; }}
+        .total {{ font-weight: bold; }}
+    </style>
+</head>
+<body>
+    <h1>Relatório Financeiro</h1>
+    <p>Período: {context.get('periodo', 'N/A')}</p>
+    <p>Gerado em: {context.get('timestamp', 'N/A')}</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Data/Hora</th>
+                <th>Valor</th>
+                <th>Descrição</th>
+                <th>Classificação</th>
+            </tr>
+        </thead>
+        <tbody>
+"""
+        
+        # Adiciona linhas de dados
+        for row in context.get('rows', []):
+            html_content += f"""
+            <tr>
+                <td>{row.get('data_hora', '')}</td>
+                <td>{row.get('valor_formatado', '')}</td>
+                <td>{row.get('descricao', '')}</td>
+                <td>{row.get('classificacao', '')}</td>
+            </tr>
+"""
+        
+        html_content += """
+        </tbody>
+    </table>
+</body>
+</html>
+"""
+        
+        # Salva o arquivo
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+            
+        print(f"✅ HTML gerado: {output_path}")
+        
+    except Exception as e:
+        print(f"❌ Erro ao gerar HTML: {str(e)}")
 
 
 def _verificar_imagem_jpg_pdf(anexo):
@@ -455,12 +512,8 @@ def gerar_relatorio_html(csv_path=None, backup=True):
             },
         }
 
-        print(f"DEBUG: Chamando TemplateRenderer.render com output_path: {report_path}")
-        TemplateRenderer.render(
-            template_name="unified_report.html.j2",
-            context=context,
-            output_path=report_path,
-        )
+        print(f"DEBUG: Gerando HTML simples: {report_path}")
+        _gerar_html_simples(context, report_path)
         print("✅ Relatório HTML gerado: report.html")
 
         # Gera o index.html a partir do template
@@ -488,11 +541,9 @@ def gerar_relatorio_html(csv_path=None, backup=True):
         # Contexto para o template
         index_context = {"monthly_reports": monthly_reports}
 
-        # Renderiza o template
+        # Gera HTML simples
         index_path = os.path.join(ATTR_FIN_DIR_DOCS, "index.html")
-        TemplateRenderer.render(
-            template_name="index.html.j2", context=index_context, output_path=index_path
-        )
+        _gerar_html_simples(index_context, index_path)
         print("✅ Página de entrada gerada: index.html")
 
         # Validação OCR (apenas se usando arquivo CSV)
@@ -642,7 +693,7 @@ def gerar_relatorios_mensais_html(csv_path=None, backup=True):
                 },
             }
 
-            TemplateRenderer.render("unified_report.html.j2", context, arquivo_path)
+            _gerar_html_simples(context, arquivo_path)
             relatorios_gerados += 1
             print(f"✅ Relatório mensal gerado: {nome_arquivo}")
 
@@ -662,9 +713,7 @@ def gerar_relatorios_mensais_html(csv_path=None, backup=True):
                     "IMGS_DIR_PATH": ATTR_FIN_DIR_IMGS,
                 },
             }
-            TemplateRenderer.render(
-                "unified_report.html.j2", context_edit, arquivo_edit_path
-            )
+            _gerar_html_simples(context_edit, arquivo_edit_path)
             print(f"✅ Relatório mensal editável gerado: {nome_arquivo_edit}")
 
         print(f"📅 Total de relatórios mensais gerados: {relatorios_gerados}")
@@ -694,7 +743,7 @@ def gerar_html_impressao(df_mes, nome_arquivo, nome_mes, ano):
         context = {"periodo": f"{nome_mes} {ano}", "rows": rows}
 
         context["print_mode"] = True
-        TemplateRenderer.render("unified_report.html.j2", context, nome_arquivo)
+        _gerar_html_simples(context, nome_arquivo)
         print(f"✅ HTML de impressão gerado: {nome_arquivo}")
     except Exception as e:
         print(f"❌ Erro ao gerar HTML de impressão: {str(e)}")
