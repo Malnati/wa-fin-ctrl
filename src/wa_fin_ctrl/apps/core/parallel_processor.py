@@ -21,7 +21,6 @@ from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_IMGS
 from .helper import normalize_sender, normalize_value_to_brazilian_format
 from .utils import (
     descomprimir_zip_se_existir,
-    organizar_arquivos_extraidos,
     organizar_subdiretorios_se_necessario,
     mover_arquivos_processados,
 )
