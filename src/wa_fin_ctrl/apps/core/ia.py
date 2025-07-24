@@ -4,7 +4,8 @@
 import os
 import re
 from openai import OpenAI
-from .helper import convert_to_brazilian_format
+# Removido: função não utilizada
+# from .helper import convert_to_brazilian_format
 from .env import *
 
 # ==== CONSTANTES ====
