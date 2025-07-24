@@ -26,8 +26,8 @@ from .helper import normalize_value_to_brazilian_format
 
 # Importa as funções do módulo app.py
 from ...app import processar_incremental, fix_entry
-from ...env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
-from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
+# Removido: geração de relatórios HTML não é mais necessária com React
 from .utils import (
     _calcular_totalizadores_pessoas,
     parse_valor,
@@ -97,25 +97,12 @@ _last_update_time = time.time()
 @require_http_methods(["GET"])
 def root(request):
     """
-    View raiz - serve a página index.html dos relatórios.
+    View raiz - redireciona para o frontend React.
     """
-    try:
-        index_path = os.path.join(ATTR_FIN_DIR_DOCS, ARQUIVO_INDEX)
-
-        if not os.path.exists(index_path):
-            return JsonResponse(
-                {CHAVE_ERROR: ERRO_PAGINA_NAO_ENCONTRADA},
-                status=STATUS_404
-            )
-
-        # Retorna o arquivo index.html
-        return FileResponse(open(index_path, 'rb'), content_type='text/html')
-
-    except Exception as e:
-        return JsonResponse(
-            {CHAVE_ERROR: ERRO_SERVIR_PAGINA.format(str(e))},
-            status=STATUS_500
-        )
+    return JsonResponse({
+        "message": "Backend API ativo. Use o frontend React para interface.",
+        "status": "running"
+    })
 
 
 @require_http_methods(["GET"])
@@ -463,9 +450,9 @@ def generate_reports(request):
         force = request.POST.get(CHAVE_FORCE, 'false').lower() == 'true'
         backup = request.POST.get(CHAVE_BACKUP, 'true').lower() == 'true'
 
-        # Gera os relatórios
-        resultado = gerar_relatorio_html(backup=backup)
-        resultado_mensal = gerar_relatorios_mensais_html(backup=backup)
+        # Removido: geração de relatórios HTML não é mais necessária com React
+        resultado = "Relatórios HTML removidos - use frontend React"
+        resultado_mensal = "Relatórios HTML removidos - use frontend React"
 
         # Atualiza timestamp
         update_last_modified()
