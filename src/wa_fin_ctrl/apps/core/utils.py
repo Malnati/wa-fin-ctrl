@@ -16,7 +16,7 @@ from .env import (
     # Removido: diretórios obsoletos
 # ATTR_FIN_DIR_TMP,
 # ATTR_FIN_DIR_MENSAGENS,
-ATTR_FIN_DIR_OCR,
+# ATTR_FIN_DIR_OCR,  # Removido: diretório OCR não é mais necessário
     ATTR_FIN_DIR_DOCS,
 )
 
