@@ -227,6 +227,10 @@ async def process(force: bool = Form(False), backup: bool = Form(False)):
     Equivalente ao comando: make process
     """
     try:
+        # Avisa sobre backup obsoleto
+        if backup:
+            print("⚠️  Opção backup não é mais necessária com banco SQLite unificado")
+        
         # Chama a função existente do app.py
         processar_incremental(force=force, backup=backup)
 
@@ -246,7 +250,7 @@ async def process(force: bool = Form(False), backup: bool = Form(False)):
                 "message": "Processamento concluído com sucesso",
                 "data": {
                     "force": force,
-                    "backup": backup,
+                    "backup": "obsoleto" if backup else False,
                     "last_update": _last_update_time,
                 },
             },
@@ -412,6 +416,10 @@ async def generate_reports(force: bool = Form(False), backup: bool = Form(True))
     Gera relatórios HTML sob demanda.
     """
     try:
+        # Avisa sobre backup obsoleto
+        if backup:
+            print("⚠️  Opção backup não é mais necessária com banco SQLite unificado")
+        
         # Gera relatórios
         # Removido: geração de relatórios HTML não é mais necessária com React
         print("Relatórios HTML removidos - use frontend React")
@@ -423,7 +431,7 @@ async def generate_reports(force: bool = Form(False), backup: bool = Form(True))
                 "message": "Relatórios gerados com sucesso",
                 "data": {
                     "force": force,
-                    "backup": backup,
+                    "backup": "obsoleto" if backup else False,
                 },
             },
         )
