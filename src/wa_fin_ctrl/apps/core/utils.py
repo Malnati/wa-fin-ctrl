@@ -18,6 +18,13 @@ from .env import (
 # ATTR_FIN_DIR_MENSAGENS,
 # ATTR_FIN_DIR_OCR,  # Removido: diretório OCR não é mais necessário
     ATTR_FIN_DIR_DOCS,
+    ATTR_FIN_ARQ_DB,
+    ATTR_FIN_DIR_DB,
+    ATTR_FIN_TABELA_MIGRATIONS,
+    ATTR_FIN_MSG_BANCO_INICIALIZANDO,
+    ATTR_FIN_MSG_BANCO_INICIALIZADO,
+    ATTR_FIN_MSG_ERRO_BANCO,
+    ATTR_FIN_MSG_COMANDO_MANUAL,
 )
 
 
@@ -238,20 +245,37 @@ def diagnostico_erro_ocr(image_path: str, ocr_result: str) -> str:
 
 
 # ==== FUNÇÕES DE BACKUP ====
-
-def backup_arquivos_existentes() -> None:
-    """Cria backup dos arquivos existentes"""
-    print("=== CRIANDO BACKUP DOS ARQUIVOS EXISTENTES ===")
-    # Implementação do backup seria adicionada aqui
+# REMOVIDO: Funções de backup não são mais necessárias com banco SQLite unificado
+# O banco SQLite já possui mecanismos de backup integrados
 
 
-def criar_backups_antes_processamento() -> None:
-    """Cria backups antes do processamento"""
-    print("=== CRIANDO BACKUPS ANTES DO PROCESSAMENTO ===")
-    backup_arquivos_existentes()
+# ==== FUNÇÕES DE BANCO DE DADOS ====
 
-
-def restaurar_arquivos_backup() -> None:
-    """Restaura arquivos do backup"""
-    print("=== RESTAURANDO ARQUIVOS DO BACKUP ===")
-    # Implementação da restauração seria adicionada aqui 
+def ensure_database_exists() -> None:
+    """
+    Garante que o banco de dados existe e as migrações foram aplicadas.
+    
+    Esta função verifica se o banco SQLite existe e tem a tabela de migrações.
+    Se não existir ou estiver incompleto, executa automaticamente as migrações Django.
+    
+    Raises:
+        Exception: Se houver erro na verificação ou inicialização do banco
+    """
+    try:
+        import django
+        from django.db import connection
+        from django.core.management import execute_from_command_line
+        
+        # Verifica se o banco existe e tem tabelas
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{ATTR_FIN_TABELA_MIGRATIONS}'")
+            if not cursor.fetchone():
+                print(ATTR_FIN_MSG_BANCO_INICIALIZANDO)
+                # Executa as migrações
+                execute_from_command_line(['manage.py', 'migrate', '--verbosity=0'])
+                print(ATTR_FIN_MSG_BANCO_INICIALIZADO)
+                
+    except Exception as e:
+        print(f"{ATTR_FIN_MSG_ERRO_BANCO} {e}")
+        print(ATTR_FIN_MSG_COMANDO_MANUAL)
+        raise 
