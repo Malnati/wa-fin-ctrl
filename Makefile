@@ -24,12 +24,10 @@ VAR_FIN_DIR_OCR=ocr
 VAR_FIN_DIR_DOCS=docs
 # Diretórios de código fonte
 VAR_FIN_DIR_SRC=src
-# Diretórios de templates
-VAR_FIN_DIR_TEMPLATES=templates
-# Arquivos de cálculo
-VAR_FIN_ARQ_CALCULO=${VAR_FIN_DIR_MENSAGENS}/calculo.csv
-# Arquivos de mensagens
-VAR_FIN_ARQ_MENSAGENS=${VAR_FIN_DIR_MENSAGENS}/mensagens.csv
+# Removido: diretórios e arquivos obsoletos não são mais necessários
+# VAR_FIN_DIR_TEMPLATES=templates
+# VAR_FIN_ARQ_CALCULO=${VAR_FIN_DIR_MENSAGENS}/calculo.csv
+# VAR_FIN_ARQ_MENSAGENS=${VAR_FIN_DIR_MENSAGENS}/mensagens.csv
 # Arquivos de diagnóstico
 VAR_FIN_ARQ_DIAGNOSTICO=diagnostico.csv
 # Arquivo de banco de dados
@@ -44,11 +42,11 @@ VAR_FIN_ARQ_MAIN=wa-fin.py
 VAR_FIN_ARQ_REPORT_HTML=docs/report.html
 VAR_FIN_ARQ_REPORT_JULY=docs/report-2025-07-Julho.html
 VAR_FIN_ARQ_REPORT_JULY_EDIT=docs/report-edit-2025-07-Julho.html
-# Arquivos de templates
-VAR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE=templates/monthly_report_editable.html.j2
-VAR_FIN_ARQ_TEMPLATE_MONTHLY=templates/monthly_report.html.j2
-VAR_FIN_ARQ_TEMPLATE_PRINT=templates/print_report.html.j2
-VAR_FIN_ARQ_TEMPLATE_REPORT=templates/report.html.j2
+# Removido: templates HTML não são mais necessários com React
+# VAR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE=templates/monthly_report_editable.html.j2
+# VAR_FIN_ARQ_TEMPLATE_MONTHLY=templates/monthly_report.html.j2
+# VAR_FIN_ARQ_TEMPLATE_PRINT=templates/print_report.html.j2
+# VAR_FIN_ARQ_TEMPLATE_REPORT=templates/report.html.j2
 # Arquivos de massa
 VAR_FIN_ARQ_MASSA_APRIL=massa/04 WhatsApp Chat - NFs e comprovantes tia Claudia.zip
 VAR_FIN_ARQ_MASSA_MAY=massa/05 WhatsApp Chat - NFs e comprovantes tia Claudia.zip
@@ -66,25 +64,30 @@ export ATTR_FIN_DIR_DB=${VAR_FIN_DIR_DB}
 export ATTR_FIN_DIR_INPUT=${VAR_FIN_DIR_INPUT}
 export ATTR_FIN_DIR_IMGS=${VAR_FIN_DIR_IMGS}
 export ATTR_FIN_DIR_MASSA=${VAR_FIN_DIR_MASSA}
-export ATTR_FIN_DIR_TMP=${VAR_FIN_DIR_TMP}
-export ATTR_FIN_DIR_MENSAGENS=${VAR_FIN_DIR_MENSAGENS}
+# Removido: diretórios obsoletos
+# export ATTR_FIN_DIR_TMP=${VAR_FIN_DIR_TMP}
+# export ATTR_FIN_DIR_MENSAGENS=${VAR_FIN_DIR_MENSAGENS}
 export ATTR_FIN_DIR_OCR=${VAR_FIN_DIR_OCR}
 export ATTR_FIN_DIR_DOCS=${VAR_FIN_DIR_DOCS}
 export ATTR_FIN_DIR_SRC=${VAR_FIN_DIR_SRC}
-export ATTR_FIN_DIR_TEMPLATES=${VAR_FIN_DIR_TEMPLATES}
-export ATTR_FIN_ARQ_CALCULO=${VAR_FIN_ARQ_CALCULO}
-export ATTR_FIN_ARQ_MENSAGENS=${VAR_FIN_ARQ_MENSAGENS}
+# Removido: templates não são mais necessários
+# export ATTR_FIN_DIR_TEMPLATES=${VAR_FIN_DIR_TEMPLATES}
+# Removido: arquivos obsoletos
+# export ATTR_FIN_ARQ_CALCULO=${VAR_FIN_ARQ_CALCULO}
+# export ATTR_FIN_ARQ_MENSAGENS=${VAR_FIN_ARQ_MENSAGENS}
 export ATTR_FIN_ARQ_DIAGNOSTICO=${VAR_FIN_ARQ_DIAGNOSTICO}
 export ATTR_FIN_ARQ_CHAT=${VAR_FIN_ARQ_CHAT}
 export ATTR_FIN_ARQ_OCR_XML=${VAR_FIN_ARQ_OCR_XML}
 export ATTR_FIN_ARQ_MAIN=${VAR_FIN_ARQ_MAIN}
-export ATTR_FIN_ARQ_REPORT_HTML=${VAR_FIN_ARQ_REPORT_HTML}
-export ATTR_FIN_ARQ_REPORT_JULY=${VAR_FIN_ARQ_REPORT_JULY}
-export ATTR_FIN_ARQ_REPORT_JULY_EDIT=${VAR_FIN_ARQ_REPORT_JULY_EDIT}
-export ATTR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE=${VAR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE}
-export ATTR_FIN_ARQ_TEMPLATE_MONTHLY=${VAR_FIN_ARQ_TEMPLATE_MONTHLY}
-export ATTR_FIN_ARQ_TEMPLATE_PRINT=${VAR_FIN_ARQ_TEMPLATE_PRINT}
-export ATTR_FIN_ARQ_TEMPLATE_REPORT=${VAR_FIN_ARQ_TEMPLATE_REPORT}
+# Removido: relatórios HTML não são mais necessários
+# export ATTR_FIN_ARQ_REPORT_HTML=${VAR_FIN_ARQ_REPORT_HTML}
+# export ATTR_FIN_ARQ_REPORT_JULY=${VAR_FIN_ARQ_REPORT_JULY}
+# export ATTR_FIN_ARQ_REPORT_JULY_EDIT=${VAR_FIN_ARQ_REPORT_JULY_EDIT}
+# Removido: templates não são mais necessários
+# export ATTR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE=${VAR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE}
+# export ATTR_FIN_ARQ_TEMPLATE_MONTHLY=${VAR_FIN_ARQ_TEMPLATE_MONTHLY}
+# export ATTR_FIN_ARQ_TEMPLATE_PRINT=${VAR_FIN_ARQ_TEMPLATE_PRINT}
+# export ATTR_FIN_ARQ_TEMPLATE_REPORT=${VAR_FIN_ARQ_TEMPLATE_REPORT}
 export ATTR_FIN_ARQ_MASSA_APRIL=${VAR_FIN_ARQ_MASSA_APRIL}
 export ATTR_FIN_ARQ_MASSA_MAY=${VAR_FIN_ARQ_MASSA_MAY}
 export ATTR_FIN_ARQ_MASSA_JUNE=${VAR_FIN_ARQ_MASSA_JUNE}
@@ -104,8 +107,8 @@ check_poetry_installed:
 
 # Cria os diretórios necessários
 create-directories:
-	@echo "Criando diretórios: ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_TMP}, ${ATTR_FIN_DIR_MENSAGENS}, ${ATTR_FIN_DIR_OCR}, ${ATTR_FIN_DIR_DOCS}, ${ATTR_FIN_DIR_SRC}, ${ATTR_FIN_DIR_TEMPLATES}, ${ATTR_FIN_DIR_DB}"
-	@mkdir -pv "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_TMP}" "${ATTR_FIN_DIR_MENSAGENS}" "${ATTR_FIN_DIR_OCR}" "${ATTR_FIN_DIR_DOCS}" "${ATTR_FIN_DIR_SRC}" "${ATTR_FIN_DIR_TEMPLATES}" "${ATTR_FIN_DIR_DB}"
+	@echo "Criando diretórios: ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_OCR}, ${ATTR_FIN_DIR_DOCS}, ${ATTR_FIN_DIR_SRC}, ${ATTR_FIN_DIR_DB}"
+	@mkdir -pv "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_OCR}" "${ATTR_FIN_DIR_DOCS}" "${ATTR_FIN_DIR_SRC}" "${ATTR_FIN_DIR_DB}"
 
 # Exibe as variáveis de ambiente
 show-variables:
@@ -115,12 +118,13 @@ show-variables:
 	@echo "VAR_FIN_DIR_INPUT: ${VAR_FIN_DIR_INPUT}"
 	@echo "VAR_FIN_DIR_IMGS: ${VAR_FIN_DIR_IMGS}"
 	@echo "VAR_FIN_DIR_MASSA: ${VAR_FIN_DIR_MASSA}"
-	@echo "VAR_FIN_DIR_TMP: ${VAR_FIN_DIR_TMP}"
-	@echo "VAR_FIN_DIR_MENSAGENS: ${VAR_FIN_DIR_MENSAGENS}"
 	@echo "VAR_FIN_DIR_OCR: ${VAR_FIN_DIR_OCR}"
 	@echo "VAR_FIN_DIR_DOCS: ${VAR_FIN_DIR_DOCS}"
 	@echo "VAR_FIN_DIR_SRC: ${VAR_FIN_DIR_SRC}"
-	@echo "VAR_FIN_DIR_TEMPLATES: ${VAR_FIN_DIR_TEMPLATES}"
+	# Removido: diretórios obsoletos
+	# @echo "VAR_FIN_DIR_TMP: ${VAR_FIN_DIR_TMP}"
+	# @echo "VAR_FIN_DIR_MENSAGENS: ${VAR_FIN_DIR_MENSAGENS}"
+	# @echo "VAR_FIN_DIR_TEMPLATES: ${VAR_FIN_DIR_TEMPLATES}"
 	@echo "VAR_FIN_ARQ_CALCULO: ${VAR_FIN_ARQ_CALCULO}"
 	@echo "VAR_FIN_ARQ_MENSAGENS: ${VAR_FIN_ARQ_MENSAGENS}"
 	@echo "VAR_FIN_ARQ_DIAGNOSTICO: ${VAR_FIN_ARQ_DIAGNOSTICO}"
@@ -217,54 +221,8 @@ copy-october:
 copy-september:
 	@cp -v "${ATTR_FIN_ARQ_MASSA_SEPTEMBER}" ${ATTR_FIN_DIR_INPUT}
 
-# Copia os arquivos do módulo wa_fin_ctrl para analise
-copy:
-	@mkdir -pv ${ATTR_FIN_DIR_TMP}
-	@echo "Copiando os arquivos do módulo wa_fin_ctrl para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/app.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/cli.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/helper.py ${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/ia.py \
-	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/ocr.py \
-	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/env.py \
-	# Removido: módulos de relatórios HTML não são mais necessários com React
-	${ATTR_FIN_DIR_SRC}/wa_fin_ctrl/check.py >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo copiado para a área de transferência"
-
-# Copia o OCR para analise
-copy-ocr:
-	@mkdir -pv ${ATTR_FIN_DIR_OCR}
-	@echo "<!-- ${ATTR_FIN_ARQ_OCR_XML} -->" > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_OCR_XML} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo do OCR copiado para a área de transferência"
-
-# Copia o relatório report.html para analise
-copy-report:
-	@mkdir -pv ${ATTR_FIN_DIR_TMP}
-	@echo "Copiando o relatório report.html para analise..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_REPORT_HTML} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo do relatório report.html copiado para a área de transferência"
-
-# Copia o relatório de Julho para analise
-copy-july-report:
-	@mkdir -pv ${ATTR_FIN_DIR_TMP}
-	@echo "Copiando o relatório de Julho..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_REPORT_JULY} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "Copiando o relatório editavel..." >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_REPORT_JULY_EDIT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo do relatório de Julho copiado para a área de transferência"
-
-# Copia os templates dos relatórios para analise
-copy-templates:
-	@mkdir -pv ${ATTR_FIN_DIR_TMP}
-	@echo "Copiando os templates dos relatórios para analise. " > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_TEMPLATE_MONTHLY} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_TEMPLATE_PRINT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_TEMPLATE_REPORT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo dos templates copiado para a área de transferência"
+# Removido: comandos obsoletos que usavam diretórios removidos
+# copy, copy-ocr, copy-report, copy-july-report, copy-templates
 
 # Marca uma entrada como desconsiderada
 dismiss:
@@ -439,9 +397,9 @@ remove-imgs:
 remove-ocr:
 	@rm -rfv ${ATTR_FIN_DIR_OCR}/*
 
-# Remove o diretório de mensagens
-remove-mensagens:
-	@rm -rfv ${ATTR_FIN_DIR_MENSAGENS}/*
+# Removido: diretório mensagens não é mais necessário
+# remove-mensagens:
+# 	@rm -rfv ${ATTR_FIN_DIR_MENSAGENS}/*
 
 
 # Remove os relatórios
@@ -452,9 +410,9 @@ remove-reports:
 remove-input:
 	@rm -rfv ${ATTR_FIN_DIR_INPUT}/*
 
-# Remove os temporários
-remove-tmp:
-	@rm -rfv ${ATTR_FIN_DIR_TMP}/*
+# Removido: diretório tmp não é mais necessário
+# remove-tmp:
+# 	@rm -rfv ${ATTR_FIN_DIR_TMP}/*
 
 # Executa o script principal
 run:
@@ -548,4 +506,4 @@ front-clean:
 # Inicia frontend com limpeza prévia
 front-fresh: front-clean front
 
-.PHONY: help install run server api copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia dev front api
+.PHONY: help install run server api remove-reports remove-baks remove-ocr remove-imgs remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia dev front api
