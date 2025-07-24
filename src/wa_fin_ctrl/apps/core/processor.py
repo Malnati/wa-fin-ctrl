@@ -175,7 +175,7 @@ def processar_incremental_paralelo(force=False, entry=None, backup=False, max_wo
     Args:
         force: Se True, reprocessa todos os arquivos
         entry: Filtro específico de entrada (formato: DD/MM/AAAA HH:MM:SS)
-        backup: Se True, cria backups antes do processamento
+        backup: ⚠️  Obsoleto: não é mais necessário com banco SQLite unificado
         max_workers: Número máximo de workers paralelos
     
     Returns:
