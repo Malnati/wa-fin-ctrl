@@ -12,7 +12,8 @@ ATTR_FIN_DIR_MASSA = os.getenv("ATTR_FIN_DIR_MASSA", "massa")
 # Removido: diretórios obsoletos não são mais necessários
 # ATTR_FIN_DIR_TMP = os.getenv("ATTR_FIN_DIR_TMP", "tmp")
 # ATTR_FIN_DIR_MENSAGENS = os.getenv("ATTR_FIN_DIR_MENSAGENS", "mensagens")
-ATTR_FIN_DIR_OCR = os.getenv("ATTR_FIN_DIR_OCR", "ocr")
+# Removido: diretório OCR não é mais necessário (dados no banco)
+# ATTR_FIN_DIR_OCR = os.getenv("ATTR_FIN_DIR_OCR", "ocr")
 ATTR_FIN_DIR_DOCS = os.getenv("ATTR_FIN_DIR_DOCS", "docs")
 
 ATTR_FIN_ARQ_DB = os.getenv("ATTR_FIN_ARQ_DB", "db/db.sqlite3")
