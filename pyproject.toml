@@ -21,7 +21,8 @@ PyPDF2 = "*"
 pdf2image = "*"
 pdfplumber = "*"
 click = "*"
-jinja2 = "^3.1.6"
+# Removido: jinja2 não é mais necessário (sem templates J2)
+# jinja2 = "^3.1.6"
 fastapi = "^0.110.0"
 uvicorn = {extras = ["standard"], version = "^0.29.0"}
 python-multipart = "^0.0.9"
