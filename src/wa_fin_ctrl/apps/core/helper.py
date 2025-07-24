@@ -127,7 +127,8 @@ def normalize_value_to_brazilian_format(valor):
         return valor_str
 
 
-def normalize_value_to_american_format(valor):
+# Removido: função DEPRECATED - não é utilizada
+# def normalize_value_to_american_format(valor):
     """
     Converte qualquer formato de valor para o formato americano (ponto como decimal).
     Esta função está DEPRECATED - use normalize_value_to_brazilian_format em seu lugar.
@@ -204,7 +205,8 @@ def normalize_value_to_american_format(valor):
         return valor_str
 
 
-def convert_to_brazilian_format(valor):
+# Removido: função não utilizada - só chama normalize_value_to_brazilian_format
+# def convert_to_brazilian_format(valor):
     """
     Converte valor do formato americano para brasileiro para exibição.
     Esta função é usada apenas para formatação de exibição, não para armazenamento.
@@ -308,7 +310,8 @@ def normalize_sender(remetente):
         return remetente_str
 
 
-def adicionar_totalizacao_mensal(df):
+# Removido: função não utilizada - não é chamada externamente
+# def adicionar_totalizacao_mensal(df):
     def convert_to_float(value):
         if pd.isna(value) or value == "":
             return 0.0
@@ -361,7 +364,8 @@ def adicionar_totalizacao_mensal(df):
     return df_combinado
 
 
-def incrementar_csv(novo_df, arquivo_csv):
+# Removido: função não utilizada - não é chamada externamente
+# def incrementar_csv(novo_df, arquivo_csv):
     if os.path.exists(arquivo_csv):
         df_existente = pd.read_csv(arquivo_csv)
         eh_csv_anexos = COLUNA_VALOR in novo_df.columns and COLUNA_DESCRICAO in novo_df.columns
@@ -399,21 +403,22 @@ def incrementar_csv(novo_df, arquivo_csv):
     return df_combinado
 
 
-def mover_arquivos_processados():
-    input_dir = ATTR_FIN_DIR_INPUT
-    imgs_dir = ATTR_FIN_DIR_IMGS
-    os.makedirs(imgs_dir, exist_ok=True)
-    extensoes_imagem = (".jpg", ".jpeg", ".png", ".pdf")
-    arquivos_input = [
-        f for f in os.listdir(input_dir) if f.lower().endswith(extensoes_imagem)
-    ]
-    arquivos_movidos = 0
-    for arquivo in arquivos_input:
-        origem = os.path.join(input_dir, arquivo)
-        destino = os.path.join(imgs_dir, arquivo)
-        shutil.move(origem, destino)
-        arquivos_movidos += 1
-        print(f"Movido: {arquivo} -> {ATTR_FIN_DIR_IMGS}/")
-    if arquivos_movidos > 0:
-        print(f"Total de {arquivos_movidos} arquivos movidos para {ATTR_FIN_DIR_IMGS}/")
-    return arquivos_movidos
+# Removido: função duplicada - usar mover_arquivos_processados de utils.py
+# def mover_arquivos_processados():
+#     input_dir = ATTR_FIN_DIR_INPUT
+#     imgs_dir = ATTR_FIN_DIR_IMGS
+#     os.makedirs(imgs_dir, exist_ok=True)
+#     extensoes_imagem = (".jpg", ".jpeg", ".png", ".pdf")
+#     arquivos_input = [
+#         f for f in os.listdir(input_dir) if f.lower().endswith(extensoes_imagem)
+#     ]
+#     arquivos_movidos = 0
+#     for arquivo in arquivos_input:
+#         origem = os.path.join(input_dir, arquivo)
+#         destino = os.path.join(imgs_dir, arquivo)
+#         shutil.move(origem, destino)
+#         arquivos_movidos += 1
+#         print(f"Movido: {arquivo} -> {ATTR_FIN_DIR_IMGS}/")
+#     if arquivos_movidos > 0:
+#         print(f"Total de {arquivos_movidos} arquivos movidos para {ATTR_FIN_DIR_IMGS}/")
+#     return arquivos_movidos
