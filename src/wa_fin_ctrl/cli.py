@@ -183,20 +183,21 @@ def processar_img(force, entry, backup):
 
 
 
-@cli.command()
-def teste():
-    """Executa testes automatizados de ponta a ponta."""
-    from .test import executar_todos_testes
+# Removido: função não utilizada - arquivo test.py não existe
+# @cli.command()
+# def teste():
+#     """Executa testes automatizados de ponta a ponta."""
+#     from .test import executar_todos_testes
+#     sucesso = executar_todos_testes()
+#     exit(0 if sucesso else 1)
 
-    sucesso = executar_todos_testes()
-    exit(0 if sucesso else 1)
 
-
-@cli.command()
-def prestacao():
-    """Gera planilha no formato da Justiça (função removida)."""
-    print("A função gerar_formato_justica foi removida.")
-    exit(0)
+# Removido: função não utilizada - apenas mostra mensagem de função removida
+# @cli.command()
+# def prestacao():
+#     """Gera planilha no formato da Justiça (função removida)."""
+#     print("A função gerar_formato_justica foi removida.")
+#     exit(0)
 
 
 @cli.command()
@@ -270,43 +271,40 @@ def dismiss(data_hora):
     exit(0 if sucesso else 1)
 
 
-@cli.command()
-@click.option("--host", default="127.0.0.1", help="Host para servir a API (padrão: 127.0.0.1)")
-@click.option("--port", default=8000, help="Porta para servir a API (padrão: 8000)")
-@click.option(
-    "--reload", is_flag=True, help="Habilita reload automático durante desenvolvimento"
-)
-@click.option(
-    "--auto-reload", is_flag=True, help="Força reload automático após comandos críticos"
-)
-def api(host, port, reload, auto_reload):
-    """Inicia a API REST Django."""
-    import subprocess
-    import sys
-
-    # Configura variáveis de ambiente se necessário
-    env_vars = []
-    if auto_reload:
-        env_vars.extend(["--reload"])
-
-    # Comando para iniciar o servidor Django
-    cmd = [
-        sys.executable,
-        "manage.py",
-        "runserver",
-        f"{host}:{port}",
-    ] + env_vars
-
-    print(f"🚀 Iniciando API Django em http://{host}:{port}")
-    print(f"📝 Comando: {' '.join(cmd)}")
-
-    try:
-        subprocess.run(cmd, check=True)
-    except KeyboardInterrupt:
-        print("\n👋 Servidor interrompido pelo usuário")
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Erro ao iniciar servidor: {e}")
-        sys.exit(1)
+# Removido: função não utilizada - não é chamada no Makefile
+# @cli.command()
+# @click.option("--host", default="127.0.0.1", help="Host para servir a API (padrão: 127.0.0.1)")
+# @click.option("--port", default=8000, help="Porta para servir a API (padrão: 8000)")
+# @click.option(
+#     "--reload", is_flag=True, help="Habilita reload automático durante desenvolvimento"
+# )
+# @click.option(
+#     "--auto-reload", is_flag=True, help="Força reload automático após comandos críticos"
+# )
+# def api(host, port, reload, auto_reload):
+#     """Inicia a API REST Django."""
+#     import subprocess
+#     import sys
+#     # Configura variáveis de ambiente se necessário
+#     env_vars = []
+#     if auto_reload:
+#         env_vars.extend(["--reload"])
+#     # Comando para iniciar o servidor Django
+#     cmd = [
+#         sys.executable,
+#         "manage.py",
+#         "runserver",
+#         f"{host}:{port}",
+#     ] + env_vars
+#     print(f"🚀 Iniciando API Django em http://{host}:{port}")
+#     print(f"📝 Comando: {' '.join(cmd)}")
+#     try:
+#         subprocess.run(cmd, check=True)
+#     except KeyboardInterrupt:
+#         print("\n👋 Servidor interrompido pelo usuário")
+#     except subprocess.CalledProcessError as e:
+#         print(f"❌ Erro ao iniciar servidor: {e}")
+#         sys.exit(1)
 
 
 @cli.command()
