@@ -11,6 +11,8 @@ import xml.etree.ElementTree as ET
 from threading import Lock
 import pdfplumber
 from pdf2image import convert_from_path
+from pathlib import Path
+from django.utils import timezone
 from .models import EntradaFinanceira, ArquivoProcessado
 from .env import ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT
 
@@ -36,11 +38,7 @@ ELEMENTO_OCR = "ocr"
 ELEMENTO_ENTRY = "entry"
 ATRIBUTO_ARQUIVO = "arquivo"
 
-# Status de arquivo
-STATUS_PROCESSADO = "processado"
-TIPO_IMAGEM = "imagem"
-TIPO_PDF = "pdf"
-TIPO_OUTRO = "outro"
+# Removido: constantes não utilizadas após remoção de registrar_ocr_banco
 
 ocr_xml_lock = Lock()
 
@@ -157,49 +155,7 @@ def registrar_ocr_xml(arquivo, texto, arq_xml=None):
         tree.write(arq_xml, encoding="utf-8", xml_declaration=True)
 
 
-def registrar_ocr_banco(arquivo, texto, processamento_id=None):
-    """Registra extração OCR no banco de dados."""
-    try:
-        
-        # Atualiza ou cria registro do arquivo com OCR
-        arquivo_processado, created = ArquivoProcessado.objects.update_or_create(
-            nome_arquivo=arquivo,
-            defaults={
-                'tipo': TIPO_IMAGEM,  # Será atualizado se o arquivo existir
-                'tamanho': 0,
-                'data_processamento': timezone.now(),
-                'processamento_id': processamento_id,
-                'status': STATUS_PROCESSADO,
-                'erro': ''
-            }
-        )
-        
-        # Se o arquivo existe fisicamente, atualiza informações
-        arquivo_path = None
-        for diretorio in [ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_IMGS]:
-            caminho_teste = os.path.join(diretorio, arquivo)
-            if os.path.exists(caminho_teste):
-                arquivo_path = caminho_teste
-                break
-        
-        if arquivo_path:
-            extensao = Path(arquivo_path).suffix.lower()
-            if extensao in [EXTENSAO_JPG, EXTENSAO_JPEG, EXTENSAO_PNG]:
-                tipo_arquivo = TIPO_IMAGEM
-            elif extensao == EXTENSAO_PDF:
-                tipo_arquivo = TIPO_PDF
-            else:
-                tipo_arquivo = TIPO_OUTRO
-            
-            arquivo_processado.tipo = tipo_arquivo
-            arquivo_processado.tamanho = os.path.getsize(arquivo_path)
-            arquivo_processado.save()
-        
-        return True
-        
-    except Exception as e:
-        print(f"Erro ao registrar OCR no banco: {str(e)}")
-        return False
+# Removido: função não utilizada - registrar_ocr_banco não é chamada em lugar nenhum
 
 
 def _converter_pdf_para_jpg(pdf_path):
