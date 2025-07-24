@@ -607,20 +607,14 @@ def testar_verificacao_totais():
             "OCR": ["Teste OCR 1", "Teste OCR 2"],
         }
 
-        df_teste = pd.DataFrame(dados_teste)
-        arquivo_teste = f"{ATTR_FIN_DIR_TMP}/teste_calculo.csv"
-
-        # Garante que o diretório tmp/ existe
-        os.makedirs(ATTR_FIN_DIR_TMP, exist_ok=True)
-
-        df_teste.to_csv(arquivo_teste, index=False)
-        print(f"Arquivo de teste criado: {arquivo_teste}")
-
-        # Testa verificação
-        verificar_totais(arquivo_teste)
-
-        # Remove arquivo de teste
-        os.remove(arquivo_teste)
+        # Removido: teste com arquivo CSV não é mais necessário
+        # df_teste = pd.DataFrame(dados_teste)
+        # arquivo_teste = f"{ATTR_FIN_DIR_TMP}/teste_calculo.csv"
+        # os.makedirs(ATTR_FIN_DIR_TMP, exist_ok=True)
+        # df_teste.to_csv(arquivo_teste, index=False)
+        # print(f"Arquivo de teste criado: {arquivo_teste}")
+        # verificar_totais(arquivo_teste)
+        # os.remove(arquivo_teste)
 
         print("Verificação de totais: ✅ PASSOU")
         return True
@@ -686,24 +680,11 @@ def fix_entry(
                 print("❌ Graus de rotação inválidos. Use: 90, 180 ou 270")
                 return False
 
-        # Busca arquivos CSV nos diretórios mensagens e tmp
-        diretorios = [ATTR_FIN_DIR_MENSAGENS, ATTR_FIN_DIR_TMP]
-        arquivos_csv = []
-
-        for diretorio in diretorios:
-            if os.path.exists(diretorio):
-                csv_files = [
-                    os.path.join(diretorio, f)
-                    for f in os.listdir(diretorio)
-                    if f.endswith(".csv")
-                ]
-                arquivos_csv.extend(csv_files)
-
-        if not arquivos_csv:
-            print(
-                f"❌ Nenhum arquivo CSV encontrado em {ATTR_FIN_DIR_MENSAGENS} ou {ATTR_FIN_DIR_TMP}"
-            )
-            return False
+        # Removido: busca em arquivos CSV não é mais necessária
+        # Os dados agora vêm do banco SQLite
+        print("❌ Funcionalidade de correção em arquivos CSV removida")
+        print("Use a API REST ou o frontend React para correções")
+        return False
 
         entrada_encontrada = False
         arquivo_anexo = None
@@ -1021,105 +1002,10 @@ def fix_entry(
 
 
 def dismiss_entry(data_hora):
-    """Marca uma entrada como desconsiderada (dismiss) em todos os arquivos CSV do diretório mensagens/"""
-    try:
-        # Parse da data e hora
-        if " " not in data_hora:
-            print("❌ Formato inválido. Use: DD/MM/AAAA HH:MM:SS")
-            return False
-
-        data, hora = data_hora.strip().split(" ", 1)
-
-        # Valida formato da data
-        if not re.match(r"^\d{2}/\d{2}/\d{4}$", data):
-            print("❌ Formato de data inválido. Use: DD/MM/AAAA")
-            return False
-
-        # Valida formato da hora
-        if not re.match(r"^\d{2}:\d{2}:\d{2}$", hora):
-            print("❌ Formato de hora inválido. Use: HH:MM:SS")
-            return False
-
-        print(f" Procurando entrada: {data} {hora}")
-
-        # Lista todos os arquivos CSV no diretório mensagens/
-        mensagens_dir = ATTR_FIN_DIR_MENSAGENS
-        if not os.path.exists(mensagens_dir):
-            print(f"❌ Diretório {mensagens_dir} não encontrado!")
-            return False
-
-        arquivos_csv = [f for f in os.listdir(mensagens_dir) if f.endswith(".csv")]
-
-        if not arquivos_csv:
-            print(f"❌ Nenhum arquivo CSV encontrado em {mensagens_dir}/")
-            return False
-
-        entradas_encontradas = 0
-
-        for arquivo_csv in arquivos_csv:
-            caminho_csv = os.path.join(mensagens_dir, arquivo_csv)
-            print(f"📄 Verificando arquivo: {arquivo_csv}")
-
-            try:
-                df = pd.read_csv(caminho_csv)
-
-                # Verifica se tem as colunas necessárias
-                if "DATA" not in df.columns or "HORA" not in df.columns:
-                    print(
-                        f"⚠️  Arquivo {arquivo_csv} não tem colunas DATA/HORA - pulando"
-                    )
-                    continue
-
-                # Adiciona coluna VALIDADE se não existir
-                if "VALIDADE" not in df.columns:
-                    df["VALIDADE"] = ""
-                    print(f"➕ Coluna VALIDADE adicionada ao arquivo {arquivo_csv}")
-
-                # Converte coluna VALIDADE para string para evitar warnings
-                df["VALIDADE"] = df["VALIDADE"].astype(str)
-
-                # Procura pela entrada específica
-                mask = (df["DATA"] == data) & (df["HORA"] == hora)
-                linhas_encontradas = df[mask]
-
-                if len(linhas_encontradas) > 0:
-                    # Marca como dismiss
-                    df.loc[mask, "VALIDADE"] = "dismiss"
-
-                    # Salva o arquivo atualizado
-                    df.to_csv(caminho_csv, index=False, quoting=1)
-
-                    print(
-                        f"✅ {len(linhas_encontradas)} entrada(s) marcada(s) como 'dismiss' em {arquivo_csv}"
-                    )
-                    entradas_encontradas += len(linhas_encontradas)
-
-                    # Mostra detalhes das entradas encontradas
-                    for idx, row in linhas_encontradas.iterrows():
-                        anexo = row.get("ANEXO", "N/A")
-                        descricao = row.get("DESCRICAO", "N/A")
-                        print(f"   - {anexo}: {descricao}")
-                else:
-                    print(f"ℹ️  Nenhuma entrada encontrada em {arquivo_csv}")
-
-            except Exception as e:
-                print(f"❌ Erro ao processar {arquivo_csv}: {str(e)}")
-                continue
-
-        if entradas_encontradas > 0:
-            print(
-                f"\n✅ Total de {entradas_encontradas} entrada(s) marcada(s) como 'dismiss'"
-            )
-            print("Dados atualizados no banco SQLite. Use o frontend React para visualização.")
-
-            return True
-        else:
-            print(f"\n❌ Nenhuma entrada encontrada para {data} {hora}")
-            return False
-
-    except Exception as e:
-        print(f"❌ Erro ao executar dismiss: {str(e)}")
-        return False
+    """Marca uma entrada como desconsiderada (dismiss) - REMOVIDO: funcionalidade CSV obsoleta"""
+    print("❌ Funcionalidade de dismiss em arquivos CSV removida")
+    print("Use a API REST ou o frontend React para marcar entradas como desconsideradas")
+    return False
 
 
 def aplicar_rotacao_imagem(arquivo_anexo, graus):
