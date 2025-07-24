@@ -11,9 +11,6 @@ import click
 import os
 import shutil
 import django
-import subprocess
-import sys
-from pathlib import Path
 
 # Configura Django antes de importar módulos que usam modelos
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
@@ -29,27 +26,7 @@ from .app import (
 )
 from .apps.core.history import CommandHistory
 from .apps.core.processor import processar_incremental_paralelo
-
-
-def ensure_database_exists():
-    """Garante que o banco de dados existe e as migrações foram aplicadas."""
-    try:
-        from django.db import connection
-        from django.core.management import execute_from_command_line
-        
-        # Verifica se o banco existe e tem tabelas
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='django_migrations'")
-            if not cursor.fetchone():
-                print("🗄️  Inicializando banco de dados...")
-                # Executa as migrações
-                execute_from_command_line(['manage.py', 'migrate', '--verbosity=0'])
-                print("✅ Banco de dados inicializado com sucesso!")
-                
-    except Exception as e:
-        print(f"⚠️  Erro ao verificar/inicializar banco: {e}")
-        print("💡 Execute manualmente: poetry run python manage.py migrate")
-        raise
+from .apps.core.utils import ensure_database_exists
 
 
 @click.group()
@@ -70,7 +47,7 @@ def cli():
     help="Reprocessa apenas a linha correspondente (formato: DD/MM/AAAA HH:MM:SS)",
 )
 @click.option(
-    "--backup", is_flag=True, help="Cria arquivos de backup antes do processamento"
+    "--backup", is_flag=True, help="⚠️  Obsoleto: backup não é mais necessário com banco SQLite"
 )
 @click.option(
     "--parallel", is_flag=True, help="Usa processamento paralelo (recomendado)"
@@ -142,7 +119,7 @@ def processar(force, entry, backup, parallel, max_workers):
     help="Reprocessa apenas o PDF da entrada (formato: DD/MM/AAAA HH:MM:SS)",
 )
 @click.option(
-    "--backup", is_flag=True, help="Cria arquivos de backup antes do processamento"
+    "--backup", is_flag=True, help="⚠️  Obsoleto: backup não é mais necessário com banco SQLite"
 )
 def processar_pdf(force, entry, backup):
     """
@@ -182,7 +159,7 @@ def processar_pdf(force, entry, backup):
     help="Reprocessa apenas a imagem da entrada (formato: DD/MM/AAAA HH:MM:SS)",
 )
 @click.option(
-    "--backup", is_flag=True, help="Cria arquivos de backup antes do processamento"
+    "--backup", is_flag=True, help="⚠️  Obsoleto: backup não é mais necessário com banco SQLite"
 )
 def processar_img(force, entry, backup):
     """
