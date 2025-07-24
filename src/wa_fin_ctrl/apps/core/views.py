@@ -20,7 +20,7 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from datetime import datetime
 from django.utils import timezone
-from .parallel_processor import processar_incremental_paralelo
+from .processor import processar_incremental_paralelo
 from .models import EntradaFinanceira, ArquivoProcessado
 from .helper import normalize_value_to_brazilian_format
 

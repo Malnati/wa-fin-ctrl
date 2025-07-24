@@ -25,7 +25,7 @@ from .app import (
     dismiss_entry,
 )
 from .apps.core.history import CommandHistory
-from .apps.core.parallel_processor import processar_incremental_paralelo
+from .apps.core.processor import processar_incremental_paralelo
 
 
 @click.group()

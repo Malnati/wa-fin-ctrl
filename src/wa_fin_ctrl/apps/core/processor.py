@@ -1,5 +1,5 @@
-# parallel_processor.py
-# Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/parallel_processor.py
+# processor.py
+# Caminho relativo ao projeto: src/wa_fin_ctrl/apps/core/processor.py
 # Módulo para processamento paralelo de imagens usando Django ORM
 
 import os
