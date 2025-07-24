@@ -207,7 +207,7 @@ def processar_incremental_paralelo(force=False, entry=None, backup=False, max_wo
         
         # PASSO 2: Organizar subdiretórios se necessário
         print("=== VERIFICANDO SUBDIRETÓRIOS ===")
-        _organizar_subdiretorios_se_necessario()
+        organizar_subdiretorios_se_necessario()
         
         # PASSO 3: Busca arquivos para processar
         input_dir = Path(ATTR_FIN_DIR_INPUT)
@@ -275,7 +275,7 @@ def processar_incremental_paralelo(force=False, entry=None, backup=False, max_wo
         
         # PASSO 4: Move arquivos processados para imgs/
         print("\n=== MOVENDO ARQUIVOS PROCESSADOS ===")
-        arquivos_movidos = _mover_arquivos_processados()
+        arquivos_movidos = mover_arquivos_processados()
         
         processamento.status = 'concluido'
         processamento.data_hora_fim = timezone.now()

@@ -11,6 +11,11 @@ import click
 import os
 import shutil
 import django
+
+# Configura Django antes de importar módulos que usam modelos
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
+django.setup()
+
 from .env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_IMGS
 from .app import (
     processar_incremental,
@@ -19,7 +24,7 @@ from .app import (
     fix_entry,
     dismiss_entry,
 )
-from .history import CommandHistory
+from .apps.core.history import CommandHistory
 from .apps.core.parallel_processor import processar_incremental_paralelo
 
 
@@ -56,10 +61,6 @@ def processar(force, entry, backup, parallel, max_workers):
 
     try:
         if parallel:
-            # Configura Django antes de importar módulos que usam modelos
-            os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
-            django.setup()
-            
             # Usa processamento paralelo
             resultado = processar_incremental_paralelo(
                 force=force, 

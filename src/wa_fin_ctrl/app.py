@@ -14,7 +14,7 @@ from openai import OpenAI
 import base64
 from pathlib import Path
 from datetime import datetime
-from .reporter import (
+from .apps.core.reporter import (
     gerar_relatorio_html,
     gerar_relatorios_mensais_html,
     gerar_html_impressao,
@@ -31,10 +31,8 @@ from .apps.core.ia import (
     extract_total_value_with_chatgpt,
     generate_payment_description_with_chatgpt,
     classify_transaction_type_with_chatgpt,
-    process_image_with_ai_for_value,
 )
 from .apps.core.helper import (
-    gerenciar_arquivos_incrementais,
     normalize_sender,
     adicionar_totalizacao_mensal,
 )
@@ -163,8 +161,13 @@ def processar_incremental(force=False, entry=None, backup=False):
                     return
                     print("Reprocessamento forçado concluído.")
     else:
-        tem_arquivos, chat_file = gerenciar_arquivos_incrementais()
-        if not tem_arquivos:
+        # Verifica se há arquivos para processar
+        arquivos_para_processar = []
+        for arquivo in os.listdir(input_dir):
+            if arquivo.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf')):
+                arquivos_para_processar.append(arquivo)
+        
+        if not arquivos_para_processar:
             print("Nenhum arquivo novo para processar.")
             print("\n=== GERANDO RELATÓRIO HTML ===")
             try:
@@ -179,16 +182,6 @@ def processar_incremental(force=False, entry=None, backup=False):
         # Dados agora são processados diretamente no banco de dados
         print("\n=== PROCESSANDO APENAS ANEXOS ===")
         # Dados agora são processados diretamente no banco de dados
-        
-        # Processa arquivos encontrados
-        arquivos_para_processar = []
-        for arquivo in os.listdir(input_dir):
-            if arquivo.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf')):
-                arquivos_para_processar.append(arquivo)
-        
-        if not arquivos_para_processar:
-            print("Nenhum arquivo encontrado para processar.")
-            return
         
         print(f"Encontrados {len(arquivos_para_processar)} arquivos para processar")
         

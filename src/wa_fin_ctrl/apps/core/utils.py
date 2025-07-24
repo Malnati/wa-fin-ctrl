@@ -17,8 +17,6 @@ from .env import (
     ATTR_FIN_DIR_MENSAGENS,
     ATTR_FIN_DIR_OCR,
     ATTR_FIN_DIR_DOCS,
-    ATTR_FIN_ARQ_DB,
-    ATTR_FIN_ARQ_CHAT,
 )
 
 

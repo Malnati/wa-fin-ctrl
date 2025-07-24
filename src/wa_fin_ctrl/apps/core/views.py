@@ -25,9 +25,14 @@ from .models import EntradaFinanceira, ArquivoProcessado
 from .helper import normalize_value_to_brazilian_format
 
 # Importa as funções do módulo app.py
-from ..app import processar_incremental, fix_entry
-from ..env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
-from ..reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+from ...app import processar_incremental, fix_entry
+from ...env import ATTR_FIN_DIR_INPUT, ATTR_FIN_DIR_DOCS
+from .reporter import gerar_relatorio_html, gerar_relatorios_mensais_html
+from .utils import (
+    _calcular_totalizadores_pessoas,
+    parse_valor,
+    update_last_modified,
+)
 
 # Importa funções para WebSocket
 from .consumers import broadcast_reload_sync
@@ -86,10 +91,7 @@ VALOR_DATABASE = "database"
 _last_update_time = time.time()
 
 
-def update_last_modified():
-    """Atualiza o timestamp da última modificação"""
-    global _last_update_time
-    _last_update_time = time.time()
+
 
 
 @require_http_methods(["GET"])
@@ -634,38 +636,4 @@ def api_entries(request):
         )
 
 
-def _calcular_totalizadores_pessoas(rows):
-    """Calcula totalizadores por pessoa, excluindo registros com 'dismiss'."""
-    
-    def parse_valor(valor_str):
-        """Converte string de valor para float."""
-        if not valor_str or valor_str.lower() in ["nan", ""]:
-            return 0.0
-        try:
-            valor_brasileiro = normalize_value_to_brazilian_format(valor_str)
-            return float(valor_brasileiro.replace(",", "."))
-        except (ValueError, TypeError):
-            return 0.0
-    
-    total_ricardo = 0.0
-    total_rafael = 0.0
-    
-    for row in rows:
-        # Pula registros marcados como dismiss
-        if row.get("row_class", "").find("dismiss-row") != -1:
-            continue
-        
-        # Soma valores de Ricardo
-        valor_ricardo = parse_valor(row.get("ricardo", ""))
-        total_ricardo += valor_ricardo
-        
-        # Soma valores de Rafael
-        valor_rafael = parse_valor(row.get("rafael", ""))
-        total_rafael += valor_rafael
-    
-    return {
-        "ricardo": f"{total_ricardo:.2f}".replace(".", ","),
-        "rafael": f"{total_rafael:.2f}".replace(".", ","),
-        "ricardo_float": total_ricardo,
-        "rafael_float": total_rafael,
-    }
+

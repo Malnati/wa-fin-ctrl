@@ -12,6 +12,10 @@ from pathlib import Path
 from .env import *
 from .template import TemplateRenderer
 from .helper import normalize_value_to_brazilian_format
+from .utils import (
+    _calcular_totalizadores_pessoas,
+    parse_valor,
+)
 
 # ==== CONSTANTES ====
 # Arquivos
@@ -75,6 +79,20 @@ def _verificar_imagem_jpg_pdf(anexo):
         return f"{nome_base}.jpg"
     return None
 
+
+def _preparar_linha_do_banco(row_data):
+    """Prepara linha de dados do banco para o template"""
+    return {
+        'data_hora': row_data['data_hora'],
+        'valor': row_data['valor'],
+        'descricao': row_data['descricao'],
+        'classificacao': row_data['classificacao'],
+        'arquivo_origem': row_data['arquivo_origem'],
+        'desconsiderada': row_data['desconsiderada'],
+        'valor_formatado': f"R$ {row_data['valor']:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+        'tem_erro': False,
+        'motivo_erro': ''
+    }
 
 def _preparar_linha(row, ocr_map, tem_motivo=False):
     """Prepara os dados de uma linha para o template - apenas dados puros, sem HTML."""
@@ -353,51 +371,48 @@ def _preparar_linhas_impressao(df_mes):
     return rows
 
 
-def _calcular_totalizadores_pessoas(rows):
-    """Calcula totalizadores por pessoa, excluindo registros com 'dismiss'."""
-
-    def parse_valor(valor_str):
-        """Converte string de valor para float."""
-        if not valor_str or valor_str.lower() in ["nan", ""]:
-            return 0.0
-        try:
-            valor_brasileiro = normalize_value_to_brazilian_format(valor_str)
-            return float(valor_brasileiro.replace(",", "."))
-        except (ValueError, TypeError):
-            return 0.0
-
-    total_ricardo = 0.0
-    total_rafael = 0.0
-
-    for row in rows:
-        # Pula registros marcados como dismiss
-        if row.get("row_class", "").find("dismiss-row") != -1:
-            continue
-
-        # Soma valores de Ricardo
-        valor_ricardo = parse_valor(row.get("ricardo", ""))
-        total_ricardo += valor_ricardo
-
-        # Soma valores de Rafael
-        valor_rafael = parse_valor(row.get("rafael", ""))
-        total_rafael += valor_rafael
-
-    return {
-        "ricardo": f"{total_ricardo:.2f}".replace(".", ","),
-        "rafael": f"{total_rafael:.2f}".replace(".", ","),
-        "ricardo_float": total_ricardo,
-        "rafael_float": total_rafael,
-    }
 
 
-def gerar_relatorio_html(csv_path, backup=True):
+
+def gerar_relatorio_html(csv_path=None, backup=True):
     print(f"DEBUG: Iniciando gerar_relatorio_html com csv_path: {csv_path}")
     try:
-        if not os.path.exists(csv_path):
-            print(
-                f"❌ O relatório report.html não foi gerado pela ausência da planilha de cálculos ({csv_path})"
-            )
-            return
+        # Se csv_path não foi fornecido, usa dados do banco Django
+        if csv_path is None:
+            print("📊 Gerando relatório a partir do banco de dados Django...")
+            try:
+                import django
+                from django.utils import timezone
+                from .models import EntradaFinanceira
+                
+                # Busca todas as entradas não desconsideradas
+                entradas = EntradaFinanceira.objects.filter(desconsiderada=False).order_by('data_hora')
+                
+                # Converte para formato compatível com o template
+                rows = []
+                for entrada in entradas:
+                    row_data = {
+                        'data_hora': entrada.data_hora.strftime('%d/%m/%Y %H:%M:%S'),
+                        'valor': entrada.valor,
+                        'descricao': entrada.descricao or '',
+                        'classificacao': entrada.classificacao or 'outros',
+                        'arquivo_origem': entrada.arquivo_origem or '',
+                        'desconsiderada': entrada.desconsiderada
+                    }
+                    rows.append(_preparar_linha_do_banco(row_data))
+                
+                print(f"📊 Encontradas {len(rows)} entradas no banco de dados")
+                
+            except Exception as e:
+                print(f"❌ Erro ao acessar banco de dados: {str(e)}")
+                return
+        else:
+            # Usa arquivo CSV se fornecido
+            if not os.path.exists(csv_path):
+                print(
+                    f"❌ O relatório report.html não foi gerado pela ausência da planilha de cálculos ({csv_path})"
+                )
+                return
 
         report_path = os.path.join(ATTR_FIN_DIR_DOCS, "report.html")
         if os.path.exists(report_path) and backup:
@@ -408,18 +423,22 @@ def gerar_relatorio_html(csv_path, backup=True):
         elif os.path.exists(report_path) and not backup:
             os.remove(report_path)
             print("🗑️ Relatório anterior removido (backup desabilitado)")
-        print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
+        if csv_path is not None:
+            print(f"📊 Gerando novo relatório HTML baseado em {csv_path}...")
 
-        # Carregar dados OCR
-        ocr_map = _carregar_ocr_map()
+            # Carregar dados OCR
+            ocr_map = _carregar_ocr_map()
 
-        df = pd.read_csv(csv_path)
-        tem_motivo = False  # Removendo a coluna "Motivo do Erro" de todos os relatórios
+            df = pd.read_csv(csv_path)
+            tem_motivo = False  # Removendo a coluna "Motivo do Erro" de todos os relatórios
 
-        # Preparar dados para o template
-        rows = []
-        for _, row in df.iterrows():
-            rows.append(_preparar_linha(row, ocr_map, tem_motivo))
+            # Preparar dados para o template
+            rows = []
+            for _, row in df.iterrows():
+                rows.append(_preparar_linha(row, ocr_map, tem_motivo))
+        else:
+            # Dados já foram preparados do banco
+            tem_motivo = False
 
         # Calcular totalizadores por pessoa
         totalizadores = _calcular_totalizadores_pessoas(rows)
@@ -476,40 +495,88 @@ def gerar_relatorio_html(csv_path, backup=True):
         )
         print("✅ Página de entrada gerada: index.html")
 
-        # Validação OCR
-        print("🔍 Validando conformidade OCR...")
-        try:
-            # Executa o check.py usando o caminho correto
-            import sys
-            from pathlib import Path
+        # Validação OCR (apenas se usando arquivo CSV)
+        if csv_path is not None:
+            print("🔍 Validando conformidade OCR...")
+            try:
+                # Executa o check.py usando o caminho correto
+                import sys
+                from pathlib import Path
 
-            check_script = Path(__file__).parent / "check.py"
-            subprocess.run([sys.executable, str(check_script), csv_path], check=True)
-            print("✅ Validação OCR concluída com sucesso")
-        except subprocess.CalledProcessError:
-            print("❌ Falha na validação OCR - verifique as linhas sem OCR")
-        except Exception as e:
-            print(f"⚠️  Erro na validação OCR: {str(e)}")
+                check_script = Path(__file__).parent / "check.py"
+                subprocess.run([sys.executable, str(check_script), csv_path], check=True)
+                print("✅ Validação OCR concluída com sucesso")
+            except subprocess.CalledProcessError:
+                print("❌ Falha na validação OCR - verifique as linhas sem OCR")
+            except Exception as e:
+                print(f"⚠️  Erro na validação OCR: {str(e)}")
     except Exception as e:
         print(f"❌ Erro ao gerar relatório HTML: {str(e)}")
 
 
-def gerar_relatorios_mensais_html(csv_path, backup=True):
+def gerar_relatorios_mensais_html(csv_path=None, backup=True):
     print(f"📅 Gerando relatórios mensais HTML baseado em {csv_path}...")
     try:
-        if not os.path.exists(csv_path):
-            print(
-                f"❌ Relatórios mensais não foram gerados pela ausência da planilha de cálculos ({csv_path})"
-            )
-            return
+        # Se csv_path não foi fornecido, usa dados do banco Django
+        if csv_path is None:
+            print("📅 Gerando relatórios mensais a partir do banco de dados Django...")
+            try:
+                import django
+                from django.utils import timezone
+                from .models import EntradaFinanceira
+                
+                # Busca todas as entradas não desconsideradas
+                entradas = EntradaFinanceira.objects.filter(desconsiderada=False).order_by('data_hora')
+                
+                if not entradas.exists():
+                    print("❌ Nenhuma entrada encontrada no banco de dados")
+                    return
+                
+                print(f"📊 Encontradas {entradas.count()} entradas no banco de dados")
+                
+            except Exception as e:
+                print(f"❌ Erro ao acessar banco de dados: {str(e)}")
+                return
+        else:
+            # Usa arquivo CSV se fornecido
+            if not os.path.exists(csv_path):
+                print(
+                    f"❌ Relatórios mensais não foram gerados pela ausência da planilha de cálculos ({csv_path})"
+                )
+                return
 
-        # Carregar dados OCR
-        ocr_map = _carregar_ocr_map()
+        if csv_path is not None:
+            # Carregar dados OCR
+            ocr_map = _carregar_ocr_map()
 
-        # Carregar dados
-        df = pd.read_csv(csv_path)
-        df["DATA_DT"] = pd.to_datetime(df["DATA"], format="%d/%m/%Y", errors="coerce")
-        df["ANO_MES"] = df["DATA_DT"].dt.to_period("M")
+            # Carregar dados do CSV
+            df = pd.read_csv(csv_path)
+            df["DATA_DT"] = pd.to_datetime(df["DATA"], format="%d/%m/%Y", errors="coerce")
+            df["ANO_MES"] = df["DATA_DT"].dt.to_period("M")
+        else:
+            # Processar dados do banco
+            from django.utils import timezone
+            import pandas as pd
+            
+            # Converte entradas do banco para DataFrame
+            dados_banco = []
+            for entrada in entradas:
+                dados_banco.append({
+                    'DATA': entrada.data_hora.strftime('%d/%m/%Y'),
+                    'HORA': entrada.data_hora.strftime('%H:%M:%S'),
+                    'VALOR': entrada.valor,
+                    'DESCRICAO': entrada.descricao or '',
+                    'CLASSIFICACAO': entrada.classificacao or 'outros',
+                    'ARQUIVO_ORIGEM': entrada.arquivo_origem or '',
+                    'DESCONSIDERADA': entrada.desconsiderada
+                })
+            
+            df = pd.DataFrame(dados_banco)
+            df["DATA_DT"] = pd.to_datetime(df["DATA"], format="%d/%m/%Y", errors="coerce")
+            df["ANO_MES"] = df["DATA_DT"].dt.to_period("M")
+            
+            # OCR map vazio para dados do banco
+            ocr_map = {}
 
         # Agrupar por mês
         grupos_mensais = df.groupby("ANO_MES")

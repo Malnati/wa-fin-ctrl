@@ -59,9 +59,11 @@ class CommandHistory:
                     data_hora_str = arguments['data_hora']
                     data_hora_entrada = datetime.strptime(data_hora_str, '%d/%m/%Y %H:%M:%S')
                 except (ValueError, TypeError):
-                    data_hora_entrada = datetime.now()
+                    from django.utils import timezone
+                    data_hora_entrada = timezone.now()
             else:
-                data_hora_entrada = datetime.now()
+                from django.utils import timezone
+                data_hora_entrada = timezone.now()
             
             # Converte rotate_degrees para int se for string
             if rotate_degrees and isinstance(rotate_degrees, str):

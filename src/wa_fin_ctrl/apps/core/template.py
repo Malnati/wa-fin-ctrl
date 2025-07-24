@@ -14,9 +14,14 @@ ENCODING_UTF8 = "utf-8"
 MODO_ESCRITA = "w"
 
 # Define onde os templates estão (pasta templates/ na raiz do projeto)
-TEMPLATES_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), DIRETORIO_TEMPLATES
-)
+# Usa caminho absoluto baseado na raiz do projeto
+current_dir = os.path.dirname(__file__)
+# Sobe 4 níveis: apps/core -> apps -> wa_fin_ctrl -> src -> raiz
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_dir))))
+TEMPLATES_DIR = os.path.join(project_root, DIRETORIO_TEMPLATES)
+
+# Debug: imprime o caminho dos templates
+print(f"DEBUG: TemplateRenderer usando diretório: {TEMPLATES_DIR}")
 env = Environment(loader=FileSystemLoader(TEMPLATES_DIR), autoescape=True)
 
 
