@@ -20,7 +20,7 @@ from datetime import datetime
 
 from .apps.core.ocr import registrar_ocr_xml, process_image_ocr
 from .apps.core.env import *
-from .apps.core.helper import convert_to_brazilian_format, normalize_value_to_brazilian_format, parse_value_from_input
+from .apps.core.helper import normalize_value_to_brazilian_format, parse_value_from_input
 from .apps.core.history import record_fix_command_wrapper
 from .apps.core.models import EntradaFinanceira
 from .apps.core.ia import (
@@ -30,11 +30,9 @@ from .apps.core.ia import (
 )
 from .apps.core.helper import (
     normalize_sender,
-    adicionar_totalizacao_mensal,
 )
 from .apps.core.utils import (
     descomprimir_zip_se_existir,
-    organizar_arquivos_extraidos,
     organizar_subdiretorios_se_necessario,
     mover_arquivos_processados,
     backup_arquivos_existentes,
@@ -485,7 +483,8 @@ def processar_imgs(force=False, entry=None, backup=False):
 
 
 
-def executar_testes_e2e():
+# Removido: função não utilizada
+# def executar_testes_e2e():
     """Executa testes End-to-End completos do sistema"""
     print("\n=== INICIANDO TESTES E2E ===")
 
@@ -537,7 +536,8 @@ def executar_testes_e2e():
 
 
 
-def testar_processamento_incremental():
+# Removido: função não utilizada
+# def testar_processamento_incremental():
     """Testa o processamento incremental completo"""
     print("\n--- Testando Processamento Incremental ---")
 
@@ -588,7 +588,8 @@ def testar_processamento_incremental():
         return False
 
 
-def testar_verificacao_totais():
+# Removido: função não utilizada
+# def testar_verificacao_totais():
     """Testa a verificação de totais"""
     print("\n--- Testando Verificação de Totais ---")
 
