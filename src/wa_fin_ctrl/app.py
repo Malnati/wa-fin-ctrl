@@ -14,11 +14,7 @@ from openai import OpenAI
 import base64
 from pathlib import Path
 from datetime import datetime
-from .apps.core.reporter import (
-    gerar_relatorio_html,
-    gerar_relatorios_mensais_html,
-    gerar_html_impressao,
-)
+# Removido: geração de relatórios HTML não é mais necessária com React
 
 # Adiciona imports para PDF
 
@@ -169,13 +165,8 @@ def processar_incremental(force=False, entry=None, backup=False):
         
         if not arquivos_para_processar:
             print("Nenhum arquivo novo para processar.")
-            print("\n=== GERANDO RELATÓRIO HTML ===")
-            try:
-                gerar_relatorio_html()
-                gerar_relatorios_mensais_html()
-            except Exception as e:
-                print(f"⚠️  Erro ao gerar relatórios: {str(e)}")
-                print("Relatórios não foram gerados, mas o processamento foi concluído com sucesso.")
+            print("\n=== PROCESSAMENTO CONCLUÍDO ===")
+            print("Dados registrados no banco SQLite. Use o frontend React para visualização.")
             return
         print(f"\n=== PROCESSANDO ARQUIVOS ENCONTRADOS ===")
         print("=== PROCESSANDO DADOS COMPLETOS ===")
@@ -274,17 +265,9 @@ def processar_incremental(force=False, entry=None, backup=False):
         print("\n=== PROCESSAMENTO INCREMENTAL CONCLUÍDO ===")
         # Edições agora são aplicadas diretamente no banco de dados
         print("Edições aplicadas no banco de dados.")
-    print("\n=== GERANDO RELATÓRIO HTML ===")
-    try:
-        gerar_relatorio_html()
-        print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
-        gerar_relatorios_mensais_html()
-    except Exception as e:
-        print(f"⚠️  Erro ao gerar relatórios: {str(e)}")
-        print("Relatórios não foram gerados, mas o processamento foi concluído com sucesso.")
-    # Dados agora vêm do banco de dados
-    # Processamento de dados movido para o módulo de relatórios
-    print("✅ Relatórios gerados com sucesso!")
+    print("\n=== PROCESSAMENTO CONCLUÍDO ===")
+    print("Dados registrados no banco SQLite. Use o frontend React para visualização.")
+    print("✅ Processamento concluído com sucesso!")
 
 
 def processar_pdfs(force=False, entry=None, backup=False):
@@ -983,20 +966,7 @@ def fix_entry(
             return False
 
         print("✅ Correção concluída com sucesso!")
-        print(" Gerando relatórios atualizados...")
-
-        # Regenera os relatórios
-        try:
-            print(f"🔄 Regenerando relatório principal...")
-            gerar_relatorio_html()
-            print(f"🔄 Regenerando relatórios mensais...")
-            gerar_relatorios_mensais_html()
-            print("✅ Relatórios regenerados com sucesso!")
-        except Exception as e:
-            print(f"⚠️  Erro ao regenerar relatórios: {str(e)}")
-            import traceback
-
-            traceback.print_exc()
+        print("Dados atualizados no banco SQLite. Use o frontend React para visualização.")
 
         # Registra a correção no banco de dados SQLite
         try:
@@ -1140,15 +1110,7 @@ def dismiss_entry(data_hora):
             print(
                 f"\n✅ Total de {entradas_encontradas} entrada(s) marcada(s) como 'dismiss'"
             )
-            print(" Gerando relatórios atualizados...")
-
-            # Regenera os relatórios automaticamente
-            try:
-                gerar_relatorio_html()
-                gerar_relatorios_mensais_html()
-                print("✅ Relatórios regenerados com sucesso!")
-            except Exception as e:
-                print(f"⚠️  Erro ao regenerar relatórios: {str(e)}")
+            print("Dados atualizados no banco SQLite. Use o frontend React para visualização.")
 
             return True
         else:
