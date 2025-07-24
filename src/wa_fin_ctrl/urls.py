@@ -31,7 +31,6 @@ urlpatterns = [
 
 # Adiciona URLs para arquivos estáticos em desenvolvimento
 if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     # Usa constantes do env.py para diretórios
     from .apps.core.env import ATTR_FIN_DIR_IMGS
     urlpatterns += static(f'/{ATTR_FIN_DIR_IMGS}/', document_root=f'{ATTR_FIN_DIR_IMGS}/')
