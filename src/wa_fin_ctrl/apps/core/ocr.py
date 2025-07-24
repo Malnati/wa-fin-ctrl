@@ -12,7 +12,7 @@ from threading import Lock
 import pdfplumber
 from pdf2image import convert_from_path
 from .models import EntradaFinanceira, ArquivoProcessado
-from .env import ATTR_FIN_DIR_OCR, ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT
+from .env import ATTR_FIN_DIR_IMGS, ATTR_FIN_DIR_INPUT
 
 # ==== CONSTANTES ====
 # Mensagens de erro
