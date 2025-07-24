@@ -12,7 +12,7 @@ class Processamento(models.Model):
     TIPO_CHOICES = [
         ('incremental', 'Processamento Incremental'),
         ('force', 'Processamento Forçado'),
-        ('backup', 'Processamento com Backup'),
+        # Removido: backup não é mais necessário com banco SQLite unificado
     ]
     
     STATUS_CHOICES = [
