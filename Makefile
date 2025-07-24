@@ -18,8 +18,8 @@ VAR_FIN_DIR_MASSA=massa
 VAR_FIN_DIR_TMP=tmp
 # Diretórios de mensagens
 VAR_FIN_DIR_MENSAGENS=mensagens
-# Diretórios de OCR
-VAR_FIN_DIR_OCR=ocr
+# Removido: diretório OCR não é mais necessário (dados no banco)
+# VAR_FIN_DIR_OCR=ocr
 # Diretórios de documentos
 VAR_FIN_DIR_DOCS=docs
 # Diretórios de código fonte
@@ -34,8 +34,8 @@ VAR_FIN_ARQ_DIAGNOSTICO=diagnostico.csv
 VAR_FIN_ARQ_DB=${VAR_FIN_DIR_DB}/db.sqlite3
 # Arquivos de chat
 VAR_FIN_ARQ_CHAT=_chat.txt
-# Arquivos de OCR
-VAR_FIN_ARQ_OCR_XML=${VAR_FIN_DIR_OCR}/extract.xml
+# Removido: arquivos OCR não são mais necessários (dados no banco)
+# VAR_FIN_ARQ_OCR_XML=${VAR_FIN_DIR_OCR}/extract.xml
 # Arquivo principal
 VAR_FIN_ARQ_MAIN=wa-fin.py
 # Arquivos de relatórios
@@ -67,7 +67,8 @@ export ATTR_FIN_DIR_MASSA=${VAR_FIN_DIR_MASSA}
 # Removido: diretórios obsoletos
 # export ATTR_FIN_DIR_TMP=${VAR_FIN_DIR_TMP}
 # export ATTR_FIN_DIR_MENSAGENS=${VAR_FIN_DIR_MENSAGENS}
-export ATTR_FIN_DIR_OCR=${VAR_FIN_DIR_OCR}
+# Removido: diretório OCR não é mais necessário
+# export ATTR_FIN_DIR_OCR=${VAR_FIN_DIR_OCR}
 export ATTR_FIN_DIR_DOCS=${VAR_FIN_DIR_DOCS}
 export ATTR_FIN_DIR_SRC=${VAR_FIN_DIR_SRC}
 # Removido: templates não são mais necessários
@@ -77,7 +78,8 @@ export ATTR_FIN_DIR_SRC=${VAR_FIN_DIR_SRC}
 # export ATTR_FIN_ARQ_MENSAGENS=${VAR_FIN_ARQ_MENSAGENS}
 export ATTR_FIN_ARQ_DIAGNOSTICO=${VAR_FIN_ARQ_DIAGNOSTICO}
 export ATTR_FIN_ARQ_CHAT=${VAR_FIN_ARQ_CHAT}
-export ATTR_FIN_ARQ_OCR_XML=${VAR_FIN_ARQ_OCR_XML}
+# Removido: arquivo OCR não é mais necessário
+# export ATTR_FIN_ARQ_OCR_XML=${VAR_FIN_ARQ_OCR_XML}
 export ATTR_FIN_ARQ_MAIN=${VAR_FIN_ARQ_MAIN}
 # Removido: relatórios HTML não são mais necessários
 # export ATTR_FIN_ARQ_REPORT_HTML=${VAR_FIN_ARQ_REPORT_HTML}
@@ -107,8 +109,8 @@ check_poetry_installed:
 
 # Cria os diretórios necessários
 create-directories:
-	@echo "Criando diretórios: ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_OCR}, ${ATTR_FIN_DIR_DOCS}, ${ATTR_FIN_DIR_SRC}, ${ATTR_FIN_DIR_DB}"
-	@mkdir -pv "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_OCR}" "${ATTR_FIN_DIR_DOCS}" "${ATTR_FIN_DIR_SRC}" "${ATTR_FIN_DIR_DB}"
+	@echo "Criando diretórios: ${ATTR_FIN_DIR_INPUT}, ${ATTR_FIN_DIR_IMGS}, ${ATTR_FIN_DIR_MASSA}, ${ATTR_FIN_DIR_DOCS}, ${ATTR_FIN_DIR_SRC}, ${ATTR_FIN_DIR_DB}"
+	@mkdir -pv "${ATTR_FIN_DIR_INPUT}" "${ATTR_FIN_DIR_IMGS}" "${ATTR_FIN_DIR_MASSA}" "${ATTR_FIN_DIR_DOCS}" "${ATTR_FIN_DIR_SRC}" "${ATTR_FIN_DIR_DB}"
 
 # Exibe as variáveis de ambiente
 show-variables:
@@ -118,7 +120,8 @@ show-variables:
 	@echo "VAR_FIN_DIR_INPUT: ${VAR_FIN_DIR_INPUT}"
 	@echo "VAR_FIN_DIR_IMGS: ${VAR_FIN_DIR_IMGS}"
 	@echo "VAR_FIN_DIR_MASSA: ${VAR_FIN_DIR_MASSA}"
-	@echo "VAR_FIN_DIR_OCR: ${VAR_FIN_DIR_OCR}"
+	# Removido: diretório OCR não é mais necessário
+	# @echo "VAR_FIN_DIR_OCR: ${VAR_FIN_DIR_OCR}"
 	@echo "VAR_FIN_DIR_DOCS: ${VAR_FIN_DIR_DOCS}"
 	@echo "VAR_FIN_DIR_SRC: ${VAR_FIN_DIR_SRC}"
 	# Removido: diretórios obsoletos
@@ -153,7 +156,8 @@ show-variables:
 	@echo "ATTR_FIN_DIR_MASSA: ${ATTR_FIN_DIR_MASSA}"
 	@echo "ATTR_FIN_DIR_TMP: ${ATTR_FIN_DIR_TMP}"
 	@echo "ATTR_FIN_DIR_MENSAGENS: ${ATTR_FIN_DIR_MENSAGENS}"
-	@echo "ATTR_FIN_DIR_OCR: ${ATTR_FIN_DIR_OCR}"
+	# Removido: diretório OCR não é mais necessário
+	# @echo "ATTR_FIN_DIR_OCR: ${ATTR_FIN_DIR_OCR}"
 	@echo "ATTR_FIN_DIR_DOCS: ${ATTR_FIN_DIR_DOCS}"
 	@echo "ATTR_FIN_DIR_SRC: ${ATTR_FIN_DIR_SRC}"
 	@echo "ATTR_FIN_DIR_TEMPLATES: ${ATTR_FIN_DIR_TEMPLATES}"
@@ -188,6 +192,8 @@ server: check_poetry_installed install
 copy: check_poetry_installed install
 copy-july-report: check_poetry_installed install
 copy-report: check_poetry_installed
+db-setup: check_poetry_installed create-directories
+db-migrate: check_poetry_installed create-directories
 
 # =============================================================================
 # COMANDOS PRINCIPAIS (ORDEM ALFABÉTICA)
@@ -272,6 +278,62 @@ history-migrate:
 history-json:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} history --json
 
+# =============================================================================
+# COMANDOS DE BANCO DE DADOS
+# =============================================================================
+
+# Configura o banco de dados unificado (via Django)
+db-setup:
+	@echo "🗄️  Configurando banco de dados unificado..."
+	poetry run python manage.py migrate
+
+# Verifica dados externos para migração (opcional)
+db-migrate:
+	@echo "🔄 Verificando dados externos para migração..."
+	@echo "💡 Banco unificado - migração não necessária"
+	@echo "✅ Banco já está pronto para uso"
+
+# Setup completo (setup + verificação de migração)
+db-init: db-setup
+	@echo "✅ Banco de dados inicializado com sucesso!"
+
+# Faz backup do banco atual
+db-backup:
+	@echo "📦 Fazendo backup do banco..."
+	@if [ -f "${ATTR_FIN_ARQ_DB}" ]; then \
+		cp -v "${ATTR_FIN_ARQ_DB}" "${ATTR_FIN_ARQ_DB}.backup.$$(date +%Y%m%d_%H%M%S)"; \
+		echo "✅ Backup criado"; \
+	else \
+		echo "⚠️  Banco não encontrado para backup"; \
+	fi
+
+# Restaura backup do banco
+db-restore:
+	@echo "🔄 Restaurando backup do banco..."
+	@if [ -f "${ATTR_FIN_ARQ_DB}.backup" ]; then \
+		cp -v "${ATTR_FIN_ARQ_DB}.backup" "${ATTR_FIN_ARQ_DB}"; \
+		echo "✅ Backup restaurado"; \
+	else \
+		echo "❌ Backup não encontrado"; \
+	fi
+
+# Mostra informações do banco
+db-info:
+	@echo "📊 Informações do banco de dados:"
+	@if [ -f "${ATTR_FIN_ARQ_DB}" ]; then \
+		echo "   📁 Arquivo: ${ATTR_FIN_ARQ_DB}"; \
+		echo "   📏 Tamanho: $$(du -h "${ATTR_FIN_ARQ_DB}" | cut -f1)"; \
+		echo "   📅 Modificado: $$(stat -f "%Sm" "${ATTR_FIN_ARQ_DB}")"; \
+		sqlite3 "${ATTR_FIN_ARQ_DB}" "SELECT COUNT(*) as total_entradas FROM core_entradafinanceira;" 2>/dev/null || echo "   ❌ Erro ao consultar banco"; \
+	else \
+		echo "   ❌ Banco não encontrado"; \
+	fi
+
+# Testa o banco de dados (via Django)
+db-test:
+	@echo "🧪 Testando banco de dados..."
+	poetry run python manage.py test wa_fin_ctrl.apps.core.tests
+
 # Processa todos os arquivos (força reprocessamento, sem backup)
 force:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} processar --force 
@@ -311,6 +373,14 @@ help:
 	@echo "    history-clear: Limpa todo o histórico"
 	@echo "    history-migrate: Migra dados do JSON para o banco"
 	@echo "    history-json: Mostra histórico em formato JSON"
+	@echo "  Banco de Dados:"
+	@echo "    db-setup: Configura o banco de dados unificado (via Django)"
+	@echo "    db-migrate: Banco unificado - migração não necessária"
+	@echo "    db-init: Setup completo (via Django)"
+	@echo "    db-backup: Faz backup do banco atual"
+	@echo "    db-restore: Restaura backup do banco"
+	@echo "    db-info: Mostra informações do banco"
+	@echo "    db-test: Testa o banco de dados"
 	@echo "  Django:"
 	@echo "    migrate: Executa migrações do banco de dados"
 	@echo "    makemigrations: Cria novas migrações"
@@ -395,7 +465,8 @@ remove-imgs:
 
 # Remove o diretório de OCR
 remove-ocr:
-	@rm -rfv ${ATTR_FIN_DIR_OCR}/*
+	# Removido: diretório OCR não é mais necessário
+# @rm -rfv ${ATTR_FIN_DIR_OCR}/*
 
 # Removido: diretório mensagens não é mais necessário
 # remove-mensagens:
