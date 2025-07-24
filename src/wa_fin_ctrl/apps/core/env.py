@@ -9,8 +9,9 @@ ATTR_FIN_OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", None)
 ATTR_FIN_DIR_INPUT = os.getenv("ATTR_FIN_DIR_INPUT", "input")
 ATTR_FIN_DIR_IMGS = os.getenv("ATTR_FIN_DIR_IMGS", "imgs")
 ATTR_FIN_DIR_MASSA = os.getenv("ATTR_FIN_DIR_MASSA", "massa")
-ATTR_FIN_DIR_TMP = os.getenv("ATTR_FIN_DIR_TMP", "tmp")
-ATTR_FIN_DIR_MENSAGENS = os.getenv("ATTR_FIN_DIR_MENSAGENS", "mensagens")
+# Removido: diretórios obsoletos não são mais necessários
+# ATTR_FIN_DIR_TMP = os.getenv("ATTR_FIN_DIR_TMP", "tmp")
+# ATTR_FIN_DIR_MENSAGENS = os.getenv("ATTR_FIN_DIR_MENSAGENS", "mensagens")
 ATTR_FIN_DIR_OCR = os.getenv("ATTR_FIN_DIR_OCR", "ocr")
 ATTR_FIN_DIR_DOCS = os.getenv("ATTR_FIN_DIR_DOCS", "docs")
 
