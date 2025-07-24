@@ -11,6 +11,9 @@ import click
 import os
 import shutil
 import django
+import subprocess
+import sys
+from pathlib import Path
 
 # Configura Django antes de importar módulos que usam modelos
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
@@ -26,6 +29,27 @@ from .app import (
 )
 from .apps.core.history import CommandHistory
 from .apps.core.processor import processar_incremental_paralelo
+
+
+def ensure_database_exists():
+    """Garante que o banco de dados existe e as migrações foram aplicadas."""
+    try:
+        from django.db import connection
+        from django.core.management import execute_from_command_line
+        
+        # Verifica se o banco existe e tem tabelas
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='django_migrations'")
+            if not cursor.fetchone():
+                print("🗄️  Inicializando banco de dados...")
+                # Executa as migrações
+                execute_from_command_line(['manage.py', 'migrate', '--verbosity=0'])
+                print("✅ Banco de dados inicializado com sucesso!")
+                
+    except Exception as e:
+        print(f"⚠️  Erro ao verificar/inicializar banco: {e}")
+        print("💡 Execute manualmente: poetry run python manage.py migrate")
+        raise
 
 
 @click.group()
@@ -56,6 +80,9 @@ def cli():
 )
 def processar(force, entry, backup, parallel, max_workers):
     """Executa o processamento incremental dos comprovantes (PDFs + imagens)."""
+    # Garante que o banco de dados existe
+    ensure_database_exists()
+    
     # Prepara argumentos para o histórico - inclui TODOS os argumentos
     arguments = {"force": force, "entry": entry, "backup": backup, "parallel": parallel, "max_workers": max_workers}
 
@@ -123,6 +150,9 @@ def processar_pdf(force, entry, backup):
     - Extrai texto via OCR e salva no banco de dados
     - Processa dados e salva no banco de dados
     """
+    # Garante que o banco de dados existe
+    ensure_database_exists()
+    
     # Prepara argumentos para o histórico - inclui TODOS os argumentos
     arguments = {"force": force, "entry": entry, "backup": backup}
 
@@ -160,6 +190,9 @@ def processar_img(force, entry, backup):
     - Extrai texto via OCR e salva no banco de dados
     - Processa dados e salva no banco de dados
     """
+    # Garante que o banco de dados existe
+    ensure_database_exists()
+    
     # Prepara argumentos para o histórico - inclui TODOS os argumentos
     arguments = {"force": force, "entry": entry, "backup": backup}
 
@@ -220,9 +253,8 @@ def processar_img(force, entry, backup):
 )
 def fix(data_hora, value, classification, description, dismiss, rotate, ia):
     """Corrige uma entrada específica em todos os arquivos CSV."""
-    # Configura Django antes de usar os modelos
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
-    django.setup()
+    # Garante que o banco de dados existe
+    ensure_database_exists()
     
     # Prepara argumentos para o histórico - inclui TODOS os argumentos
     arguments = {
@@ -251,9 +283,8 @@ def fix(data_hora, value, classification, description, dismiss, rotate, ia):
 @click.argument("data_hora", type=str)
 def dismiss(data_hora):
     """Marca uma entrada como desconsiderada."""
-    # Configura Django antes de usar os modelos
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wa_fin_ctrl.settings')
-    django.setup()
+    # Garante que o banco de dados existe
+    ensure_database_exists()
     
     # Prepara argumentos para o histórico
     arguments = {
