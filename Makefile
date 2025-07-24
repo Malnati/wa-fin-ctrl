@@ -448,7 +448,6 @@ remove-all:
 	@$(MAKE) remove-reports
 	@$(MAKE) remove-baks
 	@$(MAKE) remove-imgs
-	@$(MAKE) remove-tmp
 	@$(MAKE) remove-db
 
 # Remove os backups
