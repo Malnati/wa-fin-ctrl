@@ -318,6 +318,7 @@ async def list_reports():
             report_type = "geral"
             period = None
             is_editable = False
+            display_name = filename
             
             if filename == "index.html":
                 report_type = "index"
@@ -326,21 +327,17 @@ async def list_reports():
                 report_type = "geral"
                 display_name = "Relatório Geral"
             elif filename.startswith("report-") and filename.endswith(".html"):
-                # Relatórios mensais: report-2025-07-Julho.html
-                match = re.match(r"report-(\d{4})-(\d{2})-(.+)\.html", filename)
+                # Relatórios mensais: report-2025-07-Julho.html ou report-edit-2025-07-Julho.html
+                match = re.match(r"report-(?:edit-)?(\d{4})-(\d{2})-(.+)\.html", filename)
                 if match:
                     year = match.group(1)
                     month = match.group(3)
                     report_type = "mensal"
                     period = f"{month} {year}"
                     display_name = f"Relatório {month} {year}"
-                    
-                    # Verifica se é editável
                     if filename.startswith("report-edit-"):
                         is_editable = True
                         display_name += " (Editável)"
-            else:
-                display_name = filename
             
             reports.append({
                 "filename": filename,
