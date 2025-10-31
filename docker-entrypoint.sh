@@ -29,6 +29,16 @@ else
       echo "[entrypoint] Running full processing pipeline (force mode)..."
       poetry run python wa-fin.py processar --force
       first_run=0
+      if [[ ! -f "mensagens/calculo.csv" ]]; then
+        mkdir -p input
+        if [[ -f "imgs/_chat.txt" ]]; then
+          cp -v "imgs/_chat.txt" "input/_chat.txt"
+        else
+          echo "[entrypoint] Warning: _chat.txt not found in imgs/ after forced processing."
+        fi
+        echo "[entrypoint] Running incremental processing to generate calculation spreadsheet..."
+        poetry run python wa-fin.py processar
+      fi
     else
       echo "[entrypoint] Running incremental processing..."
       poetry run python wa-fin.py processar
