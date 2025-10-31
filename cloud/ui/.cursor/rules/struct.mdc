@@ -1,0 +1,14 @@
+---
+description: |
+    Arquivos obrigatórios na raiz:
+    - Login.tsx, Upload.tsx, Branding.tsx
+    - LoginHelper.ts, UploadHelper.ts, BrandingHelper.ts
+
+    Regras:
+    - Nenhum outro arquivo em `src/app`.
+    - Remover `page.tsx` ou subdiretórios.
+    - Migrar helpers JS para TypeScript.
+
+globs: ["*"]
+alwaysApply: true
+---

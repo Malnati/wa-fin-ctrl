@@ -1,0 +1,25 @@
+---
+description: |
+  Nenhum valor fixo (hardcoded) deve ser utilizado diretamente no corpo de funções, métodos ou blocos de código.
+
+  Todos os valores literais como:
+    - URLs de APIs e endpoints (ex: `"https://xyz"`);
+    - Chaves de configuração (ex: `"OPENAI_API_KEY"`);
+    - URLs, nomes de arquivos, extensões, tokens e parâmetros estáticos;
+    - Nomes de campos, propriedades ou estruturas fixas;
+    - Mensagens de erro ou sucesso;
+
+  Devem obrigatoriamente ser extraídos para constantes no **topo do arquivo JavaScript**, em letras maiúsculas com underscores (ex: `const API_ENDPOINT = "https://xyz"`), conforme boas práticas de Clean Code.
+
+  Essa abordagem:
+    - Centraliza os valores para facilitar ajustes futuros;
+    - Evita duplicações e inconsistências;
+    - Torna o código mais legível e autossuficiente;
+    - Suporta refatorações automatizadas com maior segurança.
+
+  Exceções:
+    - Strings que aparecem uma única vez e são claramente autoexplicativas (ex: `console.log("Debug info")`) podem ser toleradas, desde que não representem configuração ou dados relevantes.
+
+globs: ['*']
+alwaysApply: true
+---

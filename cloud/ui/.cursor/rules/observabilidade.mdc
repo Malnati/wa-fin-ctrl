@@ -1,0 +1,18 @@
+---
+description: |
+    # Estilo e cabeçalhos
+
+    Cabeçalho obrigatório:
+    - TS/TSX: `// src/app/Login.tsx`
+    - Shell: shebang + comentário do caminho.
+    - HTML: `<!-- caminho -->`
+    - JSON/YAML: comentário válido no topo.
+
+    Regras:
+    - TypeScript estrito.
+    - Imports ordenados.
+    - Sem `any` sem justificativa.
+
+globs: ["*"]
+alwaysApply: true
+---

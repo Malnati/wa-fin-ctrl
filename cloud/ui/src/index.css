@@ -1,0 +1,169 @@
+@import "./styles/design-system.css";
+
+:root {
+  font-family: var(--font-body);
+  line-height: var(--text-leading-normal);
+  font-weight: var(--text-weight-regular);
+
+  color-scheme: light dark;
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: var(--text-weight-regular);
+  color: var(--color-secondary);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--color-primary);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+h1 {
+  font-size: var(--text-headline-size);
+  font-weight: var(--text-weight-semibold);
+  font-family: var(--font-display);
+  line-height: var(--text-leading-tight);
+}
+
+.markdown-body {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: inherit;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  font-weight: 600;
+  margin-top: 0;
+  color: inherit;
+}
+
+/* Typography 4x2 compliance: Using only 4 font sizes */
+.markdown-body h1 {
+  font-size: var(--text-subtitle-size); /* 24px */
+  font-weight: var(--text-weight-semibold);
+  line-height: var(--text-leading-normal);
+  margin-bottom: var(--space-12);
+  font-family: var(--font-display);
+}
+
+.markdown-body h2 {
+  font-size: var(--text-body-size); /* 16px */
+  font-weight: var(--text-weight-semibold);
+  line-height: var(--text-leading-normal);
+  margin-bottom: var(--space-12);
+  font-family: var(--font-display);
+}
+
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5 {
+  font-size: var(--text-body-size); /* 16px */
+  font-weight: var(--text-weight-semibold);
+  line-height: var(--text-leading-normal);
+  margin-bottom: var(--space-8);
+  font-family: var(--font-display);
+}
+
+.markdown-body h6 {
+  font-size: var(--text-caption-size); /* 12px */
+  font-weight: var(--text-weight-semibold);
+  line-height: var(--text-leading-normal);
+  margin-bottom: var(--space-8);
+  text-transform: none;
+  font-family: var(--font-display);
+}
+
+.markdown-body p,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body pre {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 1.2rem;
+}
+
+.markdown-body li + li {
+  margin-top: 0.25rem;
+}
+
+.markdown-body pre,
+.markdown-body code {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.markdown-body pre {
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  background-color: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.04));
+}
+
+.markdown-body code {
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  background-color: var(--bs-tertiary-bg, rgba(0, 0, 0, 0.08));
+}
+
+.markdown-body > :last-child {
+  margin-bottom: 0;
+}
+
+button {
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  padding: var(--space-12) var(--space-16);
+  font-size: var(--text-body-size);
+  font-weight: var(--text-weight-semibold);
+  font-family: var(--font-body);
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  cursor: pointer;
+  transition: all var(--transition-default);
+}
+button:hover {
+  background-color: rgba(45, 15, 85, 0.9);
+  transform: translateY(-1px);
+}
+button:focus,
+button:focus-visible {
+  outline: 3px solid var(--color-secondary);
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: var(--color-text-primary);
+    background-color: var(--color-surface);
+  }
+  a:hover {
+    color: var(--color-primary);
+  }
+  button {
+    background-color: var(--color-secondary);
+  }
+}

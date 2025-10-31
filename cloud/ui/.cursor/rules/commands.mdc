@@ -1,0 +1,22 @@
+---
+description: >
+  Sempre que executar um comando que possa bloquear a interface interativa (ex: comandos com saída longa ou que aguardam input), certifique-se de prevenir esse bloqueio. 
+  Para isso, utilize uma das seguintes estratégias:
+  - Execute o comando em segundo plano (com `&`);
+  - Encadeie o comando com `| cat` para forçar o flush da saída;
+  - Use `| cut`, `| grep`, ou outro pipe que processe a saída automaticamente;
+  - Redirecione a saída para `/dev/null` ou para um arquivo temporário, se apropriado.
+
+  Além disso, **todas as execuções de comandos para testar ou verificar alterações devem ser feitas obrigatoriamente via `make`, utilizando os targets existentes no `Makefile`**.
+  É proibido executar comandos diretamente via `python`, `poetry run python`, `node`, `sh`, `bash`, ou similares. O `Makefile` é o único ponto de entrada autorizado para interagir com o sistema.
+  
+  🚫 **RESTRIÇÃO CRÍTICA - NUNCA testar geração de áudio:**
+  - NUNCA execute `curl` com `generateAudio=true` ou `voiceID` real
+  - NUNCA teste APIs TTS durante desenvolvimento
+  - NUNCA gere arquivos de áudio via comandos
+  - SEMPRE use parâmetros nulos para evitar custos de API
+
+  Caso o comando seja enviado para segundo plano (`&`), o processo poderá ser monitorado ou recuperado posteriormente utilizando seu PID (identificador de processo).
+globs:
+alwaysApply: true
+---

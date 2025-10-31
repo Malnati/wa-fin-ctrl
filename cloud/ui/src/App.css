@@ -1,0 +1,221 @@
+/* Reset básico */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.page {
+  width: 100%;
+  padding-bottom: 60px; /* Espaço para o footer fixo */
+  flex: 1;
+}
+
+.main-content {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+/* Container e layout customizado */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+}
+
+/* Botões customizados específicos */
+
+/* Formulários customizados específicos */
+
+/* Modal customizado específico */
+.modal-dialog {
+  max-height: 100vh !important;
+  margin: 0 !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: auto !important;
+  max-width: 90vw !important;
+}
+
+.modal-content {
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-body {
+  overflow-y: auto;
+  max-height: calc(100vh - 200px); /* Subtrai altura do header e footer */
+  padding: 1rem;
+}
+
+/* Responsividade do modal */
+@media (max-width: 768px) {
+  .modal-dialog {
+    margin: 0 !important;
+    max-height: 100vh !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 95vw !important;
+  }
+
+  .modal-body {
+    max-height: calc(100vh - 180px);
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-dialog {
+    margin: 0 !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 95vw !important;
+  }
+
+  .modal-body {
+    max-height: calc(100vh - 160px);
+    padding: 0.75rem;
+  }
+}
+
+/* Componentes customizados específicos */
+
+/* Footer fixo e expansível */
+.footer-mobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  width: 100%;
+  background: var(--color-surface-elevated);
+  border-top: 1px solid var(--color-border);
+  transition: all var(--transition-slow);
+  max-height: 64px; /* 8pt grid compliant */
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+
+.footer-mobile.expanded {
+  max-height: 500px;
+}
+
+/* Botão de toggle para expandir/colapsar */
+.footer-toggle {
+  position: absolute;
+  top: var(--space-16);
+  right: var(--space-16);
+  background: var(--color-text-secondary);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: 50%;
+  width: 32px; /* 8pt grid compliant */
+  height: 32px; /* 8pt grid compliant */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-caption-size);
+  transition: all var(--transition-slow);
+  z-index: 1001;
+  box-shadow: var(--shadow-soft);
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.footer-toggle:hover {
+  background: var(--color-primary);
+  transform: scale(1.1);
+}
+
+/* Conteúdo do footer */
+.footer-content {
+  padding: var(--space-16);
+  opacity: 0.3;
+  transition: opacity var(--transition-slow);
+  margin-top: var(--space-8);
+}
+
+.footer-mobile.expanded .footer-content {
+  opacity: 1;
+}
+
+/* Indicador visual quando minimizado */
+.footer-mobile:not(.expanded) .footer-content {
+  pointer-events: none;
+}
+
+/* Indicador visual de footer minimizado */
+.footer-mobile:not(.expanded)::before {
+  content: "Clique para expandir o rodapé";
+  position: absolute;
+  top: var(--space-16);
+  left: var(--space-16);
+  font-size: var(--text-caption-size);
+  color: var(--color-text-secondary);
+  font-style: italic;
+  pointer-events: none;
+}
+
+/* Ajustes específicos para iPhone pequeno */
+@media (max-width: 414px) {
+  .footer-mobile .row {
+    margin: 0;
+  }
+  .footer-mobile .col-md-6 {
+    padding: 0 0.5rem;
+  }
+}
+
+/* iPad e Desktop: manter footer fixo mas ajustar espaçamento */
+@media (min-width: 768px) {
+  .footer-mobile {
+    position: fixed;
+    margin-top: 0;
+    width: 100%;
+  }
+  body {
+    padding-bottom: 0;
+  }
+  .main-content {
+    padding-bottom: 0;
+  }
+}
+
+/* Quebra de texto para evitar overflow em todos os dispositivos */
+.footer-mobile p {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.footer-address {
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Responsividade customizada */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--space-16);
+  }
+}
