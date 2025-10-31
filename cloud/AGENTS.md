@@ -231,12 +231,16 @@ Estas instruções se aplicam a **todo o repositório** e devem ser seguidas por
   A verificação deve ser feita recursivamente em todo o projeto, garantindo que nenhuma referência seja esquecida antes da exclusão.
 
 ## Política de scripts e automações
-É proibido criar ou utilizar arquivos de shell script (`.sh`, `.bash` ou similares) para execução de tarefas no projeto.
-Toda automação deve ser feita exclusivamente por meio do `Makefile`, que é o único ponto de orquestração permitido.
-Não adicione shebangs de shell (`#!/bin/bash`, `#!/usr/bin/env sh`, etc.) a arquivos que não sejam scripts de entrypoint para Docker. A lógica de script deve ser encapsulada nos alvos do `Makefile`.
-Não adicione novos alvos ao `Makefile` sem solicitação explícita.
-Scripts de teste E2E devem ser escritos em JavaScript ou TypeScript utilizando exclusivamente Puppeteer, e executados via `npm run test:e2e` ou por targets existentes do `Makefile`.
-Os únicos arquivos de shell script permitidos são os entrypoints referenciados por `Dockerfile`s.
+- É proibido criar ou utilizar arquivos de shell script (`.sh`, `.bash` ou similares) para execução de tarefas no projeto.
+- Toda automação deve ser feita exclusivamente por meio do `Makefile`, que é o único ponto de orquestração permitido.
+- Não adicione shebangs de shell (`#!/bin/bash`, `#!/usr/bin/env sh`, etc.) a arquivos que não sejam scripts de entrypoint para Docker. A lógica de script deve ser encapsulada nos alvos do `Makefile`.
+- Não adicione novos alvos ao `Makefile` sem solicitação explícita.
+- Scripts de teste E2E devem ser escritos em JavaScript ou TypeScript utilizando exclusivamente Puppeteer, e executados via `npm run test:e2e` ou por targets existentes do `Makefile`.
+- Os únicos arquivos de shell script permitidos são os entrypoints referenciados por `Dockerfile`s.
+- Não adicione shebangs (`#!/bin/bash`, `#!/usr/bin/env sh`, etc.) a arquivos que não sejam os scripts de entrypoint permitidos para Dockerfiles.
+- Não adicione novos alvos ao `Makefile` sem solicitação explícita.
+- Scripts de teste E2E devem ser escritos em JavaScript ou TypeScript, utilizando exclusivamente Puppeteer, e executados via `npm run test:e2e` ou por targets existentes do `Makefile`.
+- Os únicos arquivos de shell script permitidos são os entrypoints referenciados por `Dockerfile`s.
 
 ## Convenções de cabeçalho de caminho
 

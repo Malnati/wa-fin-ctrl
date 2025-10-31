@@ -1,0 +1,15 @@
+---
+description: |
+    # Layout homologado
+
+    - UI idêntica ao que está em `homologado/`.
+    - Logos, ícones e CSS só de `homologado/`.
+    - Sem invenções de layout ou libs extras.
+    - Checklist:
+    - Header/footer iguais.
+    - Estados de botão idênticos.
+    - Responsividade conforme protótipo.
+
+globs: ["*"]
+alwaysApply: true
+---

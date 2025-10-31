@@ -1,0 +1,19 @@
+---
+description: |
+  Após qualquer alteração no código (refatoração, substituição de lógica ou migração de funcionalidades), é obrigatório:
+
+  - Remover funções, métodos, classes e componentes (incluindo React) que não são mais utilizados em nenhum ponto do sistema.
+  - Eliminar variáveis locais, constantes e atributos não referenciados.
+  - Verificar e excluir variáveis de ambiente definidas em `env.py` ou no `Makefile` que não estejam mais sendo utilizadas.
+  - Aplicar essas mesmas verificações também a arquivos TypeScript/JavaScript, incluindo componentes obsoletos, hooks não usados e variáveis sem referência.
+
+  Essa regra se baseia nos princípios de código limpo (Clean Code) e manutenção sustentável. A presença de código morto compromete:
+    - Legibilidade e clareza;
+    - Facilidade de manutenção;
+    - Precisão de testes e cobertura;
+    - Segurança em deploys automatizados.
+
+  A verificação deve ser feita recursivamente em todo o projeto, garantindo que nenhuma referência seja esquecida antes da exclusão.
+globs: ['*.py', '*.ts', '*.tsx', '*.js', '*.jsx', 'Makefile']
+alwaysApply: true
+---

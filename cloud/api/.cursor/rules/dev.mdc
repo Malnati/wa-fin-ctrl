@@ -1,0 +1,13 @@
+---
+description: |
+  Os scripts código-fonte e demais arquivos criados para verificar propostas de soluções ou testar soluções sugeridas devem morar em dev/.
+  
+  🚫 **RESTRIÇÃO CRÍTICA - NUNCA testar geração de áudio:**
+  - NUNCA execute código que gere áudio durante desenvolvimento
+  - NUNCA teste APIs TTS com parâmetros reais
+  - NUNCA use `generateAudio=true` ou `voiceID` real
+  - SEMPRE use parâmetros nulos para evitar custos de API
+
+globs: ['dev/**']
+alwaysApply: true
+---

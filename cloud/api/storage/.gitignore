@@ -1,0 +1,7 @@
+# api/storage/.gitignore
+# Ignore all uploaded files and metadata
+uploads/
+metadata/
+*.pdf
+*.json
+!.gitignore

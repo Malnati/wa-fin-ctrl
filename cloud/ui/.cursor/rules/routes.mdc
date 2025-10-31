@@ -1,0 +1,32 @@
+---
+description: |
+    Permitidos:
+    - src/app/Login.tsx
+    - src/app/Upload.tsx
+    - src/app/Branding.tsx
+
+    Proibidos:
+    - Qualquer outro `.tsx` em `src/app`.
+
+    Fluxo obrigatório:
+    1. Início em Login.tsx.
+    2. Após login → Upload.tsx.
+    3. Branding.tsx apenas como modal.
+
+    Critério: render inicial sempre Login.tsx.
+
+    # Rotas de API
+    Consolidação:
+    - Evitar duplicidade (ex.: config e diagnostics).
+    - Contrato mínimo:
+    - GET /api/config
+    - POST /api/diagnostics/submit
+
+    Regras:
+    - Tipagem explícita.
+    - Validação de inputs.
+    - Mensagens de erro padronizadas.
+    
+globs: '*'
+alwaysApply: true
+---

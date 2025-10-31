@@ -1,0 +1,16 @@
+---
+description: |
+  É proibida a criação ou o uso de arquivos de shell script (`.sh`, `.bash`, etc.) para execução de tarefas no projeto.
+
+  Toda automação deve ser feita exclusivamente via `Makefile`, que é o único ponto de orquestração permitido.
+
+  Regras obrigatórias:
+  - Não criar ou usar arquivos com extensão `.sh`, `.bash` ou similares.
+  - Não criar blocos de shell embutidos (`#!/bin/bash`, `#!/usr/bin/env sh`) em arquivos.
+  - Não adicionar novos alvos (`targets`) ao `Makefile` automaticamente. Somente criar comandos no `Makefile` mediante solicitação explícita.
+
+  Esta política visa garantir rastreabilidade, consistência e futura integração com Docker e entrypoints controlados por variáveis de ambiente.
+
+globs: ['*.sh', '*.bash', '*']
+alwaysApply: true
+---

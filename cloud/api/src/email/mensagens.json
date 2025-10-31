@@ -1,0 +1,42 @@
+[
+  {
+    "id": "onboarding-welcome",
+    "mensagem": {
+      "destinatarios": ["usuario"],
+      "assunto": "Bem-vindo ao {{companyName}} - Próximos passos",
+      "corpo": "Olá!\n\nObrigado por se cadastrar no {{companyName}}. Sua conta está sendo revisada pela nossa equipe.\n\nVocê receberá um novo e-mail assim que sua conta for aprovada e você puder começar a usar a plataforma.\n\nSe tiver dúvidas, entre em contato conosco.\n\nAtenciosamente,\nEquipe {{companyName}}"
+    }
+  },
+  {
+    "id": "account-approved",
+    "mensagem": {
+      "destinatarios": ["usuario"],
+      "assunto": "{{companyName}} - Sua conta foi aprovada!",
+      "corpo": "Parabéns!\n\nSua conta foi aprovada por um administrador. Agora você pode fazer login e começar a usar a extensão {{companyName}} para obter insights e relatórios assistidos por IA.\n\nAcesse: {{dashboardUrl}}\n\nBem-vindo à plataforma!\n\nEquipe {{companyName}}"
+    }
+  },
+  {
+    "id": "onboarding-progress",
+    "mensagem": {
+      "destinatarios": ["usuario"],
+      "assunto": "{{companyName}} - Acompanhe o progresso da sua conta",
+      "corpo": "Olá!\n\nSua conta está em processo de análise. Nossa equipe está revisando suas informações.\n\nTempo estimado: 24-48 horas\n\nVocê será notificado assim que o processo for concluído.\n\nAtenciosamente,\nEquipe {{companyName}}"
+    }
+  },
+  {
+    "id": "diagnostic-ready",
+    "mensagem": {
+      "destinatarios": ["usuario"],
+      "assunto": "{{companyName}} - Seu diagnóstico está pronto",
+      "corpo": "Olá!\n\nSeu diagnóstico foi processado e está disponível para download.\n\nAcesse sua conta para visualizar e baixar o relatório: {{dashboardUrl}}\n\nAtenciosamente,\nEquipe {{companyName}}"
+    }
+  },
+  {
+    "id": "admin-new-user",
+    "mensagem": {
+      "destinatarios": ["admin"],
+      "assunto": "{{companyName}} - Novo usuário aguardando aprovação",
+      "corpo": "Um novo usuário se cadastrou na plataforma e aguarda aprovação:\n\nE-mail: {{userEmail}}\nData: {{registrationDate}}\n\nAcesse o painel administrativo para revisar e aprovar: {{adminUrl}}\n\nEquipe {{companyName}}"
+    }
+  }
+]

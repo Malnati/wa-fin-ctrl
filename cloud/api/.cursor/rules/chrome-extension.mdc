@@ -1,0 +1,25 @@
+---
+description: |
+  Regras específicas para desenvolvimento de extensões Chrome:
+
+  - O manifest.json deve seguir a versão 3 do Chrome Extension Manifest
+  - Todas as permissões devem ser justificadas e mínimas necessárias
+  - Service workers (background.js) devem ser usados para operações em background
+  - Content scripts devem ser evitados a menos que seja absolutamente necessário
+  - Use chrome.storage.local para dados locais e chrome.storage.sync para dados sincronizados
+  - Sempre trate erros de forma adequada em chamadas de API da extensão
+  - Use chrome.runtime.onMessage para comunicação entre popup e background
+  - Mantenha o popup.html simples e responsivo
+  - Icons devem estar em múltiplos tamanhos (16, 48, 128)
+  - Sempre teste a extensão em modo desenvolvedor antes de empacotar
+
+  Boas práticas:
+  - Use async/await para operações assíncronas
+  - Implemente tratamento de erros robusto
+  - Mantenha a extensão leve e rápida
+  - Documente todas as permissões utilizadas
+  - Teste em diferentes versões do Chrome
+
+globs: ['*.js', '*.html', '*.json']
+alwaysApply: true
+---

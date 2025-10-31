@@ -1,0 +1,20 @@
+---
+description: |
+  Todos os testes devem morar em test.js. Mesmo aqueles testes criados temporariamente para apoio de desenvolvimentos, mesmo estes devem morar em test.js.
+  
+  Para extensões Chrome:
+  - Testes unitários devem ficar em test.js
+  - Testes de integração devem ficar em test.js
+  - Testes de funcionalidades da extensão devem ficar em test.js
+  - Qualquer código de teste temporário deve ficar em test.js
+  
+  🚫 **RESTRIÇÃO CRÍTICA - NUNCA testar geração de áudio:**
+  - NUNCA execute testes com `generateAudio=true`
+  - NUNCA execute testes com `voiceID` real
+  - NUNCA gere arquivos de áudio durante testes
+  - NUNCA faça chamadas para APIs TTS (ElevenLabs, Google)
+  - SEMPRE use parâmetros nulos para áudio nos testes
+
+globs: ['*.js', '*.html']
+alwaysApply: true
+---

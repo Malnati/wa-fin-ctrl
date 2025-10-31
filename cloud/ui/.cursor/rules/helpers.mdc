@@ -1,0 +1,19 @@
+---
+description: |
+    # Helpers permitidos
+
+    Somente:
+    - LoginHelper.ts
+    - UploadHelper.ts
+    - BrandingHelper.ts
+
+    Responsabilidades:
+    - LoginHelper → autenticação Google.
+    - UploadHelper → uploads e validações.
+    - BrandingHelper → layout homologado.
+
+    Proibido criar novos helpers.
+
+globs: ["*"]
+alwaysApply: true
+---

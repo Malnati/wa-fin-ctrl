@@ -1,0 +1,56 @@
+---
+description: |
+    # Regra: Nunca Testar Geração de Áudio
+
+    ## 🚫 **PROIBIDO para todas as IAs (Cursor, Gemini, OpenAI, Claude, Copilot):**
+
+    ### **1. Testes com Geração de Áudio:**
+    - ❌ **NUNCA** execute testes que passem `generateAudio=true`
+    - ❌ **NUNCA** execute testes que passem `voiceID` com valores reais
+    - ❌ **NUNCA** execute testes que gerem arquivos de áudio reais
+    - ❌ **NUNCA** execute testes que façam chamadas para APIs TTS (ElevenLabs, Google, etc.)
+
+    ### **2. Parâmetros Obrigatórios nos Testes:**
+    - ✅ **SEMPRE** use `generateAudio=false` ou `undefined` nos testes
+    - ✅ **SEMPRE** use `voiceID=undefined` nos testes
+    - ✅ **SEMPRE** mock o serviço TTS para não executar chamadas reais
+    - ✅ **SEMPRE** verifique que `audioUrl` seja `undefined` nos resultados
+
+    ### **3. Execução de API com Áudio:**
+    - ❌ **NUNCA** execute `curl` ou requisições HTTP com `generateAudio=true`
+    - ❌ **NUNCA** execute `curl` ou requisições HTTP com `voiceID` real
+    - ❌ **NUNCA** teste funcionalidades de TTS em ambiente de desenvolvimento
+    - ❌ **NUNCA** gere arquivos de áudio durante desenvolvimento ou testes
+
+    ### **4. Motivo da Regra:**
+    - 💰 **Evitar custos** desnecessários com APIs TTS (ElevenLabs, Google)
+    - ⚡ **Acelerar testes** sem dependências externas
+    - 🔒 **Proteger credenciais** de APIs pagas
+    - 🧹 **Manter ambiente limpo** sem arquivos de áudio desnecessários
+
+    ### **5. Exemplos de Uso Correto:**
+    ```typescript
+    // ✅ CORRETO - Sem geração de áudio
+    const result = await service.submitDiagnostic(file, false, undefined);
+
+    // ❌ INCORRETO - Com geração de áudio
+    const result = await service.submitDiagnostic(file, true, 'voice-id-123');
+    ```
+
+    ```bash
+    # ✅ CORRETO - Sem geração de áudio
+    curl -X POST http://localhost:3333/diagnostics/submit \
+    -F "file=@arquivo.pdf"
+
+    # ❌ INCORRETO - Com geração de áudio
+    curl -X POST http://localhost:3333/diagnostics/submit \
+    -F "file=@arquivo.pdf" \
+    -F "generateAudio=true" \
+    -F "voiceID=voice-id-123"
+    ```
+    ## 🎯 **Resumo:**
+    **TODAS as IAs devem SEMPRE usar parâmetros nulos para áudio em testes e desenvolvimento, evitando custos e dependências externas desnecessárias.**
+
+globs: ['*']
+alwaysApply: true
+---

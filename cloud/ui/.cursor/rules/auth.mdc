@@ -1,0 +1,13 @@
+---
+description: |
+    # Autenticação e HTTPS
+
+    - Login sempre exigido antes de Upload.tsx.
+    - GSI deve estar em Login.tsx.
+    - HTTPS obrigatório em preview/cloud.
+    - Local: usar `wrangler preview` ou HTTPS válido.
+    - Nunca pular login para facilitar testes.
+
+globs: ["*"]
+alwaysApply: true
+---

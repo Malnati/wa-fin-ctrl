@@ -1,0 +1,18 @@
+---
+description: |
+  Todos os arquivos do projeto devem conter, no topo, um comentário com o **caminho relativo real** do arquivo dentro do projeto.
+
+  O comentário deve ter o formato exato conforme a linguagem do arquivo:
+    - Python: `# Caminho relativo ao projeto: caminho/do/arquivo.py`
+    - Shell: `# Caminho relativo ao projeto: caminho/do/arquivo.sh`
+    - JavaScript/TypeScript: `// Caminho relativo ao projeto: caminho/do/arquivo.ts`
+    - JSON/YAML: `# Caminho relativo ao projeto: caminho/do/arquivo.yaml`
+    - Markdown/Textos: `<!-- Caminho relativo ao projeto: caminho/do/arquivo.md -->`
+
+  Quando necessário, preservar elementos obrigatórios da linguagem no topo, como shebangs (`#!/bin/bash`) ou codificações (`# -*- coding: utf-8 -*-`), **mas sempre inserir o comentário do caminho imediatamente após essas linhas**.
+
+  O valor do caminho deve ser calculado automaticamente com base na raiz do repositório, sem permitir divergência.
+
+globs: '*'
+alwaysApply: true
+---

@@ -1,0 +1,20 @@
+# api/Dockerfile.dev
+
+ARG NODE_VERSION=18-alpine
+
+FROM node:${NODE_VERSION}
+WORKDIR /app
+ENV NODE_ENV=development
+
+# Instalar dependências globais necessárias para NestJS CLI
+RUN npm install -g @nestjs/cli
+
+# Instalar dependências do projeto (incluindo dev)
+COPY package*.json ./
+RUN npm install
+
+# Copiar restante do código para permitir hot reload
+COPY . .
+
+EXPOSE 3333
+CMD ["npm", "run", "start:dev"]

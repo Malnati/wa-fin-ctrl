@@ -1,0 +1,763 @@
+<!-- api/public/index.html -->
+<!-- 
+  Sistema de Análise de IA com White Label
+  Configuração padrão: MBRA (http://www.mbra.com.br)
+  Logo padrão: http://www.mbra.com.br/wp-content/uploads/2023/03/2oQgot9X7fy5fxsnrM9aF24VZ4N.svg
+  
+  Para personalizar, use o botão de configurações (⚙️) no rodapé.
+  Para restaurar as configurações padrão da MBRA, use o botão "Restaurar Padrão" no modal.
+-->
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Análise de IA</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.4/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+      onerror="this.onerror=null; this.href='/css/custom.css';"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link href="/css/custom.css" rel="stylesheet" />
+    <style>
+      /* Prevenir overflow horizontal e simplificar layout */
+      html,
+      body {
+        height: 100%;
+        overflow-x: hidden;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      .page {
+        width: 100%;
+        padding-bottom: 60px; /* Espaço para o footer fixo */
+      }
+
+      .main-content {
+        width: 100%;
+        margin-bottom: 0;
+      }
+
+      /* Footer fixo e expansível em todos os dispositivos */
+      .footer-mobile {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        width: 100%;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+        max-height: 60px;
+        overflow: hidden;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        position: relative;
+      }
+
+      .footer-mobile.expanded {
+        max-height: 500px;
+      }
+
+      /* Botão de toggle para expandir/colapsar */
+      .footer-toggle {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        transition: all 0.3s ease;
+        z-index: 1001;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        /* Garantir que o botão seja visível */
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+
+      .footer-toggle:hover {
+        background: #495057;
+        transform: scale(1.1);
+      }
+
+      /* Conteúdo do footer */
+      .footer-content {
+        padding: 15px;
+        opacity: 0.3;
+        transition: opacity 0.3s ease;
+        margin-top: 10px;
+      }
+
+      .footer-mobile.expanded .footer-content {
+        opacity: 1;
+      }
+
+      /* Indicador visual quando minimizado */
+      .footer-mobile:not(.expanded) .footer-content {
+        pointer-events: none;
+      }
+
+      /* Indicador visual de footer minimizado */
+      .footer-mobile:not(.expanded)::before {
+        content: 'Clique para expandir o rodapé';
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        font-size: 12px;
+        color: #6c757d;
+        font-style: italic;
+        pointer-events: none;
+      }
+
+      /* Ajustes específicos para iPhone pequeno: só mantém a compensação dinâmica */
+      @media (max-width: 414px) {
+        .footer-mobile .row {
+          margin: 0;
+        }
+        .footer-mobile .col-md-6 {
+          padding: 0 0.5rem;
+        }
+      }
+
+      /* iPad e Desktop: manter footer fixo mas ajustar espaçamento */
+      @media (min-width: 768px) {
+        .footer-mobile {
+          position: fixed;
+          margin-top: 0;
+          width: 100%;
+        }
+        body {
+          padding-bottom: 0;
+        }
+        .main-content {
+          padding-bottom: 0;
+        }
+      }
+
+      /* Quebra de texto para evitar overflow em todos os dispositivos */
+      .footer-mobile p {
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+      }
+
+      .footer-address {
+        word-break: break-word;
+        hyphens: auto;
+      }
+    </style>
+  </head>
+  <body class="bg-white">
+    <div class="page">
+      <div
+        class="container py-4 main-content"
+        style="padding-bottom: 1rem !important"
+      >
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div id="logoPlaceholder" class="fs-3 fw-bold">SUA LOGO AQUI</div>
+        </div>
+
+        <h1 id="pageTitle" class="mb-4">Título de Demonstração</h1>
+
+        <form id="uploadForm">
+          <div class="mb-3">
+            <label for="pdfFile" class="form-label">Arquivo PDF</label>
+            <input
+              class="form-control"
+              type="file"
+              id="pdfFile"
+              accept="application/pdf"
+            />
+          </div>
+          <div class="form-check mb-3">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="generateAudio"
+            />
+            <label class="form-check-label" for="generateAudio"
+              >Gerar áudio</label
+            >
+          </div>
+          <div class="mb-3">
+            <label for="voiceID" class="form-label">Voz</label>
+            <select class="form-select" id="voiceID">
+              <option value="" selected>Selecione uma voz</option>
+              <option value="7s3YtmzXx3fjwUtedUN0">Feminino</option>
+              <option value="uOjV7aFQoCQBSZxYyOds">Masculino</option>
+            </select>
+          </div>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">Analisar</button>
+          </div>
+        </form>
+
+        <div id="responseSection" class="mt-4" style="display: none">
+          <h2>Resultado da Análise</h2>
+
+          <!-- Texto da Análise -->
+          <div class="mb-4">
+            <h5>Análise</h5>
+            <div id="diagnosticText" class="border rounded p-3 bg-light">
+              <!-- O texto da análise será inserido aqui -->
+            </div>
+          </div>
+
+          <!-- Links para arquivos -->
+          <div class="row">
+            <!-- Arquivo original -->
+            <div class="col-md-4 mb-3">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <i class="fas fa-file-pdf fa-3x text-danger mb-2"></i>
+                  <h6 class="card-title">Original</h6>
+                  <p class="card-text small">PDF enviado para análise</p>
+                  <a
+                    id="originalFileLink"
+                    href="#"
+                    class="btn btn-outline-primary btn-sm"
+                    target="_blank"
+                  >
+                    <i class="fas fa-download me-1"></i>Baixar Original
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- PDF gerado -->
+            <div class="col-md-4 mb-3">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <i class="fas fa-file-pdf fa-3x text-success mb-2"></i>
+                  <h6 class="card-title">Análise</h6>
+                  <p class="card-text small">Análise de IA</p>
+                  <a
+                    id="generatedPdfLink"
+                    href="#"
+                    class="btn btn-outline-success btn-sm"
+                    target="_blank"
+                  >
+                    <i class="fas fa-download me-1"></i>Baixar PDF
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Áudio gerado -->
+            <div class="col-md-4 mb-3">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <i class="fas fa-volume-up fa-3x text-info mb-2"></i>
+                  <h6 class="card-title">Áudio</h6>
+                  <p class="card-text small">Análise falada</p>
+                  <a
+                    id="audioFileLink"
+                    href="#"
+                    class="btn btn-outline-info btn-sm"
+                    target="_blank"
+                  >
+                    <i class="fas fa-download me-1"></i>Baixar Áudio
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Informações adicionais -->
+          <div class="mt-3">
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Informações:</strong>
+              <ul class="mb-0 mt-2">
+                <li>
+                  Arquivo processado: <span id="processedFileName">-</span>
+                </li>
+                <li>
+                  Data de processamento: <span id="processedDate">-</span>
+                </li>
+                <li>Áudio gerado: <span id="audioGenerated">-</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config Modal -->
+    <div
+      class="modal fade"
+      id="configModal"
+      tabindex="-1"
+      aria-labelledby="configModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="configModalLabel">Configurações</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="configLogo" class="form-label">Logo</label>
+              <input
+                type="url"
+                class="form-control"
+                id="configLogo"
+                placeholder="http://exemplo.com/logo.png"
+                pattern="https?://.+"
+                title="Digite uma URL válida começando com http:// ou https://"
+              />
+              <div class="invalid-feedback" id="configLogoFeedback">
+                Por favor, insira uma URL válida para a logo.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configCompanyName" class="form-label"
+                >Nome da empresa</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="configCompanyName"
+                placeholder="Nome da Empresa"
+                minlength="2"
+                maxlength="100"
+                required
+                title="Nome da empresa deve ter entre 2 e 100 caracteres"
+              />
+              <div class="invalid-feedback" id="configCompanyNameFeedback">
+                Por favor, insira o nome da empresa (2-100 caracteres).
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configTitle" class="form-label">Título</label>
+              <input
+                type="text"
+                class="form-control"
+                id="configTitle"
+                placeholder="Título do sistema"
+                minlength="3"
+                maxlength="200"
+                required
+                title="Título deve ter entre 3 e 200 caracteres"
+              />
+              <div class="invalid-feedback" id="configTitleFeedback">
+                Por favor, insira o título do sistema (3-200 caracteres).
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configDevelopedBy" class="form-label"
+                >Desenvolvido por</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="configDevelopedBy"
+                placeholder="Nome do desenvolvedor"
+                minlength="2"
+                maxlength="100"
+                required
+                title="Nome do desenvolvedor deve ter entre 2 e 100 caracteres"
+              />
+              <div class="invalid-feedback" id="configDevelopedByFeedback">
+                Por favor, insira o nome do desenvolvedor (2-100 caracteres).
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configCopyright" class="form-label">Copyright</label>
+              <input
+                type="text"
+                class="form-control"
+                id="configCopyright"
+                placeholder="© 2024 Nome da Empresa"
+                minlength="3"
+                maxlength="100"
+                required
+                title="Copyright deve ter entre 3 e 100 caracteres"
+              />
+              <div class="invalid-feedback" id="configCopyrightFeedback">
+                Por favor, insira o copyright (3-100 caracteres).
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configRegistrationDate" class="form-label"
+                >Data de registro</label
+              >
+              <input
+                type="date"
+                class="form-control"
+                id="configRegistrationDate"
+                required
+                max="2024-12-31"
+                title="Data de registro deve ser até 31/12/2024"
+              />
+              <div class="invalid-feedback" id="configRegistrationDateFeedback">
+                Por favor, selecione uma data de registro válida.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configContactEmail" class="form-label"
+                >Email de contato</label
+              >
+              <input
+                type="email"
+                class="form-control"
+                id="configContactEmail"
+                placeholder="contato@empresa.com"
+                required
+                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                title="Digite um email válido"
+              />
+              <div class="invalid-feedback" id="configContactEmailFeedback">
+                Por favor, insira um email válido.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configContactPhone" class="form-label"
+                >Telefone de contato</label
+              >
+              <input
+                type="tel"
+                class="form-control"
+                id="configContactPhone"
+                placeholder="+55 (61) 3037-6960"
+                pattern="[\+]?[0-9\s\-\(\)]{10,20}"
+                title="Digite um telefone válido (10-20 dígitos)"
+              />
+              <div class="invalid-feedback" id="configContactPhoneFeedback">
+                Por favor, insira um telefone válido.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configContactAddress" class="form-label"
+                >Endereço</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="configContactAddress"
+                placeholder="SHN QD. 2 BL. F Ed. Executive Office Tower SL. 1114 - Asa Norte, Brasília-DF CEP 70702-906"
+                minlength="5"
+                maxlength="200"
+                title="Endereço deve ter entre 5 e 200 caracteres"
+              />
+              <div class="invalid-feedback" id="configContactAddressFeedback">
+                Por favor, insira o endereço (5-200 caracteres).
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configContactWebsite" class="form-label"
+                >Website</label
+              >
+              <input
+                type="url"
+                class="form-control"
+                id="configContactWebsite"
+                placeholder="http://www.empresa.com"
+                pattern="https?://.+"
+                title="Digite uma URL válida começando com http:// ou https://"
+              />
+              <div class="invalid-feedback" id="configContactWebsiteFeedback">
+                Por favor, insira uma URL válida para o website.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configLinkFacebook" class="form-label"
+                >Link do Facebook</label
+              >
+              <input
+                type="url"
+                class="form-control"
+                id="configLinkFacebook"
+                placeholder="http://facebook.com/empresa"
+                pattern="https?://.+"
+                title="Digite uma URL válida começando com http:// ou https://"
+              />
+              <div class="invalid-feedback" id="configLinkFacebookFeedback">
+                Por favor, insira uma URL válida para o Facebook.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configLinkTwitter" class="form-label"
+                >Link do Twitter</label
+              >
+              <input
+                type="url"
+                class="form-control"
+                id="configLinkTwitter"
+                placeholder="http://twitter.com/empresa"
+                pattern="https?://.+"
+                title="Digite uma URL válida começando com http:// ou https://"
+              />
+              <div class="invalid-feedback" id="configLinkTwitterFeedback">
+                Por favor, insira uma URL válida para o Twitter.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configLinkGoogle" class="form-label"
+                >Link do Google</label
+              >
+              <input
+                type="url"
+                class="form-control"
+                id="configLinkGoogle"
+                placeholder="http://google.com/empresa"
+                pattern="https?://.+"
+                title="Digite uma URL válida começando com http:// ou https://"
+              />
+              <div class="invalid-feedback" id="configLinkGoogleFeedback">
+                Por favor, insira uma URL válida para o Google.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configLinkInstagram" class="form-label"
+                >Link do Instagram</label
+              >
+              <input
+                type="url"
+                class="form-control"
+                id="configLinkInstagram"
+                placeholder="http://instagram.com/empresa"
+                pattern="https?://.+"
+                title="Digite uma URL válida começando com http:// ou https://"
+              />
+              <div class="invalid-feedback" id="configLinkInstagramFeedback">
+                Por favor, insira uma URL válida para o Instagram.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configLinkLinkedin" class="form-label"
+                >Link do LinkedIn</label
+              >
+              <input
+                type="url"
+                class="form-control"
+                id="configLinkLinkedin"
+                placeholder="http://linkedin.com/company/empresa"
+                pattern="https?://.+"
+                title="Digite uma URL válida começando com http:// ou https://"
+              />
+              <div class="invalid-feedback" id="configLinkLinkedinFeedback">
+                Por favor, insira uma URL válida para o LinkedIn.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="configLinkGithub" class="form-label"
+                >Link do GitHub</label
+              >
+              <input
+                type="url"
+                class="form-control"
+                id="configLinkGithub"
+                placeholder="http://github.com/empresa"
+                pattern="https?://.+"
+                title="Digite uma URL válida começando com http:// ou https://"
+              />
+              <div class="invalid-feedback" id="configLinkGithubFeedback">
+                Por favor, insira uma URL válida para o GitHub.
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="resetToDefaultConfig()"
+              title="Restaurar configurações padrão da MBRA"
+            >
+              <i class="fas fa-home me-1"></i>MBRA
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="applyWhiteLabelConfig()"
+              title="Aplicar configurações genéricas de white-label"
+            >
+              <i class="fas fa-palette me-1"></i>White Label
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+            >
+              Salvar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer
+      class="text-center text-lg-start bg-body-tertiary text-muted border-top footer-mobile"
+    >
+      <!-- Botão de toggle -->
+      <button
+        class="footer-toggle"
+        onclick="toggleFooter()"
+        title="Expandir/Colapsar rodapé"
+      >
+        <i class="fas fa-chevron-up"></i>
+      </button>
+
+      <div class="footer-content">
+        <!-- Section: Social media -->
+        <section
+          class="d-flex justify-content-center justify-content-lg-between p-3 border-bottom"
+        >
+          <!-- Left -->
+          <div class="me-5 d-none d-lg-block">
+            <span class="small">Conecte-se conosco nas redes sociais:</span>
+          </div>
+          <!-- Left -->
+
+          <!-- Right -->
+          <div>
+            <a id="footerFacebook" href="#" class="me-3 text-reset">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a id="footerTwitter" href="#" class="me-3 text-reset">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a id="footerGoogle" href="#" class="me-3 text-reset">
+              <i class="fab fa-google"></i>
+            </a>
+            <a id="footerInstagram" href="#" class="me-3 text-reset">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a id="footerLinkedin" href="#" class="me-3 text-reset">
+              <i class="fab fa-linkedin"></i>
+            </a>
+            <a id="footerGithub" href="#" class="me-3 text-reset">
+              <i class="fab fa-github"></i>
+            </a>
+          </div>
+          <!-- Right -->
+        </section>
+        <!-- Section: Social media -->
+
+        <!-- Section: Links  -->
+        <section class="">
+          <div class="container mt-4">
+            <!-- Grid row -->
+            <div class="row">
+              <!-- Grid column -->
+              <div class="col-md-6">
+                <!-- Content -->
+                <h6 class="text-uppercase fw-bold mb-2 fs-6">
+                  <i class="fas fa-gem me-2"></i
+                  ><span id="footerCompanyName">Nome da Empresa</span>
+                </h6>
+                <div class="ms-4">
+                  <p id="footerTitle" class="mb-1 small">Título do Sistema</p>
+                  <p id="footerDevelopedBy" class="mb-1 small">
+                    Desenvolvido por Desenvolvedor
+                  </p>
+                  <p id="footerRegistrationDate" class="mb-1 small">
+                    Registrado em 01/01/2024
+                  </p>
+                </div>
+              </div>
+              <!-- Grid column -->
+
+              <!-- Grid column -->
+              <div class="col-md-6">
+                <!-- Links -->
+                <h6 class="text-uppercase fw-bold mb-2 fs-6">Contato</h6>
+                <p class="mb-1 small">
+                  <i class="fas fa-envelope me-2"></i>
+                  <span id="footerContactEmail">contato@empresa.com</span>
+                </p>
+                <p class="mb-1 small">
+                  <i class="fas fa-phone me-2"></i>
+                  <span id="footerContactPhone">+55 (61) 3037-6960</span>
+                </p>
+                <p class="mb-1 small footer-address">
+                  <i class="fas fa-map-marker-alt me-3"></i>
+                  <span id="footerContactAddress"
+                    >SHN QD. 2 BL. F Ed. Executive Office Tower SL. 1114 - Asa
+                    Norte, Brasília-DF CEP 70702-906</span
+                  >
+                </p>
+                <p class="mb-1 small">
+                  <i class="fas fa-globe me-2"></i>
+                  <span id="footerContactWebsite">http://www.empresa.com</span>
+                </p>
+              </div>
+              <!-- Grid column -->
+            </div>
+            <!-- Grid row -->
+          </div>
+        </section>
+        <!-- Section: Links  -->
+
+        <!-- Copyright -->
+        <div
+          class="text-center p-3"
+          style="background-color: rgba(0, 0, 0, 0.05)"
+        >
+          <span id="footerCopyright" class="small"
+            >© 2024 Copyright da Empresa</span
+          >
+          <button
+            type="button"
+            class="btn btn-link text-secondary p-0 border-0 ms-2"
+            data-bs-toggle="modal"
+            data-bs-target="#configModal"
+            aria-label="Configurações"
+          >
+            ⚙️
+          </button>
+        </div>
+        <!-- Copyright -->
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.4/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/index-simple.js"></script>
+
+    <script>
+      // Função para expandir/colapsar o footer
+      function toggleFooter() {
+        const footer = document.querySelector('.footer-mobile');
+        const toggleBtn = document.querySelector('.footer-toggle i');
+
+        if (footer.classList.contains('expanded')) {
+          footer.classList.remove('expanded');
+          toggleBtn.className = 'fas fa-chevron-up';
+        } else {
+          footer.classList.add('expanded');
+          toggleBtn.className = 'fas fa-chevron-down';
+        }
+      }
+
+      // Inicialização quando a página carrega
+      document.addEventListener('DOMContentLoaded', function () {
+        // Footer começa minimizado por padrão
+        const footer = document.querySelector('.footer-mobile');
+        if (footer) {
+          footer.classList.remove('expanded');
+        }
+      });
+    </script>
+  </body>
+</html>

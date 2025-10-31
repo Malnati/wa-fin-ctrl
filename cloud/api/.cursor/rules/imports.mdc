@@ -1,0 +1,17 @@
+---
+description: |
+  Todas as importações de módulos em arquivos JavaScript devem estar localizadas no **topo do arquivo**, seguindo as diretrizes do ES6. É proibido o uso de `import` ou `require` em blocos `try/catch`, funções, métodos ou trechos condicionais.
+
+  Regras:
+  - Todas as instruções `import` devem estar no cabeçalho, antes de qualquer execução de código.
+  - É proibido o uso de blocos `try/catch` para contornar erros de importação.
+  - É proibido realizar importações dinâmicas no meio da execução (ex: dentro de funções ou sob condições).
+  - Para extensões Chrome, use importações ES6 quando possível, ou `require` apenas quando necessário.
+  - Caso um módulo externo seja necessário, ele deve estar presente no `package.json` e ser instalado previamente.
+
+  Exceções:
+  - Importações dinâmicas com `import()` são permitidas apenas quando realmente necessárias para carregamento sob demanda.
+
+globs: ['*.js', '*.html']
+alwaysApply: true
+---
