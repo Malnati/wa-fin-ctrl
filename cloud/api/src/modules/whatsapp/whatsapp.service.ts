@@ -221,7 +221,7 @@ export class WhatsappService {
 
     const payload = {
       origem: originalName,
-      extected: extractedText,
+      extracted: extractedText,
     };
 
     await fs.writeFile(jsonPath, JSON.stringify(payload, null, 2), {
