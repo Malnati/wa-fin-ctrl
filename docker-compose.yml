@@ -6,7 +6,21 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ./src:/app/src
+      - ./wa-fin.py:/app/wa-fin.py
+      - ./Makefile:/app/Makefile
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./poetry.lock:/app/poetry.lock
+      - ./db:/app/db
+      - ./docs:/app/docs
+      - ./imgs:/app/imgs
+      - ./input:/app/input
+      - ./massa:/app/massa
+      - ./mensagens:/app/mensagens
+      - ./ocr:/app/ocr
+      - ./static:/app/static
+      - ./templates:/app/templates
+      - ./tmp:/app/tmp
     environment:
       PYTHONPATH: /app
     restart: unless-stopped
