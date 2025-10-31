@@ -23,78 +23,78 @@ Estas instruções se aplicam a **todo o repositório** e devem ser seguidas por
 - Se durante o desenvolvimento detectar alterações anteriores sem changelog, abra correções dedicadas criando entradas retroativas com a justificativa da lacuna e cite-as no novo changelog para manter a trilha de auditoria completa.
 
 ## Política de documentação
-- A documentação oficial deste repositório reside **exclusivamente** em `req/`. É **estritamente proibido** adicionar arquivos ou diretórios de documentação fora dessa árvore sem solicitação explícita no escopo da tarefa.
-- **Arquivos proibidos na raiz do repositório:** Não crie arquivos de documentação, relatórios, resumos, auditorias ou qualquer tipo de documento `.md` na raiz do repositório (exemplos de nomes proibidos: `AUDIT_*.md`, `REPORT_*.md`, `SUMMARY_*.md`, `ANALYSIS_*.md`, `REVIEW_*.md`, `TODO.md`, `NOTES.md`, etc.). **Toda documentação deve estar em `req/` seguindo a estrutura RUP.**
+- A documentação oficial deste repositório reside **exclusivamente** em `proj/`. É **estritamente proibido** adicionar arquivos ou diretórios de documentação fora dessa árvore sem solicitação explícita no escopo da tarefa.
+- **Arquivos proibidos na raiz do repositório:** Não crie arquivos de documentação, relatórios, resumos, auditorias ou qualquer tipo de documento `.md` na raiz do repositório (exemplos de nomes proibidos: `AUDIT_*.md`, `REPORT_*.md`, `SUMMARY_*.md`, `ANALYSIS_*.md`, `REVIEW_*.md`, `TODO.md`, `NOTES.md`, etc.). **Toda documentação deve estar em `proj/` seguindo a estrutura RUP.**
 - **Arquivos permitidos na raiz:** Apenas `README.md`, `CHANGELOG.md`, `AGENTS.md`, `.gitignore`, arquivos de configuração de ferramentas (`.eslintrc`, `tsconfig.json`, `package.json`, etc.) e arquivos de infraestrutura (`docker-compose.yml`, `Makefile`, `prometheus.yml`, etc.).
-- Toda inclusão ou atualização em `req/` deve seguir o modelo RUP descrito em [`req/README.md`](req/README.md), registrando o artefato na fase correspondente e vinculando a mudança ao changelog da entrega.
+- Toda inclusão ou atualização em `proj/` deve seguir o modelo RUP descrito em [`proj/README.md`](proj/README.md), registrando o artefato na fase correspondente e vinculando a mudança ao changelog da entrega.
 - Cada pasta de documentação deve utilizar **exclusivamente** `README.md` como arquivo de entrada. Não crie aliases `index.md`/`INDEX.md`; se solicitado, corrija o pedido e documente a decisão.
 - Ajuste novos artefatos aos templates da fase apropriada (visão, arquitetura, design, implementação etc.), garantindo que os conteúdos permaneçam autônomos e completos para consulta futura.
-- **Para agentes de IA:** Se você precisa criar documentação de auditoria, relatórios de análise, resumos ou qualquer tipo de documento técnico, identifique primeiro a fase RUP apropriada em `req/` (ex.: `req/06-governanca-tecnica-e-controle-de-qualidade/` para auditorias) e crie o arquivo lá, nunca na raiz do repositório.
+- **Para agentes de IA:** Se você precisa criar documentação de auditoria, relatórios de análise, resumos ou qualquer tipo de documento técnico, identifique primeiro a fase RUP apropriada em `proj/` (ex.: `proj/06-governanca-tecnica-e-controle-de-qualidade/` para auditorias) e crie o arquivo lá, nunca na raiz do repositório.
 
-## 📘 Wiki RUP — Panorama Geral (legado) e espelho ativo em `req/`
+## 📘 Wiki RUP — Panorama Geral (legado) e espelho ativo em `proj/`
 - A wiki legada permanece preservada em `.ref/docs/wiki/` como referência histórica completa da documentação RUP do SACIR.
-- A derivação viva do repositório encontra-se em `req/`, mantendo um espelho estruturado da wiki com os mesmos domínios RUP, atualizado e apto a receber melhorias.
-- Sempre que restaurar conteúdo a partir da wiki, preserve a rastreabilidade citando tanto o caminho legado (`.ref/docs/wiki/...`) quanto o destino correspondente em `req/`.
+- A derivação viva do repositório encontra-se em `proj/`, mantendo um espelho estruturado da wiki com os mesmos domínios RUP, atualizado e apto a receber melhorias.
+- Sempre que restaurar conteúdo a partir da wiki, preserve a rastreabilidade citando tanto o caminho legado (`.ref/docs/wiki/...`) quanto o destino correspondente em `proj/`.
 
-### Documentos por fase (hierarquia conforme `.ref/docs/wiki/` ↔ `req/`)
-- `.ref/docs/wiki/00-visao/` e `req/00-visao/`
+### Documentos por fase (hierarquia conforme `.ref/docs/wiki/` ↔ `proj/`)
+- `.ref/docs/wiki/00-visao/` e `proj/00-visao/`
   - `README.md` — apresenta o propósito da fase e os artefatos disponíveis.
   - `visao-do-produto.md`, `escopo.md`, `stakeholders.md`, `lgpd.md` — objetivos estratégicos, escopo e compliance.
-- `.ref/docs/wiki/01-arquitetura/` e `req/01-arquitetura/`
+- `.ref/docs/wiki/01-arquitetura/` e `proj/01-arquitetura/`
   - `README.md` — descreve a macroarquitetura e destaca os artefatos-chave.
   - `arquitetura-da-extensao.md`, `integracoes-com-apis.md`, `requisitos-nao-funcionais.md` — camadas, integrações e NFRs.
-- `.ref/docs/wiki/02-design/` e `req/02-design/`
+- `.ref/docs/wiki/02-design/` e `proj/02-design/`
   - `README.md` — introduz a fase de design detalhado e seus artefatos.
   - `design-geral.md`, `componentes.md`, `fluxos.md` — especificações para implementação e validação operacional.
-- `.ref/docs/wiki/02-planejamento/` e `req/02-planejamento/`
+- `.ref/docs/wiki/02-planejamento/` e `proj/02-planejamento/`
   - `README.md` — mantém cronogramas, governança, milestones, riscos, roadmap e WBS.
   - Subdocumentos: `cronograma.md`, `governanca.md`, `milestones.md`, `riscos-e-mitigacoes.md`, `roadmap.md`, `wbs.md`.
-- `.ref/docs/wiki/03-implementacao/` e `req/03-implementacao/`
+- `.ref/docs/wiki/03-implementacao/` e `proj/03-implementacao/`
   - `README.md` — orientações de estrutura, automação, padrões de código e testes.
   - Subdocumentos: `estrutura-de-projeto.md`, `build-e-automacao.md`, `padroes-de-codigo.md`, `testes.md`.
-- `.ref/docs/wiki/04-testes-e-validacao/` e `req/04-testes-e-validacao/`
+- `.ref/docs/wiki/04-testes-e-validacao/` e `proj/04-testes-e-validacao/`
   - `README.md` — estratégia de QA, critérios, E2E e validação de marcos.
   - Subdocumentos: `estrategia-geral.md`, `criterios-de-aceitacao.md`, `testes-end-to-end.md`, `validacao-de-marcos.md`.
-- `.ref/docs/wiki/05-entrega-e-implantacao/` e `req/05-entrega-e-implantacao/`
+- `.ref/docs/wiki/05-entrega-e-implantacao/` e `proj/05-entrega-e-implantacao/`
   - `README.md` — ambientes, empacotamento, versionamento e operação contínua.
   - Subdocumentos: `ambientes-e-configuracoes.md`, `empacotamento.md`, `publicacao-e-versionamento.md`, `operacao-e-manutencao.md`.
-- `.ref/docs/wiki/06-governanca-tecnica-e-controle-de-qualidade/` e `req/06-governanca-tecnica-e-controle-de-qualidade/`
+- `.ref/docs/wiki/06-governanca-tecnica-e-controle-de-qualidade/` e `proj/06-governanca-tecnica-e-controle-de-qualidade/`
   - `README.md` — governança técnica, controle de qualidade, auditoria e revisões com IA.
   - Subdocumentos: `governanca-tecnica.md`, `controle-de-qualidade.md`, `auditoria-e-rastreabilidade.md`, `revisoes-com-ia.md`.
-- `.ref/docs/wiki/06-ux-brand/` e `req/06-ux-brand/`
+- `.ref/docs/wiki/06-ux-brand/` e `proj/06-ux-brand/`
   - `README.md` — diretrizes de UX, acessibilidade e identidade visual.
   - Subdocumentos: `diretrizes-de-ux.md`, `acessibilidade.md`, `identidades-visuais.md`.
-- `.ref/docs/wiki/07-contribuicao/` e `req/07-contribuicao/`
+- `.ref/docs/wiki/07-contribuicao/` e `proj/07-contribuicao/`
   - `README.md` — colaboração, commits e PRs.
   - Subdocumentos: `contribuindo.md`, `padroes-de-commit.md`, `template-de-pr.md`.
-- `.ref/docs/wiki/99-anexos/` e `req/99-anexos/`
+- `.ref/docs/wiki/99-anexos/` e `proj/99-anexos/`
   - `README.md` — glossário e referências de apoio.
   - Subdocumentos: `glossario.md`, `referencias.md`.
 
 ### Acervos históricos e validação
-- `.ref/docs/wiki/03-agentes-ia/` e `req/03-agentes-ia/` — histórico de agentes, pipelines e políticas para auditoria de IA.
-- `.ref/docs/wiki/04-qualidade-testes/` e `req/04-qualidade-testes/` — documentação anterior de QA preservada para consulta.
-- `.ref/docs/wiki/05-operacao-release/` e `req/05-operacao-release/` — registros legados de ambientes, publicação e versionamento.
-- `.ref/docs/wiki/validation-report.md` e `req/validation-report.md` — certificação de atualização da wiki e rastreio de pendências.
+- `.ref/docs/wiki/03-agentes-ia/` e `proj/03-agentes-ia/` — histórico de agentes, pipelines e políticas para auditoria de IA.
+- `.ref/docs/wiki/04-qualidade-testes/` e `proj/04-qualidade-testes/` — documentação anterior de QA preservada para consulta.
+- `.ref/docs/wiki/05-operacao-release/` e `proj/05-operacao-release/` — registros legados de ambientes, publicação e versionamento.
+- `.ref/docs/wiki/validation-report.md` e `proj/validation-report.md` — certificação de atualização da wiki e rastreio de pendências.
 
 ### Onde registrar novos requisitos
-- Utilize o índice RUP para escolher o diretório correspondente na árvore `req/`, referenciando sempre a origem legado em `.ref/docs/wiki/` quando houver.
-- Requisitos não funcionais ou restrições técnicas devem ser mantidos em `req/01-arquitetura/` e espelhados conforme `requisitos-nao-funcionais.md` legado.
-- Especificações funcionais, fluxos e contratos devem ser registrados em `req/02-design/`, alinhados aos artefatos correspondentes na wiki.
-- Critérios e planos de teste derivados de novos requisitos precisam estar em `req/04-testes-e-validacao/`, mantendo vínculo com os cenários históricos.
-- Requisitos ligados a entrega, governança ou UX devem atualizar simultaneamente `req/05-entrega-e-implantacao/`, `req/06-governanca-tecnica-e-controle-de-qualidade/` e `req/06-ux-brand/`, citando as seções legadas.
+- Utilize o índice RUP para escolher o diretório correspondente na árvore `proj/`, referenciando sempre a origem legado em `.ref/docs/wiki/` quando houver.
+- Requisitos não funcionais ou restrições técnicas devem ser mantidos em `proj/01-arquitetura/` e espelhados conforme `requisitos-nao-funcionais.md` legado.
+- Especificações funcionais, fluxos e contratos devem ser registrados em `proj/02-design/`, alinhados aos artefatos correspondentes na wiki.
+- Critérios e planos de teste derivados de novos requisitos precisam estar em `proj/04-testes-e-validacao/`, mantendo vínculo com os cenários históricos.
+- Requisitos ligados a entrega, governança ou UX devem atualizar simultaneamente `proj/05-entrega-e-implantacao/`, `proj/06-governanca-tecnica-e-controle-de-qualidade/` e `proj/06-ux-brand/`, citando as seções legadas.
 
 ### Observações finais
-- Nenhuma regra ou especificação deve ficar fora da árvore `req/`. Utilize `.ref/docs/wiki/` apenas como fonte de verdade para restauração e comparação.
+- Nenhuma regra ou especificação deve ficar fora da árvore `proj/`. Utilize `.ref/docs/wiki/` apenas como fonte de verdade para restauração e comparação.
 - Registre no changelog toda decisão que racionalize divergências entre legado e derivação, preservando âncoras cruzadas.
-- Consulte os acervos históricos apenas quando necessário para contexto, priorizando sempre os artefatos vigentes em `req/` para execução atual.
+- Consulte os acervos históricos apenas quando necessário para contexto, priorizando sempre os artefatos vigentes em `proj/` para execução atual.
 
 
 ## 📘 req RUP — Panorama Geral
-- A pasta `req/` centraliza a documentação RUP da solução e de todos os subprojetos. Consulte [`req/README.md`](req/README.md) para visão geral das fases, convenções e índice atualizado.
+- A pasta `proj/` centraliza a documentação RUP da solução e de todos os subprojetos. Consulte [`proj/README.md`](proj/README.md) para visão geral das fases, convenções e índice atualizado.
 - Antes de iniciar qualquer implementação, localize o artefato correspondente na fase adequada e confirme se já existe instrução específica. Atualizações devem manter referência cruzada com o changelog e com `AGENTS.md`.
 - Novos requisitos funcionais, técnicos ou de UX precisam ser registrados na fase RUP respectiva. Utilize os READMEs das subpastas para identificar templates e estruturas esperadas.
-- Conteúdos históricos permanecem acessíveis em `req/03-agentes-ia/`, `req/04-qualidade-testes/` e outras pastas de arquivo. Use-os como referência apenas quando indicado pelos documentos vigentes.
+- Conteúdos históricos permanecem acessíveis em `proj/03-agentes-ia/`, `proj/04-qualidade-testes/` e outras pastas de arquivo. Use-os como referência apenas quando indicado pelos documentos vigentes.
 
 ## Convenções de configuração
 - Todos os serviços devem possuir `Dockerfile`, `docker-compose.yml`, `docker-compose.dev.yml`, `Makefile`, `package.json`, `tsconfig.json`, `prometheus.yml` (quando aplicável) e `nest-cli.json` para aplicações NestJS. Garanta que novos arquivos respeitem essa convenção.
@@ -108,10 +108,10 @@ Estas instruções se aplicam a **todo o repositório** e devem ser seguidas por
 - Ao introduzir novas variáveis, atualize todos os arquivos `.env` e `docker-compose*.yml` impactados (incluindo variantes de desenvolvimento) para que a cadeia permaneça consistente.
 
 ### Requisitos gerais
-- Cada subprojeto JavaScript ou TypeScript deve incluir `package.json`, TypeScript em modo `strict` e Vite como ferramenta padrão de bundling para interfaces web. Exceções precisam ser documentadas em [`req/03-implementacao/estrutura-de-projeto.md`](req/03-implementacao/estrutura-de-projeto.md).
+- Cada subprojeto JavaScript ou TypeScript deve incluir `package.json`, TypeScript em modo `strict` e Vite como ferramenta padrão de bundling para interfaces web. Exceções precisam ser documentadas em [`proj/03-implementacao/estrutura-de-projeto.md`](proj/03-implementacao/estrutura-de-projeto.md).
 - Todo subprojeto versionado deve possuir `.gitignore` próprio quando ainda não existir arquivo compartilhado que cubra seus artefatos gerados.
 - Preserve os diretórios estruturais descritos na arquitetura vigente. Alterações estruturais demandam atualização prévia da req e registro em changelog.
-- Valores de configuração devem seguir a cadeia `.env` → `docker-compose.yml` → serviço, conforme [`req/05-entrega-e-implantacao/ambientes-e-configuracoes.md`](req/05-entrega-e-implantacao/ambientes-e-configuracoes.md).
+- Valores de configuração devem seguir a cadeia `.env` → `docker-compose.yml` → serviço, conforme [`proj/05-entrega-e-implantacao/ambientes-e-configuracoes.md`](proj/05-entrega-e-implantacao/ambientes-e-configuracoes.md).
 
 ### Docker
 - Todos os serviços definidos no `docker-compose.yml` raiz devem possuir alvos equivalentes no `Makefile` que funcionem tanto com `docker` quanto com `docker compose`. Utilize variáveis como `COMPOSE ?= docker compose` para permitir os dois formatos de invocação.
@@ -131,7 +131,7 @@ Estas instruções se aplicam a **todo o repositório** e devem ser seguidas por
         docker build -t $(SERVICE_NAME):latest .
   ```
 
-- Atualize [`req/03-implementacao/estrutura-de-projeto.md`](req/03-implementacao/estrutura-de-projeto.md) e o changelog correspondente sempre que novos alvos, serviços ou variáveis forem introduzidos.
+- Atualize [`proj/03-implementacao/estrutura-de-projeto.md`](proj/03-implementacao/estrutura-de-projeto.md) e o changelog correspondente sempre que novos alvos, serviços ou variáveis forem introduzidos.
 
 ## Boas Práticas para Arquivos Makefile
 - Todos os comandos de targets em `Makefile` devem ser indentados com **TAB** (não utilize espaços ou misturas de espaços e TABs).
@@ -194,14 +194,14 @@ Estas instruções se aplicam a **todo o repositório** e devem ser seguidas por
 - O subprojeto `api/` concentra as regras de negócio, a integração com provedores externos e os contratos expostos às interfaces de usuário. Toda lógica de persistência, validação e autorização deve residir aqui.
 - O subprojeto `ui/` é responsável pela experiência do usuário, compondo interfaces e fluxos de interação baseados exclusivamente nos contratos fornecidos pelo `api/`.
 - Alterações compartilhadas entre `api/` e `ui/` devem ser documentadas e negociadas explicitamente para evitar dependências implícitas; utilize diretórios compartilhados apenas quando formalmente aprovados na documentação arquitetural.
-- A divisão de responsabilidades entre API, interfaces e serviços auxiliares está detalhada em [`req/03-implementacao/estrutura-de-projeto.md`](req/03-implementacao/estrutura-de-projeto.md). Consulte-o antes de modificar qualquer subprojeto.
-- Mudanças que afetem múltiplos subprojetos devem ser coordenadas com a documentação de design e arquitetura (`req/02-design/` e `req/01-arquitetura/`) e acompanhadas por changelog específico.
+- A divisão de responsabilidades entre API, interfaces e serviços auxiliares está detalhada em [`proj/03-implementacao/estrutura-de-projeto.md`](proj/03-implementacao/estrutura-de-projeto.md). Consulte-o antes de modificar qualquer subprojeto.
+- Mudanças que afetem múltiplos subprojetos devem ser coordenadas com a documentação de design e arquitetura (`proj/02-design/` e `proj/01-arquitetura/`) e acompanhadas por changelog específico.
 
 ## Monitoramento
 - Sempre exponha métricas HTTP em `/metrics` e health checks em `/health`.
 - Arquivos `prometheus.yml` devem utilizar portas internas padrão (`3002` para `api-rating`, `3003` para `api-key`, `3004` para `api-usage`, `3010` para `api-db`, `3011` para `api-login`) e seguir o formato adotado no arquivo raiz.
-- Health checks e métricas obrigatórias estão descritos em [`req/05-entrega-e-implantacao/ambientes-e-configuracoes.md`](req/05-entrega-e-implantacao/ambientes-e-configuracoes.md). Exponha no mínimo `/health` e `/metrics` para cada serviço containerizado.
-- Ajustes em portas, coletores ou dashboards devem ser documentados previamente nos artefatos de Entrega e Governança (`req/05-entrega-e-implantacao/` e `req/06-governanca-tecnica-e-controle-de-qualidade/`).
+- Health checks e métricas obrigatórias estão descritos em [`proj/05-entrega-e-implantacao/ambientes-e-configuracoes.md`](proj/05-entrega-e-implantacao/ambientes-e-configuracoes.md). Exponha no mínimo `/health` e `/metrics` para cada serviço containerizado.
+- Ajustes em portas, coletores ou dashboards devem ser documentados previamente nos artefatos de Entrega e Governança (`proj/05-entrega-e-implantacao/` e `proj/06-governanca-tecnica-e-controle-de-qualidade/`).
 
 ## Documentação
 - Atualize os READMEs específicos dos serviços e `docs/README.md` sempre que adicionar variáveis de ambiente, endpoints ou alterações arquiteturais relevantes.
@@ -303,7 +303,7 @@ Estas instruções se aplicam a **todo o repositório** e devem ser seguidas por
 - Aplique estas regras a qualquer linguagem utilizada no repositório (TypeScript, JavaScript, React, etc.), promovendo coesão e evitando acoplamento circular conforme recomendado por Clean Code.
 
 ## Regras para integrações adicionais
-- Novos serviços (por exemplo, gateways, APIs especializadas ou integrações serverless) só podem ser adicionados após documentação prévia em `req/01-arquitetura/` e `req/02-design/`. Atualmente não há subprojetos PostgREST ativos neste repositório.
+- Novos serviços (por exemplo, gateways, APIs especializadas ou integrações serverless) só podem ser adicionados após documentação prévia em `proj/01-arquitetura/` e `proj/02-design/`. Atualmente não há subprojetos PostgREST ativos neste repositório.
 - Ao homologar uma nova integração, registre as convenções técnicas na fase correspondente da req e atualize este documento na revisão subsequente.
 
 ## Regras específicas do sub-projeto `api-postrest` (legado — restaurado de `.ref/`)
@@ -510,15 +510,15 @@ O 8pt Grid System define que todos os espaçamentos, tamanhos e proporções de 
 
 ## Regra de UX Writing e Simplificação de Texto — Clareza, Ação e Consistência
 
-### 🔹 Estrutura obrigatória de documentos `req/`
+### 🔹 Estrutura obrigatória de documentos `proj/`
 
-- **Escopo:** todos os arquivos dentro do diretório `req/` e de seus subdiretórios.
+- **Escopo:** todos os arquivos dentro do diretório `proj/` e de seus subdiretórios.
 - **Pares obrigatórios:** cada artefato deve existir em dupla `A.md` (orientação) e `A-spec.md` (definição específica do produto).
   - `A.md` contém apenas instruções reutilizáveis, descrevendo propósito, regras de preenchimento, passos de atualização e referências cruzadas necessárias. Nunca registre informações do produto atual aqui.
   - `A-spec.md` armazena o conteúdo concreto do projeto (requisitos, métricas, decisões, históricos, checklists). Todos os dados versionados pertencem ao arquivo `*-spec.md` correspondente.
-- **Criação de novos artefatos:** ao precisar de um novo documento em `req/`, crie simultaneamente o par `A.md`/`A-spec.md`, atualize os índices relevantes (`req/README*.md`) e registre o motivo no `CHANGELOG` e em `req/audit-history*.md`.
+- **Criação de novos artefatos:** ao precisar de um novo documento em `proj/`, crie simultaneamente o par `A.md`/`A-spec.md`, atualize os índices relevantes (`proj/README*.md`) e registre o motivo no `CHANGELOG` e em `proj/audit-history*.md`.
 - **Atualizações:** qualquer mudança em conteúdo específico deve ser aplicada apenas no `*-spec.md`, acompanhada de revisão para garantir que o manual (`A.md`) continua livre de dados contextuais. Ajustes estruturais nos dois arquivos devem citar claramente o requisito ou decisão que motivou a alteração.
-- **Validação automática:** antes de abrir PR, confirme que nenhum arquivo `req/**/` ficou sem par através de `find req -name "*.md"` e verifique se todo `*-spec.md` possui o guia correspondente. Diferentes nomes exigem correspondência literal (ex.: `visao-do-produto.md` ↔ `visao-do-produto-spec.md`).
+- **Validação automática:** antes de abrir PR, confirme que nenhum arquivo `proj/**/` ficou sem par através de `find req -name "*.md"` e verifique se todo `*-spec.md` possui o guia correspondente. Diferentes nomes exigem correspondência literal (ex.: `visao-do-produto.md` ↔ `visao-do-produto-spec.md`).
 - **Reutilização em novos repositórios:** mantenha exemplos genéricos apenas em `A.md`. Se for necessário demonstrar formatos, use placeholders explícitos (`<REQ-XYZ>`, `<Métrica>`) e explique como preenchê-los.
 
 
@@ -879,7 +879,7 @@ Define as ferramentas oficialmente aprovadas para testes, validação e auditori
 - **Configuração:** integração com TypeScript e React
 
 #### Modelos de IA (Revisão assistida)
-- Consulte [`req/06-governanca-tecnica-e-controle-de-qualidade/revisoes-com-ia.md`](req/06-governanca-tecnica-e-controle-de-qualidade/revisoes-com-ia.md) para a lista de modelos aprovados, tokens autorizados e fluxos de auditoria.
+- Consulte [`proj/06-governanca-tecnica-e-controle-de-qualidade/revisoes-com-ia.md`](proj/06-governanca-tecnica-e-controle-de-qualidade/revisoes-com-ia.md) para a lista de modelos aprovados, tokens autorizados e fluxos de auditoria.
 
 ⸻
 
@@ -1000,10 +1000,10 @@ Define as ferramentas oficialmente aprovadas para testes, validação e auditori
   - Sempre que houver uma nova versão de agente ou modelo, garantindo verificação extraordinária.
 
 ## 🔹 Conformidade com Requisitos, Riscos e Relatórios
-- O catálogo de requisitos oficial está em `req/02-planejamento/especificacao-de-requisitos.md`; qualquer alteração funcional, técnica ou legal deve atualizar o documento e citar o ID `REQ-###` correspondente nos PRs e relatórios.
-- A matriz de riscos mantida em `req/02-planejamento/riscos-e-mitigacoes.md` precisa ser revisada sempre que novos riscos forem identificados ou mitigados; agents devem registrar decisões e apontar `RISK-###` nos metadados exportados.
-- O guia de relatórios automatizados vive em `req/06-governanca-tecnica-e-controle-de-qualidade/auditoria-e-rastreabilidade.md#catalogo-de-relatorios-automatizados`; ajustes em pipelines ou geração de artefatos devem manter a tabela atualizada e sincronizar gatilhos com `revisoes-com-ia.md`.
-- O plano da capacidade de diagnóstico colaborativo está em `req/02-planejamento/capacidade-diagnostico-colaborativo.md`; mantenha os requisitos `REQ-031` a `REQ-045` sincronizados com riscos e relatórios antes de alterar fluxos ou pipelines.
+- O catálogo de requisitos oficial está em `proj/02-planejamento/especificacao-de-requisitos.md`; qualquer alteração funcional, técnica ou legal deve atualizar o documento e citar o ID `REQ-###` correspondente nos PRs e relatórios.
+- A matriz de riscos mantida em `proj/02-planejamento/riscos-e-mitigacoes.md` precisa ser revisada sempre que novos riscos forem identificados ou mitigados; agents devem registrar decisões e apontar `RISK-###` nos metadados exportados.
+- O guia de relatórios automatizados vive em `proj/06-governanca-tecnica-e-controle-de-qualidade/auditoria-e-rastreabilidade.md#catalogo-de-relatorios-automatizados`; ajustes em pipelines ou geração de artefatos devem manter a tabela atualizada e sincronizar gatilhos com `revisoes-com-ia.md`.
+- O plano da capacidade de diagnóstico colaborativo está em `proj/02-planejamento/capacidade-diagnostico-colaborativo.md`; mantenha os requisitos `REQ-031` a `REQ-045` sincronizados com riscos e relatórios antes de alterar fluxos ou pipelines.
 - Nenhum agente pode excluir ou mover esses arquivos sem confirmar que todas as referências na req e nos diretórios `docs/reports/` foram ajustadas e auditadas pelo pipeline `audit.yml`.
 
 ## 🔹 Como usar a integração com o GitHub no ambiente Codex
@@ -1039,7 +1039,7 @@ Define as ferramentas oficialmente aprovadas para testes, validação e auditori
 | Audit Agent | 1.0.0 | deepseek-coder | [gerar via CI] | Ativo |
 
 ## 🔹 Referência de Responsabilidade Técnica
-**Responsável técnico:** consulte `req/06-governanca-tecnica-e-controle-de-qualidade/governanca-tecnica.md` para o quadro atualizado.
+**Responsável técnico:** consulte `proj/06-governanca-tecnica-e-controle-de-qualidade/governanca-tecnica.md` para o quadro atualizado.
 **Documento:** `AGENTS.md` (versão expandida com governança RUP)
 **Integrações:** GitHub Actions e demais pipelines aprovados pela governança técnica
 **Status:** Ativo e sob revisão contínua
