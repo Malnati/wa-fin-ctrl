@@ -1005,6 +1005,10 @@ def processar_incremental(force=False, entry=None, backup=False):
                             df_calc.at[idx, campo.upper()] = valor
                 df_calc.to_csv(ATTR_FIN_ARQ_CALCULO, index=False, quoting=1)
                 print(f"Edições aplicadas em {ATTR_FIN_ARQ_CALCULO}.")
+    if not os.path.exists(ATTR_FIN_ARQ_CALCULO):
+        print(f"❌ Planilha de cálculos não encontrada: {ATTR_FIN_ARQ_CALCULO}. Geração de relatórios ignorada.")
+        return
+
     print("\n=== GERANDO RELATÓRIO HTML ===")
     gerar_relatorio_html(ATTR_FIN_ARQ_CALCULO, backup=backup)
     print("\n=== GERANDO RELATÓRIOS MENSAIS ===")
@@ -2175,7 +2179,6 @@ def process_image_with_ai_for_value(image_path, ocr_text):
     except Exception as e:
         print(f"Erro ao processar imagem com IA: {str(e)}")
         return "", "desconhecido"
-
 
 
 
