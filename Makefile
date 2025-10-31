@@ -80,6 +80,8 @@ export ATTR_FIN_ARQ_MAIN=${VAR_FIN_ARQ_MAIN}
 export ATTR_FIN_ARQ_REPORT_HTML=${VAR_FIN_ARQ_REPORT_HTML}
 export ATTR_FIN_ARQ_REPORT_JULY=${VAR_FIN_ARQ_REPORT_JULY}
 export ATTR_FIN_ARQ_REPORT_JULY_EDIT=${VAR_FIN_ARQ_REPORT_JULY_EDIT}
+export ATTR_FIN_ARQ_REPORT_OCTOBER=${VAR_FIN_ARQ_REPORT_OCTOBER}
+export ATTR_FIN_ARQ_REPORT_OCTOBER_EDIT=${VAR_FIN_ARQ_REPORT_OCTOBER_EDIT}
 export ATTR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE=${VAR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE}
 export ATTR_FIN_ARQ_TEMPLATE_MONTHLY=${VAR_FIN_ARQ_TEMPLATE_MONTHLY}
 export ATTR_FIN_ARQ_TEMPLATE_PRINT=${VAR_FIN_ARQ_TEMPLATE_PRINT}
@@ -158,6 +160,8 @@ show-variables:
 	@echo "ATTR_FIN_ARQ_REPORT_HTML: ${ATTR_FIN_ARQ_REPORT_HTML}"
 	@echo "ATTR_FIN_ARQ_REPORT_JULY: ${ATTR_FIN_ARQ_REPORT_JULY}"
 	@echo "ATTR_FIN_ARQ_REPORT_JULY_EDIT: ${ATTR_FIN_ARQ_REPORT_JULY_EDIT}"
+	@echo "ATTR_FIN_ARQ_REPORT_OCTOBER: ${ATTR_FIN_ARQ_REPORT_OCTOBER}"
+	@echo "ATTR_FIN_ARQ_REPORT_OCTOBER_EDIT: ${ATTR_FIN_ARQ_REPORT_OCTOBER_EDIT}"
 	@echo "ATTR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE: ${ATTR_FIN_ARQ_TEMPLATE_MONTHLY_EDITABLE}"
 	@echo "ATTR_FIN_ARQ_TEMPLATE_MONTHLY: ${ATTR_FIN_ARQ_TEMPLATE_MONTHLY}"
 	@echo "ATTR_FIN_ARQ_TEMPLATE_PRINT: ${ATTR_FIN_ARQ_TEMPLATE_PRINT}"
@@ -177,7 +181,7 @@ process: check_poetry_installed install
 force: check_poetry_installed install
 server: check_poetry_installed install
 copy: check_poetry_installed install
-copy-july-report: check_poetry_installed install
+copy-october-report: check_poetry_installed install
 copy-report: check_poetry_installed
 
 # =============================================================================
@@ -241,15 +245,15 @@ copy-report:
 	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "✅ Conteúdo do relatório report.html copiado para a área de transferência"
 
-# Copia o relatório de Julho para analise
-copy-july-report:
+# Copia o relatório de Outubro para analise
+copy-october-report:
 	@mkdir -pv ${ATTR_FIN_DIR_TMP}
-	@echo "Copiando o relatório de Julho..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_REPORT_JULY} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@echo "Copiando o relatório de Outubro..." > ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_REPORT_OCTOBER} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@echo "Copiando o relatório editavel..." >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@cat ${ATTR_FIN_ARQ_REPORT_JULY_EDIT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
+	@cat ${ATTR_FIN_ARQ_REPORT_OCTOBER_EDIT} >> ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
 	@pbcopy < ${ATTR_FIN_DIR_TMP}/copy2chatgpt.txt
-	@echo "✅ Conteúdo do relatório de Julho copiado para a área de transferência"
+	@echo "✅ Conteúdo do relatório de Outubro copiado para a área de transferência"
 
 # Copia os templates dos relatórios para analise
 copy-templates:
@@ -404,7 +408,7 @@ server:
 api:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} api --reload --auto-reload
 
-rebuild: remove-all copy-july process api
+rebuild: remove-all copy-october process api
 
 reload: process api
 
