@@ -3,6 +3,9 @@
 
 .PHONY: help
 
+# Quando apenas "make" é chamado, exibe a lista de comandos disponíveis
+.DEFAULT_GOAL := help
+
 # Configuração de ambiente
 VAR_FIN_OPENAI_API_KEY=${OPENAI_API_KEY}
 # Diretórios de dados
