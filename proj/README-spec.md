@@ -1,118 +1,76 @@
-<!-- req/README.md -->
-# Documentação RUP da Solução
+<!-- proj/README-spec.md -->
+# Documentação RUP — WA Fin Ctrl
 
-> Base: [./README.md](./README.md)
-> Plano: [/docs/plans/20251025093000-evolucao-req-spec.md](/docs/plans/20251025093000-evolucao-req-spec.md)
-> Changelog: [/CHANGELOG.md#2025-10-25](/CHANGELOG.md#2025-10-25)
-> Referências correlatas: [Arquitetura da extensão](/req/01-arquitetura/arquitetura-da-extensao-spec.md) · [Design geral](/req/02-design/design-geral-spec.md) · [Testes end-to-end](/req/04-testes-e-validacao/testes-end-to-end-spec.md)
+> Base: [./README.md](./README.md)  
+> Artefato raiz da trilha de requisitos, arquitetura e governança do projeto **WA Fin Ctrl**. Todas as referências utilizam a árvore `proj/`.
 
-**Fase: Documentação completa RUP**
+Bem-vindo ao acervo oficial de requisitos do **WA Fin Ctrl**. Esta pasta consolida a visão estratégica, arquitetura técnica, design, planejamento, implementação, testes, implantação, governança e diretrizes de experiência do ecossistema que combina:
 
-Bem-vindo ao acervo oficial de requisitos da solução mantida neste repositório. A pasta `req/` consolida todas as fases do Rational Unified Process (RUP) aplicadas ao produto atual e a qualquer subprojeto que venha a coexistir neste mono-repositório. Cada artefato aqui publicado deve permanecer autônomo, completo e versionado em conjunto com o código-fonte, garantindo rastreabilidade ponta a ponta.
+- **Pilar local (Python/FastAPI):** pipeline de processamento de comprovantes recebidos por ferramentas de mensagens, OCR híbrido (Tesseract + LLM) e geração de relatórios HTML/CSV auditáveis.
+- **Pilar cloud (TypeScript/NestJS/React):** serviços e interfaces responsáveis por sincronizar dados, oferecer revisão colaborativa e expor APIs para terceiros (em evolução a partir da base herdada do projeto Yagnostic).
+- **Automação assistida por IA:** agentes descritos em `AGENTS.md` para classificação, extração de valores, revisão de inconsistências e auditoria contínua.
 
----
-
-## Introdução Geral
-
-A solução combina componentes cliente e servidor, integrações externas e automações operacionais. Utilize este diretório para registrar visão de negócio, arquitetura técnica, design detalhado, planejamento, implementação, testes, implantação, governança e diretrizes de experiência. Sempre que novos módulos forem adicionados (por exemplo, extensões, APIs, aplicações web ou serviços auxiliares), documente-os na fase correspondente, mantendo o histórico de decisões acessível para humanos e agentes.
-
-As instruções operacionais para agentes estão descritas em `AGENTS.md`. Quando for necessário implementar ou revisar mudanças, consulte o artefato desta pasta referente à fase RUP adequada antes de iniciar qualquer desenvolvimento.
-
----
-
-## Regras de evolução de requisitos
-
-1. **Catálogo sempre atualizado.** Todo requisito novo ou alterado precisa ser registrado em `req/02-planejamento/requisitos.md` e refletido imediatamente em `requisitos-spec.md`, mantendo o identificador `REQ-###` ou `RNF-###` conforme aplicável.
-2. **Pares base/spec sincronizados.** Qualquer ajuste nos artefatos da req deve atualizar simultaneamente o arquivo base (`.md`) e seu espelho `*-spec.md`, preservando texto, links e âncoras.
-3. **Percurso documental completo.** Antes de iniciar a implementação, siga o fluxo descrito em `instrucoes-evolucao-requisitos.md`, atualizando as fases 01 a 06 da req com as evidências correspondentes para requisitos funcionais e não funcionais.
-4. **Rastreabilidade mínima obrigatória.** Cada requisito precisa apontar para arquitetura, design, testes e governança associados. Registre também impactos em riscos, cronograma, métricas e publicação quando houver.
-5. **Trilha de auditoria.** Feche cada ciclo com item no `CHANGELOG.md`, nova entrada em `req/audit-history.md`/`req/audit-history-spec.md` e checklist assinado em `req/06-governanca-tecnica-e-controle-de-qualidade/auditoria-e-rastreabilidade.md`.
+Cada documento `*-spec.md` descreve o estado atual e o futuro próximo do produto. Os arquivos pares (`.md`) mantêm o template reutilizável. Quaisquer alterações devem ser rastreadas por changelog específico em `CHANGELOG/` e, quando houver planos/autoria, vinculadas aos artefatos correspondentes em `docs/plans/` e `proj/audit-history*.md`.
 
 ---
 
 ## Estrutura das Fases RUP
 
-| Fase | Diretório | Descrição |
+| Fase | Diretório | Papel no WA Fin Ctrl |
 | --- | --- | --- |
-| 00 – Visão do Projeto | [./00-visao/](./00-visao/) | Objetivos, escopo, stakeholders e considerações legais e regulatórias. |
-| 01 – Arquitetura | [./01-arquitetura/](./01-arquitetura/) | Macroarquitetura, integrações externas e requisitos não funcionais. |
-| 02 – Design Detalhado | [./02-design/](./02-design/) | Componentes internos, contratos, fluxos de interação e protótipos. |
-| 02 – Planejamento | [./02-planejamento/](./02-planejamento/) | Cronograma, governança, roadmap, riscos e WBS. |
-| 03 – Implementação | [./03-implementacao/](./03-implementacao/) | Estrutura de diretórios, padrões de código e automações de build/teste. |
-| 04 – Testes e Validação | [./04-testes-e-validacao/](./04-testes-e-validacao/) | Estratégia de QA, critérios de aceite, suites E2E e validação de marcos. |
-| 05 – Entrega e Implantação | [./05-entrega-e-implantacao/](./05-entrega-e-implantacao/) | Ambientes, empacotamento, versionamento e operação contínua. |
-| 06 – Governança Técnica e Controle de Qualidade | [./06-governanca-tecnica-e-controle-de-qualidade/](./06-governanca-tecnica-e-controle-de-qualidade/) | Auditorias, revisões com IA, políticas de conformidade e monitoramento. |
-| 06 – UX & Brand | [./06-ux-brand/](./06-ux-brand/) | Diretrizes de UX, acessibilidade, identidade visual e regras de experiência. |
-| 07 – Contribuição | [./07-contribuicao/](./07-contribuicao/) | Padrões de colaboração, commits e fluxos de PR. |
-| 99 – Anexos | [./99-anexos/](./99-anexos/) | Glossário, referências externas e anexos de apoio. |
-
-Materiais legados e históricos permanecem publicados em subdiretórios próprios. Consulte-os apenas quando for necessário recuperar contexto anterior ao ciclo atual.
-
-## Navegação rápida pelas fases RUP
-
-- [00-Visão](00-visao/README-spec.md): escopo, objetivos, stakeholders e diretrizes regulatórias.
-- [01-Arquitetura](01-arquitetura/README-spec.md): camadas da solução, integrações externas e restrições técnicas.
-- [02-Design](02-design/README-spec.md): diagramas, componentes e fluxos operacionais.
-- [02-Planejamento](02-planejamento/README-spec.md): cronogramas, governança e riscos controlados.
-- [03-Implementação](03-implementacao/README-spec.md): padrões estruturais, build e automações.
-- [04-Testes e Validação](04-testes-e-validacao/README-spec.md): estratégia de QA, marcos e cenários ponta a ponta.
-- [05-Entrega e Implantação](05-entrega-e-implantacao/README-spec.md): ambientes, publicação e versionamento.
-- [06-Governança Técnica e CQ](06-governanca-tecnica-e-controle-de-qualidade/README-spec.md): auditorias, controle de qualidade e revisões com IA.
-- [06-UX & Brand](06-ux-brand/README-spec.md): diretrizes de experiência, identidade e acessibilidade.
-- [07-Contribuição](07-contribuicao/README-spec.md): colaboração, padrões de commit e PR.
-
-## Materiais complementares
-
-- [Planejamento histórico](02-planejamento/README-spec.md): registros auxiliares de roadmap, riscos e cronogramas anteriores.
-- [Agentes IA (arquivo)](03-agentes-ia/README-spec.md): documentação legada das políticas de automação.
-- [Documentos legados de implementação](03-implementacao/README-spec.md): indica a migração das diretrizes técnicas para as fases atuais.
-- [Qualidade e testes (arquivo)](04-qualidade-testes/README-spec.md): material preservado de ciclos anteriores.
-- [Operação e release (arquivo)](05-operacao-release/README-spec.md): registros históricos de implantação.
-- [UX e identidade](06-ux-brand/README-spec.md): orientações complementares de experiência e comunicação visual.
-- [Contribuição](07-contribuicao/README-spec.md): padrões de colaboração e governança de commits.
-- [Anexos](99-anexos/README-spec.md): glossário e referências adicionais.
-
-### Convenção de arquivos
-
-> **Nota de governança documental:** todas as pastas da req adotam exclusivamente `README.md` como página principal. É proibido criar `index.md`/`INDEX.md`. Qualquer novo artefato deve seguir a estrutura indicada no README da fase correspondente e precisa ser aprovado no changelog que acompanha a entrega.
+| 00 – Visão | [./00-visao/](./00-visao/) | Propósito, escopo, personas (prestadores, curadores de contas, auditores) e compromissos legais (LGPD, normas do MPDFT). |
+| 01 – Arquitetura | [./01-arquitetura/](./01-arquitetura/) | Macrovisão das camadas local/cloud, pipelines de dados, integrações com OpenAI, storage e provedores de notificações. |
+| 02 – Design | [./02-design/](./02-design/) | Modelagem de componentes (CLI, API, UI), fluxos de processamento, revisão e publicação de relatórios. |
+| 02 – Planejamento | [./02-planejamento/](./02-planejamento/) | Catálogo de requisitos (funcionais e RNFs), roadmap, cronograma, WBS, matriz de riscos e governança. |
+| 03 – Implementação | [./03-implementacao/](./03-implementacao/) | Estrutura de diretórios, padrões de código, automações (Make, Docker, pipelines CI/CD) e práticas de qualidade. |
+| 03 – Agentes IA | [./03-agentes-ia/](./03-agentes-ia/) | Regras para uso de LLMs, prompts autorizados, logging de execuções e salvaguardas. |
+| 04 – Testes e Validação | [./04-testes-e-validacao/](./04-testes-e-validacao/) | Estratégias de QA, critérios de aceite, testes e2e (CLI + API + UI) e validação de marcos funcionais. |
+| 04 – Qualidade & Métricas | [./04-qualidade-testes/](./04-qualidade-testes/) | Indicadores operacionais, planos de amostragem, testes exploratórios e monitoramento de regressões. |
+| 05 – Entrega & Implantação | [./05-entrega-e-implantacao/](./05-entrega-e-implantacao/) | Ambientes locais/cloud, empacotamento (Docker/Poetry/nx), versionamento e operações contínuas. |
+| 05 – Operação & Release (Histórico) | [./05-operacao-release/](./05-operacao-release/) | Legado e lições aprendidas de ciclos anteriores, mantidos para consulta comparativa. |
+| 06 – Governança & CQ | [./06-governanca-tecnica-e-controle-de-qualidade/](./06-governanca-tecnica-e-controle-de-qualidade/) | Auditorias, papéis, checklists obrigatórios, políticas de rastreabilidade e revisão por IA. |
+| 06 – UX & Brand | [./06-ux-brand/](./06-ux-brand/) | Diretrizes de experiência para dashboards web, relatórios HTML e interação CLI. |
+| 07 – Contribuição | [./07-contribuicao/](./07-contribuicao/) | Processos de onboarding técnico, padrões de commit/PR e governança colaborativa. |
+| 99 – Anexos | [./99-anexos/](./99-anexos/) | Glossário, referências externas (MPDFT, CNJ, órgãos de controle) e anexos complementares. |
 
 ---
 
-## 📍 Fases do Ciclo RUP
+## Convenções gerais
 
-1. **Iniciação (Visão)** — Define objetivos, escopo e atores envolvidos.
-2. **Elaboração (Arquitetura)** — Formaliza a estrutura técnica e limites de integração.
-3. **Construção (Design/Implementação)** — Consolida componentes, contratos e padrões de código.
-4. **Transição (Testes e Validação)** — Verifica fluxos críticos e critérios de aceite.
-5. **Implantação (Entrega)** — Empacota serviços, pipelines e canais de distribuição.
-6. **Governança (Operação contínua)** — Sustenta auditorias, agentes e conformidade.
-
----
-
-## Automação e IA no Ciclo RUP
-
-Os agentes inteligentes descritos em `AGENTS.md` operam de acordo com os pipelines catalogados em `req/06-governanca-tecnica-e-controle-de-qualidade/revisoes-com-ia.md`. Cada agente deve seguir as regras de controle humano, versionamento e auditoria descritas nos artefatos de governança.
+- **Rastreabilidade total:** qualquer requisito (`REQ-###`, `RNF-###`, `RL-###`) deve apontar para arquitetura, design, testes, operação e governança correspondentes. Use anchors consistentes entre arquivos.
+- **Pares base/spec sincronizados:** sempre que um `*-spec.md` for alterado, atualize o arquivo base e registre a mudança em `CHANGELOG/`.
+- **Cabeçalho obrigatório:** todos os arquivos Markdown iniciam com `<!-- caminho/relativo.md -->`, conforme política de `AGENTS.md`.
+- **Planos & auditorias:** planos táticos ficam em `docs/plans/` com par `-audit` obrigatório. Referencie-os nas seções pertinentes.
+- **Agentes de IA:** siga `proj/03-agentes-ia/` e `AGENTS.md` antes de usar LLMs, incluindo captura de `run_id` e guarda de prompts em `docs/reports/`.
 
 ---
 
-## Conformidade e Segurança
+## Navegação rápida
 
-- Atenda às legislações e normas aplicáveis ao domínio do produto (por exemplo, LGPD, HIPAA, GDPR). Documente as obrigações vigentes em `req/00-visao/lgpd.md` ou artefatos equivalentes.
-- Garanta criptografia em repouso e em trânsito para dados sensíveis, registrando os mecanismos utilizados.
-- Vincule políticas de acesso e monitoramento aos ambientes descritos na fase de Entrega e Implantação.
-
----
-
-## 🏢 Referência de Responsabilidade Técnica
-
-**Responsável:** consulte `req/06-governanca-tecnica-e-controle-de-qualidade/governanca-tecnica.md` para o quadro atualizado de responsabilidade.
-
-**Infraestrutura:** GitHub e demais ferramentas aprovadas para o projeto (pipelines, registries, provedores de nuvem) documentadas na fase de Entrega e Implantação.
-
-**Licença:** siga a política de licenciamento definida para o repositório ou a organização proprietária.
-
-**Última atualização:** registrada no changelog correspondente à revisão mais recente.
+- [Visão do produto](00-visao/visao-do-produto-spec.md)
+- [Arquitetura local x cloud](01-arquitetura/arquitetura-da-extensao-spec.md)
+- [Catálogo de requisitos](02-planejamento/requisitos-spec.md)
+- [Fluxos operacionais](02-design/fluxos-spec.md)
+- [Estrutura de implementação](03-implementacao/estrutura-de-projeto-spec.md)
+- [Critérios de aceitação](04-testes-e-validacao/criterios-de-aceitacao-spec.md)
+- [Ambientes e configurações](05-entrega-e-implantacao/ambientes-e-configuracoes-spec.md)
+- [Governança técnica](06-governanca-tecnica-e-controle-de-qualidade/governanca-tecnica-spec.md)
+- [Diretrizes de UX](06-ux-brand/diretrizes-de-ux-spec.md)
+- [Glossário](99-anexos/glossario-spec.md)
 
 ---
 
-[Voltar ao topo](#documentação-rup-da-solução)
+## Atualização contínua
+
+1. **Planejar:** descreva a mudança em um plano (`docs/plans/`), selecione checklists em `docs/checklists/` e abra tarefa correspondente.
+2. **Executar:** aplique ajustes no código/documentação sob as regras de `AGENTS.md` e dos artefatos da fase RUP.
+3. **Evidenciar:** crie changelog (`CHANGELOG/YYYYMMDDHHMMSS.md`), atualize `proj/audit-history*.md` e relacione relatórios gerados.
+4. **Validar:** siga os critérios de `04-testes-e-validacao/` e registre resultados na seção apropriada.
+5. **Governar:** mantenha rastreabilidade completa entre requisito → implementação → teste → auditoria.
+
+---
+
+**Responsável atual:** indicado em `proj/06-governanca-tecnica-e-controle-de-qualidade/governanca-tecnica-spec.md`.  
+**Última revisão:** atualize esta linha ao concluir o ciclo correspondente no changelog.
+
+[Voltar ao topo](#documentação-rup-—-wa-fin-ctrl)

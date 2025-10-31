@@ -1,3 +1,4 @@
+<!-- proj/04-testes-e-validacao/estrategia-geral.md -->
 # Estratégia Geral de Testes
 
 ## Propósito

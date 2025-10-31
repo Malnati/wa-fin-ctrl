@@ -1,3 +1,4 @@
+<!-- proj/06-governanca-tecnica-e-controle-de-qualidade/revisoes-com-ia.md -->
 # Revisões com Inteligência Artificial
 
 ## Propósito

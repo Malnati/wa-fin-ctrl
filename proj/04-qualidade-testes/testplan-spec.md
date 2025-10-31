@@ -1,13 +1,34 @@
-# TestPlan
+<!-- proj/04-qualidade-testes/testplan-spec.md -->
+# Plano de Testes — WA Fin Ctrl
 
 > Base: [./testplan.md](./testplan.md)
-> Plano: [/docs/plans/20251025093000-evolucao-req-spec.md](/docs/plans/20251025093000-evolucao-req-spec.md)
-> Changelog: [/CHANGELOG.md#2025-10-25](/CHANGELOG.md#2025-10-25)
-> Referências correlatas: [Arquitetura da extensão](/req/01-arquitetura/arquitetura-da-extensao-spec.md) · [Design geral](/req/02-design/design-geral-spec.md) · [Testes end-to-end](/req/04-testes-e-validacao/testes-end-to-end-spec.md)
 
-Consulte [Testes e Validação](../04-testes-e-validacao/README-spec.md) para o plano de testes vigente. Esta página permanece apenas como referência histórica.
+## Escopo
+- Pipeline local (Python/FastAPI)
+- Plataforma cloud (NestJS/React)
+- Integrações externas (IA, notificações)
 
-**Requisitos associados:** [REQ-004](../02-planejamento/requisitos-spec.md#req-004), [REQ-005](../02-planejamento/requisitos-spec.md#req-005), [REQ-015](../02-planejamento/requisitos-spec.md#req-015).
-**Integração colaborativa:** garanta que qualquer reutilização deste plano considere os marcos médicos descritos em [REQ-031](../02-planejamento/requisitos-spec.md#req-031) sem descartar cenários herdados.
+## Estratégia
+- Automatizar testes unitários e integração para cada módulo crítico.
+- Executar suites E2E em momentos chave (antes de releases, após correções sensíveis).
+- Registrar evidências em `docs/reports/`.
 
-[Voltar ao índice](README-spec.md)
+## Cronograma de testes
+| Fase | Atividade |
+| --- | --- |
+| Q1 | Validação do pipeline local com massa real |
+| Q2 | Testes da refatoração cloud e ingestão |
+| Q3 | E2E colaborativo, alertas e auditoria |
+| Q4 | Ensaios gerais antes do release 1.0 |
+
+## Equipe
+- QA/Curadoria: executa testes exploratórios e valida relatórios.
+- Engenharia Python: mantém testes automáticos locais.
+- Engenharia TypeScript: mantém testes cloud e e2e.
+
+## Critérios de aceite dos testes
+- Cobertura mínima conforme RNF.  
+- Nenhum defeito crítico aberto.  
+- Checklists de segurança e LGPD concluídos.
+
+[Voltar à qualidade](README-spec.md)

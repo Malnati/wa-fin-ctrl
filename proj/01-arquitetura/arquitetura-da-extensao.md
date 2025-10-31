@@ -1,7 +1,8 @@
-# Arquitetura da Plataforma Yagnostic
+<!-- proj/01-arquitetura/arquitetura-da-extensao.md -->
+# Arquitetura da Solução
 
 ## Propósito
-Use este documento como modelo para registrar o requisito "Arquitetura da Plataforma Yagnostic" em novos projetos. Ele explica o objetivo do artefato, indica como interpretá-lo e orienta o time sobre quando consultar o material evolutivo.
+Use este documento como modelo para registrar o requisito "Arquitetura da Solução" em novos projetos. Ele explica o objetivo do artefato, indica como interpretá-lo e orienta o time sobre quando consultar o material evolutivo.
 
 ## Como usar
 1. Leia o documento evolutivo correspondente para acompanhar as decisões vigentes (`arquitetura-da-extensao-spec.md`).
@@ -14,5 +15,4 @@ Use este documento como modelo para registrar o requisito "Arquitetura da Plataf
 - Mantenha este arquivo apenas com instruções reutilizáveis; evite inserir conteúdo específico do projeto.
 
 ## Documento evolutivo
-[Arquitetura da Plataforma Yagnostic — Especificação Evolutiva](./arquitetura-da-extensao-spec.md)
-
+[Arquitetura da Solução — Especificação Evolutiva](./arquitetura-da-extensao-spec.md)

@@ -1,3 +1,4 @@
+<!-- proj/06-governanca-tecnica-e-controle-de-qualidade/governanca-tecnica.md -->
 # Governança Técnica
 
 ## Propósito

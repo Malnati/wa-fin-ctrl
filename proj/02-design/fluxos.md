@@ -1,3 +1,4 @@
+<!-- proj/02-design/fluxos.md -->
 # Fluxos de Interação entre Componentes
 
 ## Propósito

@@ -1,3 +1,4 @@
+<!-- proj/04-testes-e-validacao/resumo-validacao-multiplas-capacidades.md -->
 # Resumo de Validação - Múltiplas Capacidades Expandidas
 
 ## Propósito

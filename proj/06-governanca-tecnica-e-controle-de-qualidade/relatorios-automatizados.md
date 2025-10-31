@@ -1,3 +1,4 @@
+<!-- proj/06-governanca-tecnica-e-controle-de-qualidade/relatorios-automatizados.md -->
 # Relatórios Automatizados e Auditorias (RUP)
 
 ## Propósito

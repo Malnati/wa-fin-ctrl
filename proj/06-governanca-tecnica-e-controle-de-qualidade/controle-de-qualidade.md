@@ -1,3 +1,4 @@
+<!-- proj/06-governanca-tecnica-e-controle-de-qualidade/controle-de-qualidade.md -->
 # Controle de Qualidade
 
 ## Propósito

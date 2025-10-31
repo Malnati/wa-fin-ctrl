@@ -1,3 +1,4 @@
+<!-- proj/00-visao/escopo.md -->
 # Escopo
 
 ## Propósito

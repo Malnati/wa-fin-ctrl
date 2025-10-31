@@ -1,3 +1,4 @@
+<!-- proj/06-governanca-tecnica-e-controle-de-qualidade/auditoria-e-rastreabilidade.md -->
 # Auditoria e Rastreabilidade
 
 ## Propósito

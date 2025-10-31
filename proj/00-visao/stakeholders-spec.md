@@ -1,28 +1,28 @@
-# Stakeholders
+<!-- proj/00-visao/stakeholders-spec.md -->
+# Stakeholders — WA Fin Ctrl
 
 > Base: [./stakeholders.md](./stakeholders.md)
-> Plano: [/docs/plans/20251025093000-evolucao-req-spec.md](/docs/plans/20251025093000-evolucao-req-spec.md)
-> Changelog: [/CHANGELOG.md#2025-10-25](/CHANGELOG.md#2025-10-25)
-> Referências correlatas: [Arquitetura da extensão](/req/01-arquitetura/arquitetura-da-extensao-spec.md) · [Design geral](/req/02-design/design-geral-spec.md) · [Testes end-to-end](/req/04-testes-e-validacao/testes-end-to-end-spec.md)
 
-## Partes interessadas
-- **Proprietário do produto:** Millennium Brasil (MBRA).
-- **Clientes-alvo:** laboratórios, hospitais e redes de saúde que precisam acelerar a interpretação de laudos por suas equipes médicas.
-- **Usuários finais:** profissionais que operam a extensão, médicos que recebem diagnósticos sintetizados, equipes clínicas que consomem os tokens e destinatários notificados (pacientes, integrações corporativas).
+## Visão geral
+O WA Fin Ctrl envolve diferentes públicos para garantir conformidade legal, qualidade dos relatórios e viabilidade operacional. A tabela a seguir detalha objetivos, responsabilidades e indicadores de sucesso para cada grupo.
 
-## Necessidades resumidas
-- **MBRA:** fortalecer o uso das APIs corporativas, manter auditoria ponta a ponta e ampliar a adoção da IA em diagnósticos.
-- **Laboratórios, hospitais e redes de saúde:** automatizar a captura de PDFs, reduzir retrabalho manual e garantir distribuição rápida dos tokens de diagnóstico para médicos.
-- **Usuários finais:** operar um fluxo simples de interceptação, obter diagnósticos em múltiplos formatos e receber notificações confiáveis que priorizem achados críticos.
-
-## Papéis e responsabilidades
-| Parte | Papel | Responsabilidades | Indicador de Sucesso |
+| Parte interessada | Papel no projeto | Responsabilidades chave | Indicadores de sucesso |
 | --- | --- | --- | --- |
-| MBRA | Controladora e mantenedora do produto | Evoluir APIs, modelos de IA e governança da extensão (publicação, suporte, auditoria) | Disponibilidade >99% dos serviços e conformidade regulatória |
-| Laboratórios/Hospitais | Clientes corporativos | Configurar destinatários, conceder consentimentos e validar diagnósticos gerados | Redução do tempo de liberação dos laudos e queda em retrabalho manual |
-| Operadores da extensão | Usuários que instalam e executam o add-on | Habilitar a interceptação, revisar notificações e apoiar usuários finais | Taxa de interceptação bem-sucedida e satisfação operacional |
-| Destinatários notificados | Médicos, pacientes ou integrações automatizadas | Consumir o token recebido e acessar relatórios PDF/áudio conforme permissão | Confirmações de recebimento e aderência às notificações |
+| **Curadoria financeira (time WA)** | Product owner / operação diária | Definir prioridades de processamento, validar classificações, aprovar sincronização cloud | Tempo de processamento por lote < 8 min · % de relatórios aprovados sem retrabalho |
+| **Curadores MPDFT** | Fiscalização e compliance | Homologar relatórios entregues, garantir aderência aos roteiros oficiais, emitir recomendações | # de pendências abertas vs. resolvidas · SLA de resposta às análises |
+| **Time técnico local (Python)** | Engenharia de dados & automação | Manter pipeline `wa_fin_ctrl`, evoluir CLI/API, garantir reprodutibilidade e logs completos | Taxa de falhas por execução · Cobertura de testes · Atualização da documentação técnica |
+| **Time técnico cloud (TypeScript)** | Serviços e UI colaborativa | Evoluir APIs/React para revisão remota, publicar builds e monitorar uso | Disponibilidade > 99% · Latência média < 200 ms · Feedback dos usuários |
+| **Analistas financeiros** | Usuários finais dos relatórios | Utilizar relatórios para prestação de contas, solicitar correções, apontar inconsistências | Satisfação (> 4/5) · Nº de erros identificados manualmente |
+| **Parceiros de IA (OpenAI/LLMs)** | Fornecedores auxiliares | Disponibilizar APIs com SLA estável e permitir rastreabilidade de prompts/respostas | Tempo de resposta < 3 s · Custo por token dentro do orçamento |
 
-A comunicação e a governança seguirão o cronograma interno da MBRA, com ritos periódicos de acompanhamento, revisão de indicadores e alinhamento estratégico com as demais iniciativas digitais da organização.
+## Interações críticas
+- **Ritos semanais** entre curadoria financeira e time técnico para analisar pendências de processamento, revisar backlog de requisitos (ver `proj/02-planejamento/roadmap-spec.md`) e priorizar correções.
+- **Checkpoints mensais** com curadores do MPDFT para emitir parecer sobre relatórios enviados, revisar indicadores de conformidade e validar melhorias.<br>
+- **Operação assistida por IA** registrada em `docs/reports/` e `proj/03-agentes-ia/`, garantindo transparência sobre prompts, custos e decisões tomadas.
 
-[Voltar ao índice](README-spec.md)
+## Responsabilidades compartilhadas
+- **Segurança e privacidade:** garantir que chaves/API e dados pessoais respeitem `proj/00-visao/lgpd-spec.md` e que nenhum dado saia da infraestrutura autorizada.
+- **Documentação:** manter artefatos `proj/` atualizados; um requisito só é considerado concluído quando rastreado do catálogo até os testes.
+- **Auditoria:** registrar cada execução relevante em `data/history.json`, atualizar `proj/audit-history-spec.md` e gerar changelog (`CHANGELOG/`).
+
+[Voltar ao resumo da fase](README-spec.md)

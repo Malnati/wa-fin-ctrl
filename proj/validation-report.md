@@ -1,7 +1,8 @@
-# 🧩 Relatório de Validação da req — Extensão Chrome MBRA (Yagnostic)
+<!-- proj/validation-report.md -->
+# 🧩 Relatório de Validação — WA Fin Ctrl
 
 ## Propósito
-Use este documento como modelo para registrar o requisito "🧩 Relatório de Validação da req — Extensão Chrome MBRA (Yagnostic)" em novos projetos. Ele explica o objetivo do artefato, indica como interpretá-lo e orienta o time sobre quando consultar o material evolutivo.
+Use este documento como modelo para registrar o requisito "🧩 Relatório de Validação — WA Fin Ctrl" em novos projetos. Ele explica o objetivo do artefato, indica como interpretá-lo e orienta o time sobre quando consultar o material evolutivo.
 
 ## Como usar
 1. Leia o documento evolutivo correspondente para acompanhar as decisões vigentes (`validation-report-spec.md`).
@@ -14,5 +15,4 @@ Use este documento como modelo para registrar o requisito "🧩 Relatório de Va
 - Mantenha este arquivo apenas com instruções reutilizáveis; evite inserir conteúdo específico do projeto.
 
 ## Documento evolutivo
-[🧩 Relatório de Validação da req — Extensão Chrome MBRA (Yagnostic) — Especificação Evolutiva](./validation-report-spec.md)
-
+[🧩 Relatório de Validação — WA Fin Ctrl — Especificação Evolutiva](./validation-report-spec.md)

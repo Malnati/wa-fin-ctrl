@@ -1,3 +1,4 @@
+<!-- proj/02-design/componentes.md -->
 # Componentes do Sistema
 
 ## Propósito

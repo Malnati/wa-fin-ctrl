@@ -1,7 +1,8 @@
-# 🧾 Histórico de Auditoria da req — Extensão Chrome MBRA (Yagnostic)
+<!-- proj/audit-history.md -->
+# 🧾 Histórico de Auditoria — WA Fin Ctrl
 
 ## Propósito
-Use este documento como modelo para registrar o requisito "🧾 Histórico de Auditoria da req — Extensão Chrome MBRA (Yagnostic)" em novos projetos. Ele explica o objetivo do artefato, indica como interpretá-lo e orienta o time sobre quando consultar o material evolutivo.
+Use este documento como modelo para registrar o requisito "🧾 Histórico de Auditoria — WA Fin Ctrl" em novos projetos. Ele explica o objetivo do artefato, indica como interpretá-lo e orienta o time sobre quando consultar o material evolutivo.
 
 ## Como usar
 1. Leia o documento evolutivo correspondente para acompanhar as decisões vigentes (`audit-history-spec.md`).
@@ -14,5 +15,4 @@ Use este documento como modelo para registrar o requisito "🧾 Histórico de Au
 - Mantenha este arquivo apenas com instruções reutilizáveis; evite inserir conteúdo específico do projeto.
 
 ## Documento evolutivo
-[🧾 Histórico de Auditoria da req — Extensão Chrome MBRA (Yagnostic) — Especificação Evolutiva](./audit-history-spec.md)
-
+[🧾 Histórico de Auditoria — WA Fin Ctrl — Especificação Evolutiva](./audit-history-spec.md)

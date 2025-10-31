@@ -1,3 +1,4 @@
+<!-- proj/05-operacao-release/setup-ambiente-codex.md -->
 # Setup do ambiente Codex
 
 ## Propósito

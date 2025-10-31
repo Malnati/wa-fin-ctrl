@@ -1,3 +1,4 @@
+<!-- proj/02-planejamento/capacidade-diagnostico-colaborativo.md -->
 # Capacidade de Diagnóstico Colaborativo
 
 ## Propósito

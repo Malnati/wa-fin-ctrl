@@ -1,3 +1,4 @@
+<!-- proj/03-agentes-ia/pipeline-ia.md -->
 # Pipeline IA
 
 ## Propósito

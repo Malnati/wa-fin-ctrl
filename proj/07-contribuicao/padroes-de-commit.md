@@ -1,3 +1,4 @@
+<!-- proj/07-contribuicao/padroes-de-commit.md -->
 # Padrões de Commit
 
 ## Propósito

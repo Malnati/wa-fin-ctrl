@@ -1,10 +1,8 @@
-# Versão e Changelog
+<!-- proj/05-operacao-release/versao-e-changelog-spec.md -->
+# Versão & Changelog (Histórico)
 
 > Base: [./versao-e-changelog.md](./versao-e-changelog.md)
-> Plano: [/docs/plans/20251025093000-evolucao-req-spec.md](/docs/plans/20251025093000-evolucao-req-spec.md)
-> Changelog: [/CHANGELOG.md#2025-10-25](/CHANGELOG.md#2025-10-25)
-> Referências correlatas: [Arquitetura da extensão](/req/01-arquitetura/arquitetura-da-extensao-spec.md) · [Design geral](/req/02-design/design-geral-spec.md) · [Testes end-to-end](/req/04-testes-e-validacao/testes-end-to-end-spec.md)
 
-As práticas de versionamento e registro de alterações foram unificadas em [Publicação e Versionamento](../05-entrega-e-implantacao/publicacao-e-versionamento-spec.md) e no diretório `CHANGELOG/`. Consulte essas fontes para orientações vigentes e para atender [REQ-019](../02-planejamento/requisitos-spec.md#req-019), [REQ-022](../02-planejamento/requisitos-spec.md#req-022) e [REQ-029](../02-planejamento/requisitos-spec.md#req-029).
+Registra convenções adotadas no ciclo anterior. Mantenha este arquivo para referência, mas considere `proj/05-entrega-e-implantacao/publicacao-e-versionamento-spec.md` como fonte oficial para WA Fin Ctrl.
 
-[Voltar ao índice](README-spec.md)
+[Voltar ao histórico](README-spec.md)

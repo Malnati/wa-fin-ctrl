@@ -1,3 +1,4 @@
+<!-- proj/05-operacao-release/publicacao-web-store.md -->
 # Publicação Web Store
 
 ## Propósito

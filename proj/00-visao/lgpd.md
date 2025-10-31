@@ -1,3 +1,4 @@
+<!-- proj/00-visao/lgpd.md -->
 # LGPD — Conformidade e Diretrizes
 
 ## Propósito
