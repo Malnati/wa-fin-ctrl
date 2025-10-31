@@ -1,0 +1,7 @@
+{
+  "status": "error",
+  "status_code": "401",
+  "response": "{\r\n  \"message\": \"Bad credentials\",\r\n  \"documentation_url\": \"https://docs.github.com/rest\",\r\n  \"status\": \"401\"\r\n}",
+  "created_at": "2025-10-14T02:15:40Z",
+  "message": "Falha ao criar issue automaticamente. Verifique o token e crie manualmente via navegador."
+}
