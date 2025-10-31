@@ -18,6 +18,7 @@ import { FileHistoryModule } from './file-history/file-history.module';
 import { AdminModule } from './admin/admin.module';
 import { ConsentModule } from './consent/consent.module';
 import { ApiConfigModule } from './modules/config/config.module';
+import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 // import { GoogleDriveService } from './storage/google-drive.service';
 
 @Module({
@@ -42,6 +43,7 @@ import { ApiConfigModule } from './modules/config/config.module';
     AdminModule,
     ConsentModule,
     ApiConfigModule,
+    WhatsappModule,
   ],
   controllers: [AppController],
   providers: [AppService, EnvValidatorService /* GoogleDriveService */],

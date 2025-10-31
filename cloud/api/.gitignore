@@ -1,3 +1,6 @@
+# WhatsApp extraction artifacts
+extracted/
+
 # Logs
 logs
 *.log

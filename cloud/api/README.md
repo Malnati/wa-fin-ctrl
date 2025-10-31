@@ -132,6 +132,42 @@ NGINX_PORT=8080
 
 ---
 
+## 📥 Ingestão de ZIP do WhatsApp (`POST /wa-zip`)
+
+O endpoint `/wa-zip` recebe o arquivo ZIP exportado do WhatsApp (com histórico e mídias), extrai apenas comprovantes financeiros (PDFs + imagens), envia cada comprovante ao **OpenRouter** para OCR avançado e persiste o texto em JSON.
+
+- Arquivos processados são movidos para `cloud/api/extracted/` (mantido fora do Git).
+- Para cada comprovante é gerado `<nome-origem>.json` com `{ origem, extected }`.
+- Requer variáveis `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL` (opcional), `OPENROUTER_PDF_MODEL` e `OPENROUTER_PDF_ENGINE`.
+- Limite atual: 50 MB por upload (configurável).
+
+### Exemplo de requisição
+
+```bash
+curl -X POST http://localhost:3333/wa-zip \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/caminho/para/whatsapp.zip"
+```
+
+### Exemplo de resposta
+
+```json
+[
+  {
+    "origem": "recibo-2025-02-15.pdf",
+    "jsonPath": "extracted/recibo-2025-02-15.json"
+  },
+  {
+    "origem": "pix-2025-02-18.png",
+    "jsonPath": "extracted/pix-2025-02-18.json"
+  }
+]
+```
+
+Em caso de ZIP sem comprovantes válidos, a API retorna `400 Bad Request`.
+
+---
+
 ## 🔓 Operação em ambientes HTTP
 
 - O plano de remoção de dependências de HTTPS ([docs/plans/20241017131500-remove-https-dependency.md](../docs/plans/20241017131500-remove-https-dependency.md)) assegura que toda a stack opere em `http://` durante o desenvolvimento.

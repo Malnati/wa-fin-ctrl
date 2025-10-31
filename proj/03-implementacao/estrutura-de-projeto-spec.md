@@ -23,6 +23,8 @@
 
 ## Estrutura `cloud/`
 - `api/` — projeto NestJS (src/, test/, Dockerfile, Makefile).  
+  - `src/modules/whatsapp/` — módulo `/wa-zip` com integração OpenRouter e persistência em `extracted/`.  
+  - `extracted/` — diretório (ignorado no Git) onde os JSONs `{origem, extected}` e comprovantes processados são armazenados.  
 - `ui/` — projeto React/Vite com ESLint, TypeScript `strict`, módulos focados em relatórios (`src/components/reports`, `src/hooks/useReports.ts`).  
 - `AGENTS.md` (cloud) — instruções específicas para automação desse ambiente.
 
