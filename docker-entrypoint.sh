@@ -1,19 +1,16 @@
 #!/bin/bash
+# Caminho relativo ao projeto: docker-entrypoint.sh
 set -euo pipefail
 
 echo "[entrypoint] Initializing WA Finance Control workspace..."
 
-# Always start from a clean slate
-echo "[entrypoint] Removing previously generated artefacts..."
-if make remove-all; then
-  echo "[entrypoint] Clean-up completed."
+# Always start from a clean slate while keeping massa/ intact
+echo "[entrypoint] Resetting workspace to a clean state..."
+if make reset; then
+  echo "[entrypoint] Workspace reset completed."
 else
-  echo "[entrypoint] Clean-up step reported issues, continuing with initialization."
+  echo "[entrypoint] Reset step reported issues, continuing with initialization."
 fi
-
-# Ensure required directories exist again
-echo "[entrypoint] Recreating required directories..."
-make create-directories
 
 # Processa cada arquivo de massa sequencialmente
 echo "[entrypoint] Preparing mass datasets for processing..."
