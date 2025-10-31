@@ -21,21 +21,6 @@ export class NotifyController {
   @Post('email')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Mock email notification',
-    description:
-      'Recebe notificações por e-mail e registra internamente. Não integra com serviços de e-mail externos nesta fase.',
-  })
-  @ApiOperation({
-    summary:
-      'Mock: Envia notificação por e-mail (registro interno, sem envio real)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Solicitação registrada com sucesso.',
-  })
-  @Post('email')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
     summary:
       'Mock: Envia notificação por e-mail (registro interno, sem envio real)',
   })
