@@ -1,6 +1,6 @@
 // src/tts/elevenlabs-tts.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
-import { ElevenLabsTtsService } from './tts.service';
+import { ElevenLabsTtsService } from './elevenlabs-tts.service';
 import axios from 'axios';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
