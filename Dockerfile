@@ -35,10 +35,16 @@ RUN poetry install --no-root
 # Copia o restante do código
 COPY . .
 
+# Torna o script de entrada executável
+RUN chmod +x docker-entrypoint.sh
+
 # Garante que a aplicação esteja instalada (se aplicável)
 RUN poetry install
 
 EXPOSE 8000
+
+# Executa rotina de inicialização antes de iniciar a API
+ENTRYPOINT ["./docker-entrypoint.sh"]
 
 # Inicia a API FastAPI
 CMD ["poetry", "run", "uvicorn", "src.wa_fin_ctrl.api:app", "--host", "0.0.0.0", "--port", "8000"]
