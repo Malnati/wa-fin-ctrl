@@ -1,24 +1,24 @@
 {
-        "name": "yagnostic-platform",
+        "name": "wa-fin-ctrl-ui",
         "private": true,
-        "version": "0.0.0",
+        "version": "0.1.0",
         "type": "module",
         "scripts": {
                 "dev": "vite",
                 "build": "tsc -b && vite build",
                 "lint": "eslint .",
-                "preview": "npm run build && vite preview --host"
+                "preview": "npm run build && vite preview --host",
+                "test": "VITE_API_URL=http://localhost:8000 VITE_DEV_SERVER_PORT=5173 vitest run",
+                "test:watch": "VITE_API_URL=http://localhost:8000 VITE_DEV_SERVER_PORT=5173 vitest"
         },
         "dependencies": {
-                "dompurify": "^3.2.7",
-                "marked": "^16.3.0",
                 "react": "^19.1.1",
                 "react-dom": "^19.1.1"
         },
         "devDependencies": {
                 "@eslint/js": "^9.33.0",
-                "@types/dompurify": "^3.0.5",
-                "@types/jest": "^30.0.0",
+                "@testing-library/jest-dom": "^6.6.3",
+                "@testing-library/react": "^16.0.1",
                 "@types/node": "^24.9.0",
                 "@types/react": "^19.2.2",
                 "@types/react-dom": "^19.2.2",
@@ -27,8 +27,10 @@
                 "eslint-plugin-react-hooks": "^5.2.0",
                 "eslint-plugin-react-refresh": "^0.4.20",
                 "globals": "^16.3.0",
+                "jsdom": "^25.0.1",
                 "typescript": "~5.8.3",
                 "typescript-eslint": "^8.39.1",
-                "vite": "^7.1.2"
+                "vite": "^7.1.2",
+                "vitest": "^2.1.5"
         }
 }

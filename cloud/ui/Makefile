@@ -1,6 +1,6 @@
-# ui/Makefile
-# Makefile para automação do projeto yagnostic-react
-# Seguindo as regras definidas em .cursor/rules
+# cloud/ui/Makefile
+# Automação do front-end WA Fin Ctrl (React + Vite)
+# Segue políticas descritas em AGENTS.md
 
 .PHONY: help dev build lint preview clean install start stop logs
 

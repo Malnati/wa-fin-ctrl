@@ -16,7 +16,7 @@ As integrações precisam respeitar a cadeia de configuração `.env → docker-
 | --- | --- | --- | --- | --- |
 | `/` | `GET` | Retorna `docs/index.html` e serve a interface local de relatórios. | Restrito por rede (localhost/VPN) | Navegador do curador |
 | `/api/status` | `GET` | Informa estado do pipeline (timestamp de última execução, disponibilidade do WebSocket). | Restrito por rede | UI local, monitoramento |
-| `/api/reports` *(planejado)* | `GET` | Listará relatórios disponíveis, URLs e tipo (geral, mensal, editável). | Restrito por rede | UI React futura, scripts de auditoria |
+| `/api/reports` | `GET` | Lista relatórios disponíveis, URLs e tipo (geral, mensal, editável). | Restrito por rede | `cloud/ui` (dashboard de relatórios), scripts de auditoria |
 | `/fix` | `POST` formulário | Aplica correções em registros específicos (valor, descrição, classificação, rotação). | Token local (variável `API_TOKEN` - backlog) | CLI web/cloud, automações |
 | `/ws` | WebSocket | Dispara eventos `reload` quando relatórios são regenerados. | Sem autenticação (rede confiável) | UI local, watchers |
 
@@ -58,7 +58,7 @@ As integrações precisam respeitar a cadeia de configuração `.env → docker-
 - Todo consumo acima de 80% das quotas gera alerta automático para o time de curadoria.
 
 ## Backlog de integrações
-1. Implementar `/api/reports` no FastAPI e converter UI local para consumir o contrato oficial.
+1. Consolidar módulo NestJS `reports` para refletir o contrato atual consumido pelo `cloud/ui`.
 2. Converter endpoints NestJS herdados (ex.: `/diagnostics/*`) para nomenclatura financeira, atualizando DTOs e testes.
 3. Adicionar webhook de sincronização inversa (MPDFT → WA Fin Ctrl) para recebimento de pareceres.
 4. Definir API pública para auditorias externas com dados anonimizados.

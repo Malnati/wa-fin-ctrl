@@ -23,7 +23,7 @@
 
 ## Estrutura `cloud/`
 - `api/` — projeto NestJS (src/, test/, Dockerfile, Makefile).  
-- `ui/` — projeto React/Vite com ESLint, TypeScript `strict`.  
+- `ui/` — projeto React/Vite com ESLint, TypeScript `strict`, módulos focados em relatórios (`src/components/reports`, `src/hooks/useReports.ts`).  
 - `AGENTS.md` (cloud) — instruções específicas para automação desse ambiente.
 
 ## Convenções

@@ -27,7 +27,10 @@
 | Componente | Local | Responsabilidade | Status |
 | --- | --- | --- | --- |
 | `cloud/api` (NestJS) | `cloud/api/src` | APIs de sincronização, autenticação, notificações, monitoramento. | Refatorar de Yagnostic para finanças. |
-| `cloud/ui` (React) | `cloud/ui/src` | Dashboards de revisão, histórico, alertas. | Atualizar branding, textos e integrações. |
+| `cloud/ui` (React) | `cloud/ui/src` | Dashboard de relatórios: lista `/api/reports`, incorpora visualização via iframe e metadados. | Substitui app Yagnostic; segue contratos WA Fin Ctrl. |
+| `ReportsDashboard` | `cloud/ui/src/components/reports/ReportsDashboard.tsx` | Orquestra busca, estados de carregamento e seleção de relatórios. | Depende de `useReports`. |
+| `ReportList`/`ReportViewer` | `cloud/ui/src/components/reports` | Lista relatórios com filtros básicos e exibe HTML em iframe respeitando scripts do pipeline. | Reutiliza HTML gerado localmente. |
+| `useReports` hook | `cloud/ui/src/hooks/useReports.ts` | Consumir `/api/reports`, cachear resposta e expor `refresh`. | Tratamento de erros/unreachable API. |
 | `NGINX` gateway | `cloud/api/nginx` | Rate limiting para IA, roteamento seguro. | Configura limites `1r/m` (IA) e `10r/m` (geral). |
 
 ### 4. Documentação e governança
