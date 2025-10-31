@@ -1,0 +1,16 @@
+
+Resultado do exame laboratorial:
+Hemoglobina: 14.2 g/dL
+Glicose: 95 mg/dL
+Creatinina: 0.9 mg/dL
+Sódio: 140 mEq/L
+Potássio: 4.0 mEq/L
+Volume de sangue coletado: 5.0 mL
+Temperatura: 36.5 °C
+Pressão arterial: 120/80 mmHg
+Frequência cardíaca: 72 bpm
+Peso: 70 kg
+Altura: 1.75 m
+IMC: 22.9 kg/m²
+
+Observações: Paciente apresentou valores normais em todos os parâmetros analisados.
