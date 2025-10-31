@@ -217,6 +217,12 @@ copy-october:
 copy-september:
 	@cp -v "${ATTR_FIN_ARQ_MASSA_SEPTEMBER}" ${ATTR_FIN_DIR_INPUT}
 
+# Copia todos os arquivos de massa disponíveis
+copy-all:
+	@mkdir -pv ${ATTR_FIN_DIR_INPUT}
+	@echo "Copiando todos os arquivos de massa disponíveis..."
+	@find "${ATTR_FIN_DIR_MASSA}" -maxdepth 1 -type f -name '*.zip' -print0 | xargs -0 -I {} cp -v "{}" ${ATTR_FIN_DIR_INPUT}
+
 # Copia os arquivos do módulo wa_fin_ctrl para analise
 copy:
 	@mkdir -pv ${ATTR_FIN_DIR_TMP}
@@ -320,6 +326,7 @@ help:
 	@echo "  server: Inicia o servidor HTTP local"
 	@echo "  api: Inicia a API REST (localhost:8000)"
 	@echo "  copy: Copia a estrutura do projeto para a área de transferência"
+	@echo "  copy-all: Copia todos os arquivos de massa disponíveis para ${ATTR_FIN_DIR_INPUT}/"
 
 # Processa apenas imagens (sem backup)
 img:
@@ -409,8 +416,8 @@ server:
 api:
 	poetry run python ${ATTR_FIN_ARQ_MAIN} api --reload --auto-reload
 
-rebuild: remove-all copy-october process api
+rebuild: remove-all copy-all process api
 
 reload: process api
 
-.PHONY: help install run server api copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october fix-rotate fix-rotate-ia reset
+.PHONY: help install run server api copy remove-reports remove-baks remove-ocr remove-mensagens remove-imgs remove-tmp remove-input remove-all show-variables copy-april copy-may copy-june copy-july copy-august copy-september copy-october copy-all fix-rotate fix-rotate-ia reset
