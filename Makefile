@@ -5,6 +5,7 @@
 
 # Quando apenas "make" é chamado, exibe a lista de comandos disponíveis
 .DEFAULT_GOAL := help
+MAKEFLAGS += --no-print-directory
 
 # Configuração de ambiente
 VAR_FIN_OPENAI_API_KEY=${OPENAI_API_KEY}
