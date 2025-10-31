@@ -27,7 +27,7 @@
 | Componente | Local | Responsabilidade | Status |
 | --- | --- | --- | --- |
 | `cloud/api` (NestJS) | `cloud/api/src` | APIs de sincronização, autenticação, notificações, monitoramento. | Refatorar de Yagnostic para finanças. |
-| `WhatsappModule` | `cloud/api/src/modules/whatsapp` | Endpoint `/wa-zip`: processa ZIP do WhatsApp, filtra comprovantes, envia ao OpenRouter e grava JSONs. | Ativo — usa `OpenRouterModule` e armazena saídas em `cloud/api/extracted/`. |
+| `WhatsappModule` | `cloud/api/src/modules/whatsapp` | Endpoint `/wa-zip`: processa ZIP do WhatsApp, filtra comprovantes, associa autores via `_chat.txt`, gera TXT `<arquivo>.txt`, envia cada mídia ao OpenRouter e grava JSON `{origem, author, extected}`. | Ativo — usa `OpenRouterModule`, envia contexto com autor e armazena saídas em `cloud/api/extracted/`. |
 | `cloud/ui` (React) | `cloud/ui/src` | Dashboard de relatórios: lista `/api/reports`, incorpora visualização via iframe e metadados. | Substitui app Yagnostic; segue contratos WA Fin Ctrl. |
 | `ReportsDashboard` | `cloud/ui/src/components/reports/ReportsDashboard.tsx` | Orquestra busca, estados de carregamento e seleção de relatórios. | Depende de `useReports`. |
 | `ReportList`/`ReportViewer` | `cloud/ui/src/components/reports` | Lista relatórios com filtros básicos e exibe HTML em iframe respeitando scripts do pipeline. | Reutiliza HTML gerado localmente. |

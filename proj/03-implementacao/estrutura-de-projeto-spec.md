@@ -12,6 +12,7 @@
 | `proj/` | Documentação RUP. |
 | `docs/` | Relatórios gerados e materiais de referência. |
 | `AGENTS.md` | Políticas para agentes/automação. |
+| `docker-compose.yml` | Orquestra `cloud-api` e `cloud-ui` com variáveis `${VAR:-default}` e volumes de extração. |
 
 ## Estrutura `local/`
 - `wa-fin.py` — entrypoint CLI.  
@@ -23,8 +24,8 @@
 
 ## Estrutura `cloud/`
 - `api/` — projeto NestJS (src/, test/, Dockerfile, Makefile).  
-  - `src/modules/whatsapp/` — módulo `/wa-zip` com integração OpenRouter e persistência em `extracted/`.  
-  - `extracted/` — diretório (ignorado no Git) onde os JSONs `{origem, extected}` e comprovantes processados são armazenados.  
+  - `src/modules/whatsapp/` — módulo `/wa-zip` com integração OpenRouter, extração de autores do `_chat.txt`, geração de TXT e JSON persistidos em `extracted/`.  
+  - `extracted/` — diretório (ignorado no Git) para JSONs `{origem, author, extected}`, TXT com autores e comprovantes processados.  
 - `ui/` — projeto React/Vite com ESLint, TypeScript `strict`, módulos focados em relatórios (`src/components/reports`, `src/hooks/useReports.ts`).  
 - `AGENTS.md` (cloud) — instruções específicas para automação desse ambiente.
 

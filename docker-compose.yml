@@ -1,0 +1,32 @@
+# docker-compose.yml
+
+services:
+  cloud-api:
+    build:
+      context: ./cloud/api
+      dockerfile: Dockerfile
+    image: ${CLOUD_API_IMAGE:-wa-fin-ctrl-api}
+    env_file:
+      - ./cloud/api/.env.example
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1/chat/completions}
+      OPENROUTER_PDF_MODEL: ${OPENROUTER_PDF_MODEL:-anthropic/claude-sonnet-4}
+      OPENROUTER_PDF_ENGINE: ${OPENROUTER_PDF_ENGINE:-mistral-ocr}
+    ports:
+      - "${CLOUD_API_PORT:-3333}:3333"
+    volumes:
+      - ./cloud/api/extracted:/app/extracted
+
+  cloud-ui:
+    build:
+      context: ./cloud/ui
+      dockerfile: Dockerfile
+    image: ${CLOUD_UI_IMAGE:-wa-fin-ctrl-ui}
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3333}
+    depends_on:
+      - cloud-api
+    ports:
+      - "${CLOUD_UI_PORT:-8080}:80"
