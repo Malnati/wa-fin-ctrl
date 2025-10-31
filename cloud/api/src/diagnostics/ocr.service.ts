@@ -5,7 +5,6 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as crypto from 'crypto';
 import pdfParse from 'pdf-parse';
-// import sharp from 'sharp';
 import pdf2pic from 'pdf2pic';
 import Tesseract from 'tesseract.js';
 import { PaddleOcrService } from './paddle-ocr.service';
