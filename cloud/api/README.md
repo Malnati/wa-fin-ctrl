@@ -1,4 +1,4 @@
-<!-- api/README.md -->
+<!-- cloud/api/README.md -->
 # 🧠 Yagnostic API
 
 ![Node](https://img.shields.io/badge/Node.js-18.x-green?logo=node.js)
@@ -137,7 +137,7 @@ NGINX_PORT=8080
 O endpoint `/wa-zip` recebe o arquivo ZIP exportado do WhatsApp (com histórico e mídias), extrai apenas comprovantes financeiros (PDFs + imagens), envia cada comprovante ao **OpenRouter** para OCR avançado e persiste o texto em JSON.
 
 - Arquivos processados são movidos para `cloud/api/extracted/` (mantido fora do Git).
-- Para cada comprovante é gerado `<nome-origem>.json` com `{ origem, extected }`.
+- Para cada comprovante são gerados `<nome-origem>.json` com `{ origem, author, extected }` e `<nome-origem>.txt` contendo apenas o autor identificado no `_chat.txt`.
 - Requer variáveis `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL` (opcional), `OPENROUTER_PDF_MODEL` e `OPENROUTER_PDF_ENGINE`.
 - Limite atual: 50 MB por upload (configurável).
 
@@ -155,11 +155,15 @@ curl -X POST http://localhost:3333/wa-zip \
 [
   {
     "origem": "recibo-2025-02-15.pdf",
-    "jsonPath": "extracted/recibo-2025-02-15.json"
+    "author": "Ricardo",
+    "jsonPath": "extracted/recibo-2025-02-15.json",
+    "authorTxtPath": "extracted/recibo-2025-02-15.txt"
   },
   {
     "origem": "pix-2025-02-18.png",
-    "jsonPath": "extracted/pix-2025-02-18.json"
+    "author": "Ana",
+    "jsonPath": "extracted/pix-2025-02-18.json",
+    "authorTxtPath": "extracted/pix-2025-02-18.txt"
   }
 ]
 ```

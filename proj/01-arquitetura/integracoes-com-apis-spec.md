@@ -29,13 +29,13 @@ As integrações precisam respeitar a cadeia de configuração `.env → docker-
 | `/reviews/{id}` | `PATCH` | Aprova ou retorna relatório para ajustes, registrando comentários. | JWT + RBAC (Curador/MPDFT) |
 | `/notifications` | `POST` | Dispara alertas (e-mail/SMS) para responsáveis, com taxa controlada por NGINX. | JWT + quotas |
 | `/metrics` | `GET` | Exibe métricas operacionais para dashboards. | JWT + RBAC (Admin) |
-| `/wa-zip` | `POST` multipart | Recebe exportações de conversas WhatsApp, isola comprovantes (PDF/imagem), envia ao OpenRouter e persiste JSON `{origem, extected}` em `cloud/api/extracted`. | JWT (planejado) + quotas dedicadas para IA |
+| `/wa-zip` | `POST` multipart | Recebe exportações de conversas WhatsApp, isola comprovantes (PDF/imagem), envia ao OpenRouter e persiste JSON `{origem, author, extected}` e TXT `<arquivo>.txt` com o autor em `cloud/api/extracted/`. | JWT (planejado) + quotas dedicadas para IA |
 
 ## Serviços externos
 | Serviço | Uso | Requisitos | Notas |
 | --- | --- | --- | --- |
 | **OpenAI API** | Extração assistida de valores quando OCR falha (pipeline local). | Chave `OPENAI_API_KEY`, limite 1 r/min (NGINX). | Texto enviado deve ser minimizado; prompt registrado em `docs/reports/` |
-| **OpenRouter API** | OCR assistido na nuvem para comprovantes do `/wa-zip`. | `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, modelo/engine configuráveis, rate limit 1 r/min via NGINX. | Respostas salvas em `cloud/api/extracted/*.json`; manter prompts sincronizados com `proj/02-design/componentes-spec.md`. |
+| **OpenRouter API** | OCR assistido na nuvem para comprovantes do `/wa-zip`. | `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, modelo/engine configuráveis, rate limit 1 r/min via NGINX. | Respostas salvas em `cloud/api/extracted/*.json`; prompt inclui contexto do autor enviado e deve permanecer alinhado a `proj/02-design/componentes-spec.md`. |
 | **ElevenLabs/Alternativo** | (Backlog) geração de áudio para acessibilidade. | Configuração cloud, quotas diárias. | Desabilitado por padrão nesta release |
 | **E-mail/SMTP** | Notificar responsáveis sobre pendências. | Credenciais armazenadas no vault da curadoria. | Utilizar mensagens templated documentadas em `proj/06-ux-brand/` |
 | **Storage seguro (S3/MinIO)** | Arquivar relatórios e anexos aprovados. | Bucket dedicado, criptografia em repouso, versionamento habilitado. | Conexões TLS obrigatórias |

@@ -1,4 +1,4 @@
-// api/src/modules/whatsapp/whatsapp.service.ts
+// cloud/api/src/modules/whatsapp/whatsapp.service.ts
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -28,10 +28,19 @@ const ALLOWED_EXTENSIONS = new Set([
 ]);
 const DEFAULT_FILE_BASENAME = 'arquivo';
 const JSON_FILE_EXTENSION = '.json';
+const TXT_FILE_EXTENSION = '.txt';
+const CHAT_FILENAME_SUFFIX = '_chat.txt';
+const CHAT_FILE_EXACT_NAME = '_chat.txt';
+const ZERO_WIDTH_CHARS_REGEX = /[\u200e\u200f\u202a-\u202e]/g;
+const ATTACHMENT_FILENAME_REGEX = /<[^:>]*?:\s*(?<filename>[^>]+?)>/i;
+const UNKNOWN_AUTHOR = 'Desconhecido';
+const AUTHOR_CONTEXT_PREFIX = 'Autor do envio: ';
 const BASE64_ENCODING: BufferEncoding = 'base64';
 const UTF8_ENCODING: BufferEncoding = 'utf8';
 const DEFAULT_PAGE_WIDTH_POINTS = 612; // 8.5 pol * 72
 const DEFAULT_PAGE_HEIGHT_POINTS = 792; // 11 pol * 72
+
+type AuthorMap = Map<string, string>;
 
 interface ExtractedFileDescriptor {
   origem: string;
@@ -42,7 +51,14 @@ interface ExtractedFileDescriptor {
 
 interface ProcessedFileResult {
   origem: string;
+  author: string;
   jsonPath: string;
+  authorTxtPath: string;
+}
+
+interface ExtractAllowedFilesResult {
+  descriptors: ExtractedFileDescriptor[];
+  authorMap: AuthorMap;
 }
 
 @Injectable()
@@ -69,7 +85,10 @@ export class WhatsappService {
 
     const tempRoot = await this.createTempDirectory();
     try {
-      const descriptors = await this.extractAllowedFiles(file, tempRoot);
+      const { descriptors, authorMap } = await this.extractAllowedFiles(
+        file,
+        tempRoot,
+      );
 
       if (descriptors.length === 0) {
         throw new BadRequestException(
@@ -83,13 +102,27 @@ export class WhatsappService {
 
       for (const descriptor of descriptors) {
         const destinationPath = await this.moveToExtracted(descriptor);
-        const extraction = await this.extractTextFromFile(destinationPath);
+        const author = this.resolveAuthor(descriptor.origem, authorMap);
+        const authorTxtPath = await this.persistAuthorFile(
+          destinationPath,
+          author,
+        );
+        const extraction = await this.extractTextFromFile(
+          destinationPath,
+          author,
+        );
         const jsonPath = await this.persistExtraction(
           descriptor.origem,
           destinationPath,
+          author,
           extraction,
         );
-        results.push({ origem: descriptor.origem, jsonPath });
+        results.push({
+          origem: descriptor.origem,
+          author,
+          jsonPath,
+          authorTxtPath,
+        });
       }
 
       const dt = Date.now() - t0;
@@ -107,7 +140,7 @@ export class WhatsappService {
   private async extractAllowedFiles(
     file: Express.Multer.File,
     tempRoot: string,
-  ): Promise<ExtractedFileDescriptor[]> {
+  ): Promise<ExtractAllowedFilesResult> {
     const method = 'extractAllowedFiles';
     this.logger.log(
       `${method} ENTER, { originalName: ${file.originalname}, size: ${file.size} }`,
@@ -122,6 +155,7 @@ export class WhatsappService {
     const entries = zip.getEntries();
 
     const descriptors: ExtractedFileDescriptor[] = [];
+    const chatDocuments: string[] = [];
 
     for (const entry of entries) {
       if (entry.isDirectory) {
@@ -129,6 +163,12 @@ export class WhatsappService {
       }
 
       const normalizedEntryName = this.normalizeEntryName(entry.entryName);
+
+      if (this.isChatTranscript(normalizedEntryName)) {
+        chatDocuments.push(this.decodeChatContent(entry.getData()));
+        continue;
+      }
+
       const extension = extname(normalizedEntryName).toLowerCase();
 
       if (!ALLOWED_EXTENSIONS.has(extension)) {
@@ -152,11 +192,13 @@ export class WhatsappService {
       });
     }
 
+    const authorMap = this.parseAuthorMap(chatDocuments);
+
     this.logger.log(
-      `${method} EXIT, { extracted: ${descriptors.length}, tempRoot: ${tempRoot} }`,
+      `${method} EXIT, { extracted: ${descriptors.length}, tempRoot: ${tempRoot}, authors: ${authorMap.size} }`,
     );
 
-    return descriptors;
+    return { descriptors, authorMap };
   }
 
   private async moveToExtracted(
@@ -182,7 +224,10 @@ export class WhatsappService {
     return destinationPath;
   }
 
-  private async extractTextFromFile(filePath: string): Promise<string> {
+  private async extractTextFromFile(
+    filePath: string,
+    author: string,
+  ): Promise<string> {
     const method = 'extractTextFromFile';
     const extension = extname(filePath).toLowerCase();
     const { name } = parse(filePath);
@@ -203,25 +248,45 @@ export class WhatsappService {
     const result = await this.openRouterService.submitPdfBase64(base64, {
       prompt: RECEIPT_EXTRACTION_PROMPT,
       filename,
+      context: this.buildAuthorContext(author),
     });
 
     return result.trim();
   }
 
+  private async persistAuthorFile(
+    filePath: string,
+    author: string,
+  ): Promise<string> {
+    const baseName = this.getBaseName(filePath);
+    const txtFileName = await this.ensureUniqueName(
+      EXTRACTED_DIR,
+      `${baseName}${TXT_FILE_EXTENSION}`,
+    );
+    const txtPath = join(EXTRACTED_DIR, txtFileName);
+
+    await fs.writeFile(txtPath, `${author}\n`, { encoding: UTF8_ENCODING });
+
+    return txtPath;
+  }
+
   private async persistExtraction(
     originalName: string,
     filePath: string,
+    author: string,
     extractedText: string,
   ): Promise<string> {
+    const baseName = this.getBaseName(filePath);
     const jsonFileName = await this.ensureUniqueName(
       EXTRACTED_DIR,
-      `${this.getBaseName(filePath)}${JSON_FILE_EXTENSION}`,
+      `${baseName}${JSON_FILE_EXTENSION}`,
     );
     const jsonPath = join(EXTRACTED_DIR, jsonFileName);
 
     const payload = {
       origem: originalName,
-      extracted: extractedText,
+      author,
+      extected: extractedText,
     };
 
     await fs.writeFile(jsonPath, JSON.stringify(payload, null, 2), {
@@ -248,6 +313,109 @@ export class WhatsappService {
       doc.image(imageBuffer, 0, 0, { width, height });
       doc.end();
     });
+  }
+
+  private buildAuthorContext(author: string): string | undefined {
+    const normalized = author?.trim();
+
+    if (!normalized || normalized === UNKNOWN_AUTHOR) {
+      return undefined;
+    }
+
+    return `${AUTHOR_CONTEXT_PREFIX}${normalized}`;
+  }
+
+  private resolveAuthor(originalName: string, authorMap: AuthorMap): string {
+    if (authorMap.size === 0) {
+      return UNKNOWN_AUTHOR;
+    }
+
+    const candidates = [
+      originalName.toLowerCase(),
+      this.sanitizeFileName(originalName).toLowerCase(),
+    ];
+
+    for (const candidate of candidates) {
+      const author = authorMap.get(candidate);
+      if (author) {
+        return author;
+      }
+    }
+
+    return UNKNOWN_AUTHOR;
+  }
+
+  private parseAuthorMap(chatDocuments: string[]): AuthorMap {
+    const map: AuthorMap = new Map();
+
+    for (const document of chatDocuments) {
+      const sanitizedDocument = this.stripZeroWidth(document);
+      const lines = sanitizedDocument.split(/\r?\n/);
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+
+        if (!line.startsWith('[')) {
+          continue;
+        }
+
+        const closingBracketIndex = line.indexOf(']');
+        const colonIndex = line.indexOf(':', closingBracketIndex + 1);
+
+        if (closingBracketIndex === -1 || colonIndex === -1) {
+          continue;
+        }
+
+        const authorSegment = line.slice(closingBracketIndex + 1, colonIndex).trim();
+        const messageSegment = line.slice(colonIndex + 1).trim();
+
+        if (!authorSegment || !messageSegment) {
+          continue;
+        }
+
+        const attachmentMatch = ATTACHMENT_FILENAME_REGEX.exec(messageSegment);
+
+        if (!attachmentMatch?.groups?.filename) {
+          continue;
+        }
+
+        const filename = basename(attachmentMatch.groups.filename.trim());
+
+        if (!filename) {
+          continue;
+        }
+
+        const normalizedFilename = filename.toLowerCase();
+        const sanitizedFilename = this.sanitizeFileName(filename).toLowerCase();
+
+        if (!map.has(normalizedFilename)) {
+          map.set(normalizedFilename, authorSegment);
+        }
+
+        if (!map.has(sanitizedFilename)) {
+          map.set(sanitizedFilename, authorSegment);
+        }
+      }
+    }
+
+    return map;
+  }
+
+  private decodeChatContent(buffer: Buffer): string {
+    const text = buffer.toString(UTF8_ENCODING);
+    return text.replace(/^\ufeff/, '');
+  }
+
+  private stripZeroWidth(content: string): string {
+    return content.replace(ZERO_WIDTH_CHARS_REGEX, '');
+  }
+
+  private isChatTranscript(entryName: string): boolean {
+    const lowered = entryName.toLowerCase();
+    return (
+      lowered.endsWith(CHAT_FILENAME_SUFFIX) ||
+      basename(lowered) === CHAT_FILE_EXACT_NAME
+    );
   }
 
   private sanitizeFileName(entryName: string): string {

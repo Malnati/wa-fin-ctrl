@@ -1,4 +1,4 @@
-// api/src/modules/whatsapp/whatsapp.controller.ts
+// cloud/api/src/modules/whatsapp/whatsapp.controller.ts
 import {
   BadRequestException,
   Controller,
@@ -51,7 +51,7 @@ export class WhatsappController {
   @ApiResponse({
     status: HttpStatus.CREATED,
     description:
-      'Lista de arquivos encaminhados ao OpenRouter, incluindo o caminho relativo dos JSONs gerados.',
+      'Lista de arquivos encaminhados ao OpenRouter, trazendo autor identificado, JSON e TXT relativos na pasta extracted/.',
     type: WaZipProcessedFileDto,
     isArray: true,
   })
@@ -95,7 +95,9 @@ export class WhatsappController {
       );
       return results.map((result) => ({
         origem: result.origem,
+        author: result.author,
         jsonPath: this.toRelativePath(result.jsonPath),
+        authorTxtPath: this.toRelativePath(result.authorTxtPath),
       }));
     } catch (error) {
       const dt = Date.now() - t0;

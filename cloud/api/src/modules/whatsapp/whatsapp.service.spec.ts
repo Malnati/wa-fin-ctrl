@@ -1,4 +1,4 @@
-// api/src/modules/whatsapp/whatsapp.service.spec.ts
+// cloud/api/src/modules/whatsapp/whatsapp.service.spec.ts
 import { promises as fs } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -17,6 +17,10 @@ const SAMPLE_PNG_BUFFER = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=',
   'base64',
 );
+const SAMPLE_CHAT_CONTENT = `
+[18/04/2025, 12:45:53] Ricardo: <anexado: nota.pdf>
+[18/04/2025, 12:46:01] Ana: <anexado: photo.png>
+`;
 
 describe('WhatsappService', () => {
   const extractedDir = join(process.cwd(), 'extracted');
@@ -45,6 +49,7 @@ describe('WhatsappService', () => {
     const zip = new AdmZip();
     zip.addFile('docs/nota.pdf', SAMPLE_PDF_CONTENT);
     zip.addFile('media/photo.png', SAMPLE_PNG_BUFFER);
+    zip.addFile('_chat.txt', Buffer.from(SAMPLE_CHAT_CONTENT, 'utf8'));
     zip.writeZip(zipPath);
     const zipBuffer = zip.toBuffer();
 
@@ -66,12 +71,24 @@ describe('WhatsappService', () => {
       expect(results).toHaveLength(2);
       expect(openRouterService.submitPdfBase64 as any).toHaveBeenCalledTimes(2);
 
+      const resultsByOrigem = new Map(results.map((item) => [item.origem, item]));
+
+      const nota = resultsByOrigem.get('nota.pdf');
+      const photo = resultsByOrigem.get('photo.png');
+
+      expect(nota?.author).toBe('Ricardo');
+      expect(photo?.author).toBe('Ana');
+
       for (const result of results) {
         const content = await fs.readFile(result.jsonPath, 'utf8');
         const payload = JSON.parse(content);
-        expect(payload).toHaveProperty('origem');
+        expect(payload).toHaveProperty('origem', result.origem);
+        expect(payload).toHaveProperty('author', result.author);
         expect(payload).toHaveProperty('extected');
         expect(payload.extected.length).toBeGreaterThan(0);
+
+        const authorTxt = await fs.readFile(result.authorTxtPath, 'utf8');
+        expect(authorTxt.trim()).toBe(result.author);
       }
     } finally {
       rmSync(tempDir, { recursive: true, force: true });

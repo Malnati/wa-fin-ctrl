@@ -30,5 +30,8 @@ COPY package*.json ./
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY public ./public
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x entrypoint.sh
 EXPOSE 3333
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["node", "dist/main"]
