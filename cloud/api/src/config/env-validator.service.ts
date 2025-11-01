@@ -20,7 +20,6 @@ export class EnvValidatorService implements OnModuleInit {
 
     // Verificar variáveis obrigatórias
     const requiredVars = [
-      'OPENROUTER_API_KEY',
       'GOOGLE_CLIENT_ID',
       'GOOGLE_CLIENT_SECRET',
       'GOOGLE_REDIRECT_URI',
@@ -31,6 +30,8 @@ export class EnvValidatorService implements OnModuleInit {
         missing.push(key);
       }
     });
+
+    this.validateOpenRouterCredentials(missing);
 
     // Verificar variáveis importantes com avisos
     const importantVars = [
@@ -58,7 +59,6 @@ export class EnvValidatorService implements OnModuleInit {
 
     // Verificar configurações específicas
     this.validateGoogleCredentials();
-    this.validateTTSConfiguration();
     this.validateRateLimiting();
 
     console.log('✅ Validação de ambiente concluída com sucesso!');
@@ -67,13 +67,14 @@ export class EnvValidatorService implements OnModuleInit {
   private getConfigKey(envKey: string): string {
     const mapping: Record<string, string> = {
       OPENROUTER_API_KEY: 'openrouterApiKey',
+      OPENROUTER_COOKIE: 'openrouterCookie',
+      OPENROUTER_HTTP_REFERER: 'openrouterHttpReferer',
+      OPENROUTER_APP_TITLE: 'openrouterAppTitle',
       GOOGLE_CLIENT_ID: 'googleClientId',
       GOOGLE_CLIENT_SECRET: 'googleClientSecret',
       GOOGLE_REDIRECT_URI: 'googleRedirectUri',
       GOOGLE_APPLICATION_CREDENTIALS: 'googleApplicationCredentials',
       GOOGLE_REFRESH_TOKEN: 'googleRefreshToken',
-      TTS_PROVIDER: 'ttsProvider',
-      TTS_PROVIDER_API_KEY: 'ttsProviderApiKey',
     };
 
     return mapping[envKey] || envKey.toLowerCase();
@@ -109,26 +110,21 @@ export class EnvValidatorService implements OnModuleInit {
     }
   }
 
-  private validateTTSConfiguration(): void {
-    const provider = this.configService.get('env.ttsProvider');
-    console.log(`🔊 TTS Provider configurado: ${provider}`);
-
-    if (
-      provider === 'elevenlabs' &&
-      !this.configService.get('env.ttsProviderApiKey')
-    ) {
-      console.warn('⚠️  ElevenLabs configurado mas API key não definida');
-    }
-  }
-
   private validateRateLimiting(): void {
-    const ttsLimit = this.configService.get('env.nginxRateLimitTts');
     const llmLimit = this.configService.get('env.nginxRateLimitLlm');
     const generalLimit = this.configService.get('env.nginxRateLimitGeneral');
 
     console.log('📊 Rate Limiting configurado:');
-    console.log(`   - TTS: ${ttsLimit}`);
     console.log(`   - LLM: ${llmLimit}`);
     console.log(`   - Geral: ${generalLimit}`);
+  }
+
+  private validateOpenRouterCredentials(missing: string[]): void {
+    const apiKey = this.configService.get<string>('env.openrouterApiKey');
+    const cookie = this.configService.get<string>('env.openrouterCookie');
+
+    if (!apiKey && !cookie) {
+      missing.push('OPENROUTER_API_KEY/OPENROUTER_COOKIE');
+    }
   }
 }

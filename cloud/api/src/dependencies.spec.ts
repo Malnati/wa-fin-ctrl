@@ -34,17 +34,6 @@ describe('Dependencies Integrity Test', () => {
       expect(Controller).toBeDefined();
     });
 
-    it('should be able to import TTS services', async () => {
-      // Teste de importação dos serviços TTS
-      const { GcpTtsService } = await import('../src/tts/gcp-tts.service');
-      const { TtsFactoryService } = await import(
-        '../src/tts/tts-factory.service'
-      );
-
-      expect(GcpTtsService).toBeDefined();
-      expect(TtsFactoryService).toBeDefined();
-    });
-
     // it('should be able to import OpenAI service', async () => {
     //   // Teste de importação do serviço OpenAI
     //   const { OpenAiService } = await import('../src/openai/openai.service');
@@ -66,11 +55,6 @@ describe('Dependencies Integrity Test', () => {
   });
 
   describe('Module Compilation Test', () => {
-    it('should compile TTS module without errors', async () => {
-      const { TtsModule } = await import('../src/tts/tts.module');
-      expect(TtsModule).toBeDefined();
-    });
-
     // it('should compile OpenAI module without errors', async () => {
     //   const { OpenAiModule } = await import('../src/openai/openai.module');
     //   expect(OpenAiModule).toBeDefined();
@@ -111,11 +95,5 @@ describe('Dependencies Integrity Test', () => {
     //   delete process.env.OPENROUTER_API_KEY;
     // }); // Integração OpenAI desativada
 
-    it('should be able to instantiate GCP TTS service', async () => {
-      const { GcpTtsService } = await import('../src/tts/gcp-tts.service');
-      const service = new GcpTtsService();
-      expect(service).toBeDefined();
-      expect(service.synthesizeToFile).toBeDefined();
-    });
   });
 });

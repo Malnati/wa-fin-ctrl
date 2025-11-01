@@ -21,25 +21,14 @@ describe('validateApiKeys', () => {
 
   it('should exit when OPENROUTER_API_KEY is missing', () => {
     delete process.env.OPENROUTER_API_KEY;
-    process.env.TTS_PROVIDER_API_KEY = 'key';
 
     expect(() => validateApiKeys()).toThrow('exit');
     expect(exitSpy).toHaveBeenCalledWith(1);
     expect(errorSpy).toHaveBeenCalled();
   });
 
-  it('should exit when TTS_PROVIDER_API_KEY is missing', () => {
+  it('should not exit when the OpenRouter key is present', () => {
     process.env.OPENROUTER_API_KEY = 'key';
-    delete process.env.TTS_PROVIDER_API_KEY;
-
-    expect(() => validateApiKeys()).toThrow('exit');
-    expect(exitSpy).toHaveBeenCalledWith(1);
-    expect(errorSpy).toHaveBeenCalled();
-  });
-
-  it('should not exit when both keys are present', () => {
-    process.env.OPENROUTER_API_KEY = 'key';
-    process.env.TTS_PROVIDER_API_KEY = 'key';
 
     expect(() => validateApiKeys()).not.toThrow();
     expect(exitSpy).not.toHaveBeenCalled();

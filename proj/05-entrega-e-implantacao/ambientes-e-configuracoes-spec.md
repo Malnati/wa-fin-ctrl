@@ -15,10 +15,10 @@
 ## Ambiente cloud (DEV/HML/PRD)
 - **Stack:** Docker Compose (NestJS API + React UI + NGINX).
 - **Configuração:**
-  - `NGINX_RATE_LIMIT_TTS`, `NGINX_RATE_LIMIT_LLM`, `NGINX_RATE_LIMIT_GENERAL`.
+  - `NGINX_RATE_LIMIT_LLM`, `NGINX_RATE_LIMIT_GENERAL`.
   - `JWT_SECRET`, `REFRESH_SECRET`, `SMTP_*`, `STORAGE_*`.
   - `VITE_COMPANY_*` (branding), `VITE_API_BASE_URL`.
-  - `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `OPENROUTER_PDF_MODEL`, `OPENROUTER_PDF_ENGINE` (extração do `/wa-zip`).
+  - `OPENROUTER_API_KEY` (ou `OPENROUTER_COOKIE`), `OPENROUTER_BASE_URL`, `OPENROUTER_PDF_MODEL`, `OPENROUTER_PDF_ENGINE`, `OPENROUTER_HTTP_REFERER`, `OPENROUTER_APP_TITLE` (extração do `/wa-zip`).
 - **Portas padrão:** 3333 (API), 3000 (UI), 8080 (NGINX).
 - **Secrets:** armazenar em vault/secret manager; nunca commitar.
 

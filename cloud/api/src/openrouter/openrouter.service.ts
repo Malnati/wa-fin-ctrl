@@ -17,9 +17,21 @@ interface TextOptions {
 const PDF_DATA_URL_PREFIX = 'data:application/pdf;base64,';
 const DEFAULT_PDF_ENGINE = 'mistral-ocr';
 const DEFAULT_PDF_FILENAME = 'document.pdf';
+const AUTHORIZATION_HEADER = 'Authorization';
+const COOKIE_HEADER = 'Cookie';
+const CONTENT_TYPE_HEADER = 'Content-Type';
+const HTTP_REFERER_HEADER = 'HTTP-Referer';
+const X_TITLE_HEADER = 'X-Title';
+const BEARER_PREFIX = 'Bearer ';
+const CONTENT_TYPE_JSON = 'application/json';
 const OPENROUTER_DEFAULT_ERROR_MESSAGE = 'OpenRouter request failed.';
 const OPENROUTER_EMPTY_RESPONSE_ERROR_MESSAGE =
   'OpenRouter response did not contain usable text.';
+const OPENROUTER_MISSING_CREDENTIALS_ERROR_MESSAGE =
+  'OpenRouter credentials are not configured. Set OPENROUTER_API_KEY or OPENROUTER_COOKIE.';
+const OPENROUTER_COOKIE_AUTH_ERROR_MESSAGE = 'No cookie auth credentials found';
+const OPENROUTER_UNAUTHORIZED_ERROR_MESSAGE =
+  'OpenRouter rejected the provided credentials. Confirm OPENROUTER_API_KEY or supply OPENROUTER_COOKIE.';
 const SEGMENT_TEXT_PROPERTY = 'text';
 
 @Injectable()
@@ -28,7 +40,12 @@ export class OpenRouterService {
   private readonly baseUrl =
     process.env.OPENROUTER_BASE_URL ||
     'https://openrouter.ai/api/v1/chat/completions';
-  private readonly apiKey = process.env.OPENROUTER_API_KEY || '';
+  private readonly apiKey = (process.env.OPENROUTER_API_KEY ?? '').trim();
+  private readonly cookieAuth = (process.env.OPENROUTER_COOKIE ?? '').trim();
+  private readonly httpReferer = (
+    process.env.OPENROUTER_HTTP_REFERER ?? ''
+  ).trim();
+  private readonly appTitle = (process.env.OPENROUTER_APP_TITLE ?? '').trim();
   private readonly defaultModel =
     process.env.OPENROUTER_PDF_MODEL || 'anthropic/claude-sonnet-4';
   private readonly defaultEngine =
@@ -147,12 +164,11 @@ export class OpenRouterService {
   private async executeRequest(
     payload: Record<string, unknown>,
   ): Promise<{ result: string; data: unknown }> {
+    const headers = this.buildHeaders();
+
     const response = await fetch(this.baseUrl, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(payload),
     });
 
@@ -174,18 +190,46 @@ export class OpenRouterService {
     return { result, data };
   }
 
+  private buildHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      [CONTENT_TYPE_HEADER]: CONTENT_TYPE_JSON,
+    };
+
+    if (this.apiKey.length > 0) {
+      headers[AUTHORIZATION_HEADER] = `${BEARER_PREFIX}${this.apiKey}`;
+    }
+
+    if (this.cookieAuth.length > 0) {
+      headers[COOKIE_HEADER] = this.cookieAuth;
+    }
+
+    if (this.httpReferer.length > 0) {
+      headers[HTTP_REFERER_HEADER] = this.httpReferer;
+    }
+
+    if (this.appTitle.length > 0) {
+      headers[X_TITLE_HEADER] = this.appTitle;
+    }
+
+    if (!headers[AUTHORIZATION_HEADER] && !headers[COOKIE_HEADER]) {
+      throw new Error(OPENROUTER_MISSING_CREDENTIALS_ERROR_MESSAGE);
+    }
+
+    return headers;
+  }
+
   private extractOpenRouterError(data: any, status?: number): string {
     const errorNode = data?.error;
 
     if (typeof errorNode === 'string' && errorNode.trim().length > 0) {
-      return errorNode.trim();
+      return this.normalizeOpenRouterErrorMessage(errorNode.trim());
     }
 
     const nestedMessage =
       typeof errorNode?.message === 'string' ? errorNode.message.trim() : '';
 
     if (nestedMessage.length > 0) {
-      return nestedMessage;
+      return this.normalizeOpenRouterErrorMessage(nestedMessage);
     }
 
     if (typeof status === 'number') {
@@ -193,6 +237,14 @@ export class OpenRouterService {
     }
 
     return OPENROUTER_DEFAULT_ERROR_MESSAGE;
+  }
+
+  private normalizeOpenRouterErrorMessage(message: string): string {
+    if (message === OPENROUTER_COOKIE_AUTH_ERROR_MESSAGE) {
+      return OPENROUTER_UNAUTHORIZED_ERROR_MESSAGE;
+    }
+
+    return message;
   }
 
   private normalizeMessageContent(content: unknown): string {

@@ -13,9 +13,8 @@ export class AudioRequestDto {
   text!: string;
 
   @ApiProperty({
-    description:
-      'ID da voz do ElevenLabs (opcional - usa ELEVENLABS_VOICE_ID se não informado)',
-    example: 'CstacWqMhJQlnfLPxRG4',
+    description: 'Mantido para compatibilidade; ignorado porque o TTS está desativado.',
+    example: '',
     required: false,
   })
   @IsString()
