@@ -4,19 +4,19 @@ import { ApiProperty } from '@nestjs/swagger';
 export class AudioResponseDto {
   @ApiProperty({
     description: 'Status da geração de áudio',
-    example: 'OK',
+    example: 'DISABLED',
   })
   status!: string;
 
   @ApiProperty({
     description: 'URL do arquivo de áudio gerado',
-    example: 'http://localhost:3333/diagnostico-1234567890.mp3',
+    example: '',
   })
   audioUrl!: string;
 
   @ApiProperty({
     description: 'ID da voz utilizada para geração',
-    example: 'CstacWqMhJQlnfLPxRG4',
+    example: '',
   })
   voiceID!: string;
 
@@ -28,7 +28,7 @@ export class AudioResponseDto {
 
   @ApiProperty({
     description: 'Mensagem de sucesso ou erro',
-    example: 'Áudio gerado com sucesso!',
+    example: 'Geração de áudio via TTS está desativada para este ambiente.',
   })
   message!: string;
 }

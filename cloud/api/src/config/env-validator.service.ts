@@ -58,7 +58,6 @@ export class EnvValidatorService implements OnModuleInit {
 
     // Verificar configurações específicas
     this.validateGoogleCredentials();
-    this.validateTTSConfiguration();
     this.validateRateLimiting();
 
     console.log('✅ Validação de ambiente concluída com sucesso!');
@@ -72,8 +71,6 @@ export class EnvValidatorService implements OnModuleInit {
       GOOGLE_REDIRECT_URI: 'googleRedirectUri',
       GOOGLE_APPLICATION_CREDENTIALS: 'googleApplicationCredentials',
       GOOGLE_REFRESH_TOKEN: 'googleRefreshToken',
-      TTS_PROVIDER: 'ttsProvider',
-      TTS_PROVIDER_API_KEY: 'ttsProviderApiKey',
     };
 
     return mapping[envKey] || envKey.toLowerCase();
@@ -109,25 +106,11 @@ export class EnvValidatorService implements OnModuleInit {
     }
   }
 
-  private validateTTSConfiguration(): void {
-    const provider = this.configService.get('env.ttsProvider');
-    console.log(`🔊 TTS Provider configurado: ${provider}`);
-
-    if (
-      provider === 'elevenlabs' &&
-      !this.configService.get('env.ttsProviderApiKey')
-    ) {
-      console.warn('⚠️  ElevenLabs configurado mas API key não definida');
-    }
-  }
-
   private validateRateLimiting(): void {
-    const ttsLimit = this.configService.get('env.nginxRateLimitTts');
     const llmLimit = this.configService.get('env.nginxRateLimitLlm');
     const generalLimit = this.configService.get('env.nginxRateLimitGeneral');
 
     console.log('📊 Rate Limiting configurado:');
-    console.log(`   - TTS: ${ttsLimit}`);
     console.log(`   - LLM: ${llmLimit}`);
     console.log(`   - Geral: ${generalLimit}`);
   }

@@ -3,7 +3,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DiagnosticResponseDto } from './dto/diagnostic-response.dto';
 import { AudioResponseDto } from './dto/audio-response.dto';
 // import { OpenAiService } from '../openai/openai.service'; // Integração OpenAI desativada
-import { TtsFactoryService } from '../tts/tts-factory.service';
 import { PdfGeneratorService } from './pdf-generator.service';
 import { OcrService } from './ocr.service';
 import * as path from 'path';
@@ -15,10 +14,8 @@ import { PdfDiagnoseAgent } from '../agents/pdf-diagnose.agent';
 import { ResultValidatorAgent } from '../agents/result-validator.agent';
 import { API_BASE_URL } from '../constants/constants';
 import { OpenRouterService } from '../openrouter/openrouter.service';
-import { file } from 'googleapis/build/src/apis/file';
 // import { GoogleDriveService } from '../storage/google-drive.service';
 
-const DEFAULT_AUDIO_URL = `${API_BASE_URL}/audio.mp3`;
 const DEFAULT_PDF_URL = `${API_BASE_URL}/relatorio.pdf`;
 const BYPASS_ORIGINAL_FILE_URL = DEFAULT_PDF_URL;
 const DEFAULT_BASE_URL = API_BASE_URL;
@@ -118,35 +115,6 @@ Regras adicionais:
 - Extensão recomendada: 2.000 a 3.500 caracteres.
 - Sem introduções, comentários ou notas extras.`;
 
-const OPENROUTER_SPOKEN_SUMMARY_PROMPT = `INSTRUÇÕES (pt-BR):
-Objetivo: Reescrever o texto recebido (resultado da análise anterior) em formato falado, neutro e descritivo, como se fosse uma narração médica impessoal.
-
-Regras de conteúdo:
-- A fala deve citar o nome do paciente e a data do exame logo no início.
-- Não pronunciar nem descrever valores numéricos (como concentrações, medidas ou faixas de referência).
-- Linguagem oral, clara e impessoal, evitando verbos no imperativo.
-- Use construções neutras como: “geralmente indica”, “em muitos casos está relacionado”, “pode sugerir”, “costuma estar associado”.
-- Descreva os achados de modo contextual e previsível, sem prescrever condutas ou fazer recomendações diretas.
-- Evite repetições, listas ou estrutura de relatório.
-- Explique brevemente termos técnicos, se necessários.
-- Não incluir emojis, símbolos, marcações visuais ou expressões de comando.
-- Sempre finalize com:
-  "Este diagnóstico foi gerado por inteligência artificial e deve ser avaliado por um médico antes de qualquer decisão clínica."
-
-Formato de saída:
-1. Inicie mencionando o nome do paciente e a data do exame.
-2. Descreva de forma geral e neutra o panorama do exame e os principais achados.
-3. Utilize linguagem explicativa e preditiva, sem valores e sem julgamentos de urgência.
-4. Encerre com o aviso obrigatório acima.
-
-Exemplo:
-"O exame do paciente Leonardo Mattos, realizado em nove de outubro de dois mil e vinte e cinco, mostra pequenas variações laboratoriais que, na maioria dos casos, costumam estar associadas a ajustes metabólicos leves. Em situações semelhantes, é comum o acompanhamento clínico de rotina, sem indicação de alteração significativa. Este diagnóstico foi gerado por inteligência artificial e deve ser avaliado por um médico antes de qualquer decisão clínica."
-
-Instruções finais:
-- Tom de voz: explicativo, calmo e profissional.
-- Duração aproximada: 30 a 60 segundos (~600 a 800 caracteres).
-- Não adicionar comentários, valores ou explicações fora do formato descrito.`;
-
 const PUBLIC_STORAGE_DIR = 'public';
 const DIAGNOSTIC_FILE_PREFIX = 'diagnostico-';
 const DEFAULT_FILE_EXTENSION = '.bin';
@@ -163,14 +131,12 @@ const DEFAULT_PDF_FILENAME = 'document.pdf';
 const DEFAULT_OPENROUTER_ENGINE = 'mistral-ocr';
 const PDF_BUFFER_READ_ERROR_PREFIX =
   'resolvePdfBuffer: falha ao ler arquivo salvo em';
-const SPOKEN_SUMMARY_GENERATION_FAILED_MESSAGE =
-  'Falha ao ajustar texto para áudio com o OpenRouter.';
-const SPOKEN_SUMMARY_EMPTY_SOURCE_MESSAGE =
-  'Texto de diagnóstico indisponível para ajuste de áudio.';
 const VALIDATED_DIAGNOSIS_GENERATION_FAILED_MESSAGE =
   'Falha ao validar diagnóstico com o OpenRouter.';
 const VALIDATED_DIAGNOSIS_EMPTY_SOURCE_MESSAGE =
   'Diagnóstico inicial indisponível para validação.';
+const AUDIO_GENERATION_DISABLED_MESSAGE =
+  'Geração de áudio via TTS está desativada para este ambiente.';
 
 @Injectable()
 export class DiagnosticsService {
@@ -178,7 +144,6 @@ export class DiagnosticsService {
 
   constructor(
     // private readonly openAiService: OpenAiService, // Integração OpenAI desativada
-    private readonly ttsService: TtsFactoryService,
     private readonly pdfGeneratorService: PdfGeneratorService,
     private readonly ocrService: OcrService,
     private readonly textQuality: TextQualityAgent,
@@ -276,9 +241,11 @@ export class DiagnosticsService {
       }
 
       const safeDiagnosis = validatedDiagnosis ?? '';
-      if (generateAudio && safeDiagnosis) {
-        this.logger.log(`${method}: Generating audio with voiceID: ${voiceID}`);
-        audioUrl = await this.generateAudio(safeDiagnosis, voiceID);
+      if (generateAudio) {
+        this.logger.log(
+          `${method}: Áudio solicitado, porém integração de TTS está desativada.`,
+        );
+        audioUrl = undefined;
       }
       const diagnosticPDFUrl = safeDiagnosis
         ? await this.generatePdf(safeDiagnosis, originalFile, publicBaseUrl)
@@ -386,81 +353,6 @@ export class DiagnosticsService {
     return candidate.endsWith('/') ? candidate.slice(0, -1) : candidate;
   }
 
-  private async generateAudio(
-    diagnosis: string,
-    voiceID?: string,
-    options?: { skipAdjustment?: boolean },
-  ): Promise<string> {
-    const method = 'generateAudio';
-    const t0 = Date.now();
-
-    this.logger.log(
-      `${method} ENTER, { diagnosisLength: diagnosis?.length, voiceID }`,
-    );
-
-    try {
-      if (
-        !diagnosis ||
-        !diagnosis.trim() ||
-        diagnosis === 'Erro ao gerar análise com IA'
-      ) {
-        const dt = Date.now() - t0;
-        this.logger.log(
-          `${method} EXIT, { durationMs: ${dt}, result: 'default audio URL' }`,
-        );
-        return DEFAULT_AUDIO_URL; // URL padrão
-      }
-
-      // Usar voiceID personalizado se fornecido, senão usar o padrão da variável de ambiente
-      const finalVoiceID = voiceID || process.env.ELEVENLABS_VOICE_ID;
-
-      if (!finalVoiceID) {
-        this.logger.warn(
-          `${method}: Nenhum voiceID fornecido. Causa: ELEVENLABS_VOICE_ID ausente. Solução: forneça voiceID ou configure ELEVENLABS_VOICE_ID.`,
-        );
-        const dt = Date.now() - t0;
-        this.logger.log(
-          `${method} EXIT, { durationMs: ${dt}, result: 'fallback audio URL' }`,
-        );
-        return ''; // Fallback para áudio padrão
-      }
-
-      let audioText = diagnosis;
-
-      if (!options?.skipAdjustment && audioText && audioText.trim()) {
-        try {
-          const adjustedText =
-            await this.requestSpokenSummaryFromOpenRouter(audioText);
-          if (adjustedText && adjustedText.trim()) {
-            audioText = adjustedText;
-          }
-        } catch (error) {
-          this.logger.warn(
-            `${method}: ${SPOKEN_SUMMARY_GENERATION_FAILED_MESSAGE}`,
-            error instanceof Error ? error : new Error(String(error)),
-          );
-        }
-      }
-
-      const result = await this.ttsService.synthesizeToFile(
-        audioText,
-        finalVoiceID,
-      );
-      const dt = Date.now() - t0;
-      this.logger.log(
-        `${method} EXIT, { durationMs: ${dt}, result: result, voiceID: finalVoiceID }`,
-      );
-      return result;
-    } catch (error) {
-      const dt = Date.now() - t0;
-      this.logger.error(
-        `${method}: falha ao gerar áudio. Causa: problema na API TTS ou dados inválidos. Solução: verifique a conectividade e a validade do texto/voiceID. durationMs=${dt}`,
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      return ''; // Fallback para áudio padrão
-    }
-  }
-
   async generateAudioFromText(
     text: string,
     voiceID?: string,
@@ -468,87 +360,31 @@ export class DiagnosticsService {
     const method = 'generateAudioFromText';
     const t0 = Date.now();
 
-    this.logger.log(`${method} ENTER, { textLength: text?.length, voiceID }`);
+    this.logger.log(
+      `${method} ENTER — solicitação de áudio recebida, porém TTS está desativado.`,
+    );
 
-    try {
-      if (!text || !text.trim()) {
-        const dt = Date.now() - t0;
-        this.logger.error(
-          `${method} ERROR, { durationMs: dt, error: 'Texto não pode estar vazio', solution: 'forneça texto para síntese' }`,
-        );
-        throw new Error('Texto não pode estar vazio');
-      }
-
-      // Usar voiceID personalizado se fornecido, senão usar o padrão da variável de ambiente
-      const finalVoiceID = voiceID || process.env.ELEVENLABS_VOICE_ID;
-
-      if (!finalVoiceID) {
-        const dt = Date.now() - t0;
-        this.logger.error(
-          `${method} ERROR, { durationMs: dt, error: 'Nenhum voiceID fornecido e ELEVENLABS_VOICE_ID não configurado', solution: 'informe voiceID ou configure ELEVENLABS_VOICE_ID' }`,
-        );
-        throw new Error(
-          'Nenhum voiceID fornecido e ELEVENLABS_VOICE_ID não configurado',
-        );
-      }
-
-      let spokenSummary = text;
-      let skipAdjustment = false;
-
-      try {
-        const adjustedText =
-          await this.requestSpokenSummaryFromOpenRouter(text);
-        if (adjustedText && adjustedText.trim()) {
-          spokenSummary = adjustedText;
-          skipAdjustment = true;
-        }
-      } catch (error) {
-        this.logger.warn(
-          `${method}: ${SPOKEN_SUMMARY_GENERATION_FAILED_MESSAGE}`,
-          error instanceof Error ? error : new Error(String(error)),
-        );
-      }
-
-      const audioUrl = await this.generateAudio(spokenSummary, finalVoiceID, {
-        skipAdjustment,
-      });
-
-      const result = {
-        status: 'OK',
-        audioUrl,
-        voiceID: finalVoiceID,
-        text: spokenSummary.trim(),
-        message: 'Áudio gerado com sucesso!',
-      };
-
-      const dt = Date.now() - t0;
-      this.logger.log(
-        `${method} EXIT, { durationMs: dt, resultType: typeof result, audioUrl, voiceID: finalVoiceID }`,
-      );
-      return result;
-    } catch (error) {
+    if (!text || !text.trim()) {
       const dt = Date.now() - t0;
       this.logger.error(
-        `${method}: falha ao gerar áudio. Causa: serviço TTS indisponível ou parâmetros inválidos. Solução: verifique voz e conectividade. durationMs=${dt}`,
-        error instanceof Error ? error : new Error(String(error)),
+        `${method} ERROR, { durationMs: dt, error: 'Texto não pode estar vazio' }`,
       );
-
-      // Determinar o tipo de erro para mensagem mais específica
-      let errorMessage = 'Erro interno na geração de áudio';
-      if (error instanceof Error) {
-        if (error.message.includes('Chave da API')) {
-          errorMessage = 'Chave da API ElevenLabs inválida';
-        } else if (error.message.includes('Limite de requisições')) {
-          errorMessage = 'Limite de requisições da API ElevenLabs excedido';
-        } else if (error.message.includes('Timeout')) {
-          errorMessage = 'Timeout na requisição para ElevenLabs';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-
-      throw new Error(errorMessage);
+      throw new Error('Texto não pode estar vazio');
     }
+
+    const result: AudioResponseDto = {
+      status: 'DISABLED',
+      audioUrl: '',
+      voiceID: voiceID ?? '',
+      text: text.trim(),
+      message: AUDIO_GENERATION_DISABLED_MESSAGE,
+    };
+
+    const dt = Date.now() - t0;
+    this.logger.log(
+      `${method} EXIT, { durationMs: dt, status: ${result.status} }`,
+    );
+    return result;
   }
 
   private async generatePdf(
@@ -690,45 +526,6 @@ export class DiagnosticsService {
         error instanceof Error ? error : new Error(String(error)),
       );
       throw error instanceof Error ? error : new Error(String(error));
-    }
-  }
-
-  private async requestSpokenSummaryFromOpenRouter(
-    diagnosis: string,
-  ): Promise<string> {
-    const method = 'requestSpokenSummaryFromOpenRouter';
-    const t0 = Date.now();
-
-    const trimmedDiagnosis = diagnosis?.trim();
-
-    if (!trimmedDiagnosis) {
-      this.logger.warn(`${method}: ${SPOKEN_SUMMARY_EMPTY_SOURCE_MESSAGE}`);
-      return '';
-    }
-
-    this.logger.log(
-      `${method} ENTER, { diagnosisLength: ${trimmedDiagnosis.length} }`,
-    );
-
-    try {
-      const summary = await this.openRouterService.submitTextTransform(
-        trimmedDiagnosis,
-        {
-          prompt: OPENROUTER_SPOKEN_SUMMARY_PROMPT,
-        },
-      );
-      const dt = Date.now() - t0;
-      this.logger.log(
-        `${method} EXIT, { durationMs: ${dt}, summaryLength: ${summary?.length ?? 0} }`,
-      );
-      return summary;
-    } catch (error) {
-      const dt = Date.now() - t0;
-      this.logger.error(
-        `${method}: falha ao solicitar sumário falado ao OpenRouter. durationMs=${dt}`,
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      throw error;
     }
   }
 

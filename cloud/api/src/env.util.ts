@@ -7,17 +7,6 @@ export function validateEnv(): void {
     missing.push('OPENROUTER_API_KEY');
   }
 
-  const provider = (process.env.TTS_PROVIDER || 'google').toLowerCase();
-  if (provider === 'google') {
-    if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-      missing.push('GOOGLE_APPLICATION_CREDENTIALS');
-    }
-  } else if (provider === 'elevenlabs') {
-    if (!process.env.TTS_PROVIDER_API_KEY) {
-      missing.push('TTS_PROVIDER_API_KEY');
-    }
-  }
-
   [
     'GOOGLE_CLIENT_ID',
     'GOOGLE_CLIENT_SECRET',

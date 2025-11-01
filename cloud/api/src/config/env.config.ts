@@ -35,11 +35,6 @@ export default registerAs('env', () => ({
   // OpenAI Configuration
   openaiApiKey: getOptionalEnvVar('OPENAI_API_KEY'),
 
-  // TTS Configuration
-  ttsProvider: getEnvVar('TTS_PROVIDER'),
-  ttsProviderApiKey: getOptionalEnvVar('TTS_PROVIDER_API_KEY'),
-  elevenlabsVoiceId: getOptionalEnvVar('ELEVENLABS_VOICE_ID'),
-
   // Google Cloud Configuration
   googleApplicationCredentials: getOptionalEnvVar(
     'GOOGLE_APPLICATION_CREDENTIALS',
@@ -52,8 +47,6 @@ export default registerAs('env', () => ({
 
   // NGINX Configuration
   nginxPort: parseInt(getEnvVar('NGINX_PORT'), 10),
-  nginxRateLimitTts: getEnvVar('NGINX_RATE_LIMIT_TTS'),
-  nginxBurstTts: parseInt(getEnvVar('NGINX_BURST_TTS'), 10),
   nginxRateLimitLlm: getEnvVar('NGINX_RATE_LIMIT_LLM'),
   nginxBurstLlm: parseInt(getEnvVar('NGINX_BURST_LLM'), 10),
   nginxRateLimitGeneral: getEnvVar('NGINX_RATE_LIMIT_GENERAL'),
@@ -61,10 +54,6 @@ export default registerAs('env', () => ({
 
   // Rate Limiting
   openaiRateLimit: getEnvVar('OPENAI_RATE_LIMIT'),
-  ttsRateLimit: getEnvVar('TTS_RATE_LIMIT'),
-  googleTtsRateLimit: getEnvVar('GOOGLE_TTS_RATE_LIMIT'),
-  elevenlabsRateLimit: getEnvVar('ELEVENLABS_RATE_LIMIT'),
-  coquiTtsRateLimit: getEnvVar('COQUI_TTS_RATE_LIMIT'),
 
   // Storage Configuration
   filesPublicUrl: getOptionalEnvVar('FILES_PUBLIC_URL'),

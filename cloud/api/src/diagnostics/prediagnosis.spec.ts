@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DiagnosticsService } from './diagnostics.service';
 // import { OpenAiService } from '../openai/openai.service'; // Integração OpenAI desativada
-import { TtsFactoryService } from '../tts/tts-factory.service';
 import { PdfGeneratorService } from './pdf-generator.service';
 import { OcrService } from './ocr.service';
 import { TextQualityAgent } from '../agents/text-quality.agent';

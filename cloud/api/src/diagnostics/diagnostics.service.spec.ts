@@ -3,7 +3,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DiagnosticsService } from './diagnostics.service';
 import { DiagnosticResponseDto } from './dto/diagnostic-response.dto';
 // import { OpenAiService } from '../openai/openai.service'; // Integração OpenAI desativada
-import { TtsFactoryService } from '../tts/tts-factory.service';
 import { PdfGeneratorService } from './pdf-generator.service';
 import { OcrService } from './ocr.service';
 import pdfParse from 'pdf-parse';
@@ -19,7 +18,6 @@ jest.mock('pdf-parse');
 describe('DiagnosticsService', () => {
   let service: DiagnosticsService;
   // let openAiService: OpenAiService; // Integração OpenAI desativada
-  let ttsService: TtsFactoryService;
   let pdfGeneratorService: PdfGeneratorService;
   let drive: GoogleDriveService;
 
@@ -34,12 +32,6 @@ describe('DiagnosticsService', () => {
         //     generateDiagnosisFromPdf: jest.fn(),
         //   },
         // }, // Integração OpenAI desativada
-        {
-          provide: TtsFactoryService,
-          useValue: {
-            synthesizeToFile: jest.fn(),
-          },
-        },
         {
           provide: PdfGeneratorService,
           useValue: {
@@ -122,7 +114,6 @@ describe('DiagnosticsService', () => {
 
     service = module.get<DiagnosticsService>(DiagnosticsService);
     // openAiService = module.get<OpenAiService>(OpenAiService); // Integração OpenAI desativada
-    ttsService = module.get<TtsFactoryService>(TtsFactoryService);
     pdfGeneratorService = module.get<PdfGeneratorService>(PdfGeneratorService);
     drive = module.get<GoogleDriveService>(GoogleDriveService);
 
@@ -156,7 +147,6 @@ describe('DiagnosticsService', () => {
         'Código JavaScript básico com saída no console. Esta análise foi gerada automaticamente por inteligência artificial.';
       const mockCorrectedDiagnosis =
         'Código JavaScript básico com saída no console. Esta análise foi gerada automaticamente por inteligência artificial.';
-      const mockAudioUrl = 'http://localhost:3333/diagnostico-1234567890.mp3';
       const mockFileUrl = 'https://drive.mock/diagnostico-1234567890.js';
 
       // Mock específico para este teste
@@ -165,10 +155,6 @@ describe('DiagnosticsService', () => {
       //   .spyOn(openAiService, 'generateDiagnosis')
       //   .mockResolvedValueOnce(mockInitialDiagnosis)
       //   .mockResolvedValueOnce(mockCorrectedDiagnosis); // Integração OpenAI desativada
-      jest
-        .spyOn(ttsService, 'synthesizeToFile')
-        .mockResolvedValue(mockAudioUrl);
-
       const result = await service.submitDiagnostic(mockFile);
 
       expect(result).toBeDefined();
@@ -186,7 +172,6 @@ describe('DiagnosticsService', () => {
       expect(drive.uploadBuffer).toHaveBeenCalled();
 
       // Verificar se o fluxo foi executado corretamente através dos agentes
-      expect(ttsService.synthesizeToFile).not.toHaveBeenCalled();
     });
 
     it('should correct units of measurement in diagnosis', async () => {
@@ -201,7 +186,6 @@ describe('DiagnosticsService', () => {
         'Análise: Foram utilizados 23 μL de amostra e 5 mL de reagente para o teste.';
       const mockCorrectedDiagnosis =
         'Análise: Foram utilizadas 23 unidades de amostra e 5 unidades de reagente para o teste.';
-      const mockAudioUrl = 'http://localhost:3333/diagnostico-1234567890.mp3';
       const mockFileUrl = 'https://drive.mock/diagnostico-1234567890.txt';
 
       // Mock específico para este teste
@@ -210,10 +194,6 @@ describe('DiagnosticsService', () => {
       //   .spyOn(openAiService, 'generateDiagnosis')
       //   .mockResolvedValueOnce(mockInitialDiagnosis)
       //   .mockResolvedValueOnce(mockCorrectedDiagnosis); // Integração OpenAI desativada
-      jest
-        .spyOn(ttsService, 'synthesizeToFile')
-        .mockResolvedValue(mockAudioUrl);
-
       const result = await service.submitDiagnostic(mockFile);
 
       expect(result).toBeDefined();
