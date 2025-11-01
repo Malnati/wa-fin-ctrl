@@ -44,14 +44,14 @@ export class DiagnosticsController {
     description: `
     Fluxo completo de análise:
     1. Extrai texto do arquivo (PDF, TXT, JS, etc.)
-    2. Gera análise usando IA (OpenAI GPT-3.5-turbo)
-    3. Cria áudio da análise (ElevenLabs TTS) - OPCIONAL
-    4. Retorna análise completa com áudio (se solicitado)
-    
+    2. Gera análise usando IA (OpenRouter)
+    3. (Depreciado) A etapa de geração de áudio via TTS foi desativada
+    4. Retorna a análise textual e os artefatos associados
+
     Aceita apenas upload de arquivo via multipart/form-data.
     Campo obrigatório: file
-    Campo opcional: generateAudio (boolean) - se true, gera áudio; se false ou não informado, não gera áudio
-    Campo opcional: voiceID (string) - ID da voz do ElevenLabs (substitui ELEVENLABS_VOICE_ID se informado)
+    Campo opcional: generateAudio (boolean) - mantido para compatibilidade; atualmente é ignorado
+    Campo opcional: voiceID (string) - mantido para compatibilidade; atualmente é ignorado
     `,
   })
   @ApiConsumes('multipart/form-data')
@@ -67,13 +67,14 @@ export class DiagnosticsController {
         },
         generateAudio: {
           type: 'boolean',
-          description: 'Se deve gerar áudio da análise (padrão: false)',
+          description:
+            'Mantido apenas para compatibilidade; a geração de áudio está desativada.',
           default: false,
         },
         voiceID: {
           type: 'string',
           description:
-            'ID da voz do ElevenLabs (substitui ELEVENLABS_VOICE_ID se informado)',
+            'Mantido apenas para compatibilidade; ignorado porque o TTS está desativado.',
           example: 'CstacWqMhJQlnfLPxRG4',
         },
       },
@@ -137,12 +138,8 @@ export class DiagnosticsController {
   @ApiOperation({
     summary: 'Gerar áudio a partir de texto',
     description: `
-    Gera arquivo de áudio a partir de texto fornecido usando ElevenLabs TTS.
-    
-    Campo obrigatório: text
-    Campo opcional: voiceID (usa ELEVENLABS_VOICE_ID se não informado)
-    
-    ⚠️  ATENÇÃO: Este endpoint gera custos na API ElevenLabs!
+    ⚠️ TTS desativado. O endpoint permanece apenas para compatibilidade e responde
+    com status "DISABLED", sem gerar áudio.
     `,
   })
   @ApiBody({

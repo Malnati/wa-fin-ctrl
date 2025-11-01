@@ -106,7 +106,6 @@ export class AppController {
         hasGoogleRedirectUri: !!process.env.GOOGLE_REDIRECT_URI,
         hasGoogleRefreshToken: !!process.env.GOOGLE_REFRESH_TOKEN,
         hasOpenRouterApiKey: !!process.env.OPENROUTER_API_KEY,
-        ttsProvider: process.env.TTS_PROVIDER,
         timestamp: new Date().toISOString(),
       };
 

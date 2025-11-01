@@ -20,7 +20,7 @@
 - **Jest** – Testes unitários e e2e
 - **Docker** – Containerização da aplicação
 - **Makefile** – Comandos automatizados
-- **NGINX** – Gateway reverso com rate limiting para TTS e LLM
+- **NGINX** – Gateway reverso com rate limiting para integrações externas
 
 ---
 
@@ -96,20 +96,16 @@ make install       # Instala dependências
 - `FILE_HISTORY_DEFAULT_PAGE_SIZE` — Tamanho padrão de paginação (`10`).
 - `FILE_HISTORY_MAX_PAGE_SIZE` — Limite máximo por página (`100`).
 
-**TTS e integrações de IA**
-- `TTS_PROVIDER` — Provedor ativo de texto para fala (`google` por padrão).
-- `TTS_PROVIDER_API_KEY` — Chave obrigatória para provedores externos (ex.: ElevenLabs).
-- `ELEVENLABS_VOICE_ID` — Identificador opcional da voz padrão da ElevenLabs.
+**Integrações de IA**
 - `OPENAI_SERVICE_DISABLED_MESSAGE` — Mensagem exibida quando a integração OpenAI está desativada.
-- `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `OPENROUTER_PDF_MODEL`, `OPENROUTER_PDF_ENGINE` — Configuram o pipeline de OCR via OpenRouter.
+- `OPENROUTER_API_KEY`, `OPENROUTER_COOKIE`, `OPENROUTER_BASE_URL`, `OPENROUTER_PDF_MODEL`, `OPENROUTER_PDF_ENGINE`, `OPENROUTER_HTTP_REFERER`, `OPENROUTER_APP_TITLE` — Configuram o pipeline de OCR via OpenRouter (suportando chave de API ou cookie de sessão, além dos metadados exigidos pela plataforma).
 - `OPENAI_API_KEY` — Chave da API OpenAI (opcional quando usar somente OpenRouter).
 
 **Rate limiting e NGINX**
 - `NGINX_PORT` — Porta exposta pelo gateway (`8080`).
-- `NGINX_RATE_LIMIT_TTS` / `NGINX_BURST_TTS` — Limite e burst para chamadas de TTS (`1r/m` e `5`).
 - `NGINX_RATE_LIMIT_LLM` / `NGINX_BURST_LLM` — Limite e burst para LLM (`1r/m` e `5`).
 - `NGINX_RATE_LIMIT_GENERAL` / `NGINX_BURST_GENERAL` — Limite global para demais rotas (`10r/m` e `20`).
-- `OPENAI_RATE_LIMIT`, `TTS_RATE_LIMIT`, `GOOGLE_TTS_RATE_LIMIT`, `ELEVENLABS_RATE_LIMIT`, `COQUI_TTS_RATE_LIMIT` — Janela de rate limit monitorada para integrações externas.
+- `OPENAI_RATE_LIMIT` — Janela de rate limit monitorada para integrações externas.
 
 **Diagnósticos e saúde**
 - `DIAGNOSTICS_API_INTERNAL_PORT` — Porta interna utilizada pelos utilitários de diagnóstico (`3334`).
@@ -142,15 +138,13 @@ make stack-stop
 
 ### 📊 Rate Limiting Configurável
 
-- **TTS (Text-to-Speech)**: `1r/m` (1 requisição por minuto)
-- **LLM (OpenAI)**: `1r/m` (1 requisição por minuto)
+- **LLM (OpenRouter/OpenAI)**: `1r/m` (1 requisição por minuto)
 - **Geral**: `10r/m` (10 requisições por minuto)
 
 ### 🔧 Configuração via .env
 
 ```bash
 # Rate Limits
-NGINX_RATE_LIMIT_TTS=1r/m
 NGINX_RATE_LIMIT_LLM=1r/m
 NGINX_RATE_LIMIT_GENERAL=10r/m
 
@@ -179,7 +173,7 @@ O endpoint `/wa-zip` recebe o arquivo ZIP exportado do WhatsApp (com histórico 
 
 - Arquivos processados são movidos para `cloud/api/extracted/` (mantido fora do Git).
 - Para cada comprovante são gerados `<nome-origem>.json` com `{ origem, author, extected }` e `<nome-origem>.txt` contendo apenas o autor identificado no `_chat.txt`.
-- Requer variáveis `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL` (opcional), `OPENROUTER_PDF_MODEL` e `OPENROUTER_PDF_ENGINE`.
+- Requer `OPENROUTER_API_KEY` (ou `OPENROUTER_COOKIE`), além de `OPENROUTER_BASE_URL` (opcional), `OPENROUTER_PDF_MODEL` e `OPENROUTER_PDF_ENGINE`. Para conformidade com o OpenRouter, configure também `OPENROUTER_HTTP_REFERER` e `OPENROUTER_APP_TITLE` com os valores aprovados na conta.
 - Limite atual: 50 MB por upload (configurável).
 
 ### Exemplo de requisição
@@ -300,7 +294,7 @@ curl -X POST http://localhost:3333/diagnostics/submit \
 - Campo obrigatório: `file`
 - Formato: `multipart/form-data`
 - O PDF é enviado ao OpenAI via Files API (purpose `vision`), que atualmente aceita arquivos de até ~20MB
-- Requer conexão com a internet e a variável de ambiente `OPENROUTER_API_KEY` com permissão de upload
+- Requer conexão com a internet e credenciais válidas do OpenRouter (`OPENROUTER_API_KEY` ou `OPENROUTER_COOKIE`) com permissão de upload
 
 ---
 
@@ -424,7 +418,6 @@ npm run test:cov
 Este repositório inclui uma interface estática HTML/JavaScript localizada em `/public/index.html` que pode ser usada para testar a API localmente. A interface oferece:
 
 - Upload de arquivos PDF
-- Configuração de parâmetros de TTS
 - Funcionalidades de white label
 - Visualização de resultados da análise
 
@@ -532,10 +525,11 @@ Crie um arquivo `.env` na raiz do projeto:
 
 ```bash
 OPENROUTER_API_KEY=your_openrouter_api_key_here
-TTS_PROVIDER=google
+# ou use cookie de sessão (copie do painel do OpenRouter)
+# OPENROUTER_COOKIE=or_production_session=...
 
-# Para Google Cloud TTS
-GOOGLE_APPLICATION_CREDENTIALS=/caminho/para/conta.json
+OPENROUTER_HTTP_REFERER=https://your-app-url.example
+OPENROUTER_APP_TITLE=Your App Name
 
 # Para Google OAuth2 (Gmail)
 GOOGLE_CLIENT_ID=your_google_client_id_here
@@ -543,42 +537,22 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 GOOGLE_REDIRECT_URI=http://localhost
 GOOGLE_REFRESH_TOKEN=your_google_refresh_token_here
 
-# Para ElevenLabs (opcional)
-TTS_PROVIDER_API_KEY=your_elevenlabs_api_key_here
-ELEVENLABS_VOICE_ID=CstacWqMhJQlnfLPxRG4
-
 OCR_PROVIDER=tesseract
 ```
 
-Valor de `TTS_PROVIDER`:
-- `google` – usa Google Cloud TTS (requer `GOOGLE_APPLICATION_CREDENTIALS`)
-- `coqui` – usa Coqui TTS local (instale `pip install tts soundfile`)
-- `elevenlabs` – usa ElevenLabs TTS (requer `TTS_PROVIDER_API_KEY`)
+> **Nota**: a integração de Text-to-Speech foi desativada. O parâmetro `generateAudio`
+> segue aceito pelas APIs apenas por compatibilidade, mas nenhum provedor TTS é carregado.
 
 `OCR_PROVIDER` define o mecanismo de OCR para PDFs escaneados:
 
 - `tesseract` – usa Tesseract.js (padrão)
 - `paddle` – usa PaddleOCR (instale `pip install paddleocr` e garanta o comando `paddleocr` no PATH; internamente executa `paddleocr --image_path` para cada página)
 
-Ao iniciar, a API valida se essas variáveis estão definidas. Caso alguma esteja ausente, a aplicação será encerrada exibindo uma mensagem de erro.
+Ao iniciar, a API valida se as credenciais do OpenRouter (`OPENROUTER_API_KEY` ou `OPENROUTER_COOKIE`) e demais variáveis obrigatórias estão definidas. Caso algo falte, a aplicação será encerrada exibindo uma mensagem de erro.
 
 Obtenha suas credenciais em:
-- OpenAI: https://platform.openai.com/api-keys
-- Google Cloud: https://cloud.google.com/text-to-speech
-- ElevenLabs: https://elevenlabs.io/api
-
-### 🎵 Vozes ElevenLabs
-
-Para o ElevenLabs, você pode configurar diferentes vozes:
-
-- **Voz Brasileira (padrão)**: `CstacWqMhJQlnfLPxRG4`
-- **Rachel (inglês)**: `21m00Tcm4TlvDq8ikWAM`
-- **Bella (inglês)**: `EXAVITQu4vr4xnSDxMaL`
-- **Domi (inglês)**: `AZnzlk1XvdvUeBnXmlld`
-
-Configure a voz desejada usando a variável `ELEVENLABS_VOICE_ID` no arquivo `.env`.
-
-**Nota**: O serviço usa o modelo `eleven_multilingual_v2` com configuração de idioma `pt-BR` para português brasileiro.
+- OpenAI/OpenRouter: https://openrouter.ai
+- Google OAuth: https://console.cloud.google.com/apis/credentials
 
 ---
 
@@ -649,11 +623,11 @@ Retorna a lista de domínios corporativos autorizados para uso com a extensão C
 
 1. **Upload do arquivo** via `multipart/form-data`
 2. **Extração de texto** (PDF com `pdf-parse`, outros como UTF-8)
-3. **Análise com IA** usando OpenAI GPT-3.5-turbo
-4. **Geração de áudio** com o mecanismo definido em `TTS_PROVIDER`
+3. **Análise com IA** usando OpenRouter
+4. *(Depreciado)* **Geração de áudio** — recurso removido; respostas retornam apenas texto
 5. **Geração de PDF** com relatório completo (apenas para arquivos PDF)
-6. **Retorno completo** com análise, áudio e metadados
+6. **Retorno completo** com análise e metadados
 
 ---
 
-Projeto desenvolvido para integrar a extensão Diagnostics Chrome com IA e síntese de voz.
+Projeto desenvolvido para integrar a extensão Diagnostics Chrome com IA e persistência de análises.
