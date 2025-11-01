@@ -98,7 +98,7 @@ make install       # Instala dependências
 
 **Integrações de IA**
 - `OPENAI_SERVICE_DISABLED_MESSAGE` — Mensagem exibida quando a integração OpenAI está desativada.
-- `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `OPENROUTER_PDF_MODEL`, `OPENROUTER_PDF_ENGINE` — Configuram o pipeline de OCR via OpenRouter.
+- `OPENROUTER_API_KEY`, `OPENROUTER_COOKIE`, `OPENROUTER_BASE_URL`, `OPENROUTER_PDF_MODEL`, `OPENROUTER_PDF_ENGINE`, `OPENROUTER_HTTP_REFERER`, `OPENROUTER_APP_TITLE` — Configuram o pipeline de OCR via OpenRouter (suportando chave de API ou cookie de sessão, além dos metadados exigidos pela plataforma).
 - `OPENAI_API_KEY` — Chave da API OpenAI (opcional quando usar somente OpenRouter).
 
 **Rate limiting e NGINX**
@@ -173,7 +173,7 @@ O endpoint `/wa-zip` recebe o arquivo ZIP exportado do WhatsApp (com histórico 
 
 - Arquivos processados são movidos para `cloud/api/extracted/` (mantido fora do Git).
 - Para cada comprovante são gerados `<nome-origem>.json` com `{ origem, author, extected }` e `<nome-origem>.txt` contendo apenas o autor identificado no `_chat.txt`.
-- Requer variáveis `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL` (opcional), `OPENROUTER_PDF_MODEL` e `OPENROUTER_PDF_ENGINE`.
+- Requer `OPENROUTER_API_KEY` (ou `OPENROUTER_COOKIE`), além de `OPENROUTER_BASE_URL` (opcional), `OPENROUTER_PDF_MODEL` e `OPENROUTER_PDF_ENGINE`. Para conformidade com o OpenRouter, configure também `OPENROUTER_HTTP_REFERER` e `OPENROUTER_APP_TITLE` com os valores aprovados na conta.
 - Limite atual: 50 MB por upload (configurável).
 
 ### Exemplo de requisição
@@ -294,7 +294,7 @@ curl -X POST http://localhost:3333/diagnostics/submit \
 - Campo obrigatório: `file`
 - Formato: `multipart/form-data`
 - O PDF é enviado ao OpenAI via Files API (purpose `vision`), que atualmente aceita arquivos de até ~20MB
-- Requer conexão com a internet e a variável de ambiente `OPENROUTER_API_KEY` com permissão de upload
+- Requer conexão com a internet e credenciais válidas do OpenRouter (`OPENROUTER_API_KEY` ou `OPENROUTER_COOKIE`) com permissão de upload
 
 ---
 
@@ -525,6 +525,11 @@ Crie um arquivo `.env` na raiz do projeto:
 
 ```bash
 OPENROUTER_API_KEY=your_openrouter_api_key_here
+# ou use cookie de sessão (copie do painel do OpenRouter)
+# OPENROUTER_COOKIE=or_production_session=...
+
+OPENROUTER_HTTP_REFERER=https://your-app-url.example
+OPENROUTER_APP_TITLE=Your App Name
 
 # Para Google OAuth2 (Gmail)
 GOOGLE_CLIENT_ID=your_google_client_id_here
@@ -543,7 +548,7 @@ OCR_PROVIDER=tesseract
 - `tesseract` – usa Tesseract.js (padrão)
 - `paddle` – usa PaddleOCR (instale `pip install paddleocr` e garanta o comando `paddleocr` no PATH; internamente executa `paddleocr --image_path` para cada página)
 
-Ao iniciar, a API valida se essas variáveis estão definidas. Caso alguma esteja ausente, a aplicação será encerrada exibindo uma mensagem de erro.
+Ao iniciar, a API valida se as credenciais do OpenRouter (`OPENROUTER_API_KEY` ou `OPENROUTER_COOKIE`) e demais variáveis obrigatórias estão definidas. Caso algo falte, a aplicação será encerrada exibindo uma mensagem de erro.
 
 Obtenha suas credenciais em:
 - OpenAI/OpenRouter: https://openrouter.ai

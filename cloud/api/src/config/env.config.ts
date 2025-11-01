@@ -31,6 +31,9 @@ export default registerAs('env', () => ({
   openrouterPdfModel: getEnvVar('OPENROUTER_PDF_MODEL'),
   openrouterPdfEngine: getEnvVar('OPENROUTER_PDF_ENGINE'),
   openrouterBaseUrl: getEnvVar('OPENROUTER_BASE_URL'),
+  openrouterCookie: getOptionalEnvVar('OPENROUTER_COOKIE'),
+  openrouterHttpReferer: getOptionalEnvVar('OPENROUTER_HTTP_REFERER'),
+  openrouterAppTitle: getOptionalEnvVar('OPENROUTER_APP_TITLE'),
 
   // OpenAI Configuration
   openaiApiKey: getOptionalEnvVar('OPENAI_API_KEY'),

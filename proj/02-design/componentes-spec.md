@@ -50,7 +50,7 @@
 ## Dependências externas
 - OCR: Tesseract + Poppler (configurados no Docker local).
 - IA (local): OpenAI (Chat Completions) — chave opcional.
-- IA (cloud): OpenRouter (Chat Completions + plugin `file-parser`) — requer `OPENROUTER_API_KEY`, `OPENROUTER_PDF_MODEL`, `OPENROUTER_PDF_ENGINE`.
+- IA (cloud): OpenRouter (Chat Completions + plugin `file-parser`) — requer `OPENROUTER_API_KEY` (ou `OPENROUTER_COOKIE`), `OPENROUTER_PDF_MODEL`, `OPENROUTER_PDF_ENGINE` e metadados `OPENROUTER_HTTP_REFERER`/`OPENROUTER_APP_TITLE`.
 - Storage/Email: definidos em `.env` e documentados na fase 05 (Entrega).
 
 ## Extensões planejadas

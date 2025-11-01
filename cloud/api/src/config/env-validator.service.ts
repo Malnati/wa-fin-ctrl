@@ -20,7 +20,6 @@ export class EnvValidatorService implements OnModuleInit {
 
     // Verificar variáveis obrigatórias
     const requiredVars = [
-      'OPENROUTER_API_KEY',
       'GOOGLE_CLIENT_ID',
       'GOOGLE_CLIENT_SECRET',
       'GOOGLE_REDIRECT_URI',
@@ -31,6 +30,8 @@ export class EnvValidatorService implements OnModuleInit {
         missing.push(key);
       }
     });
+
+    this.validateOpenRouterCredentials(missing);
 
     // Verificar variáveis importantes com avisos
     const importantVars = [
@@ -66,6 +67,9 @@ export class EnvValidatorService implements OnModuleInit {
   private getConfigKey(envKey: string): string {
     const mapping: Record<string, string> = {
       OPENROUTER_API_KEY: 'openrouterApiKey',
+      OPENROUTER_COOKIE: 'openrouterCookie',
+      OPENROUTER_HTTP_REFERER: 'openrouterHttpReferer',
+      OPENROUTER_APP_TITLE: 'openrouterAppTitle',
       GOOGLE_CLIENT_ID: 'googleClientId',
       GOOGLE_CLIENT_SECRET: 'googleClientSecret',
       GOOGLE_REDIRECT_URI: 'googleRedirectUri',
@@ -113,5 +117,14 @@ export class EnvValidatorService implements OnModuleInit {
     console.log('📊 Rate Limiting configurado:');
     console.log(`   - LLM: ${llmLimit}`);
     console.log(`   - Geral: ${generalLimit}`);
+  }
+
+  private validateOpenRouterCredentials(missing: string[]): void {
+    const apiKey = this.configService.get<string>('env.openrouterApiKey');
+    const cookie = this.configService.get<string>('env.openrouterCookie');
+
+    if (!apiKey && !cookie) {
+      missing.push('OPENROUTER_API_KEY/OPENROUTER_COOKIE');
+    }
   }
 }
