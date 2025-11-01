@@ -6,14 +6,20 @@ services:
       context: ./cloud/api
       dockerfile: Dockerfile
     image: ${CLOUD_API_IMAGE:-wa-fin-ctrl-api}
-    env_file:
-      - ./cloud/api/.env.example
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1/chat/completions}
       OPENROUTER_PDF_MODEL: ${OPENROUTER_PDF_MODEL:-anthropic/claude-sonnet-4}
       OPENROUTER_PDF_ENGINE: ${OPENROUTER_PDF_ENGINE:-mistral-ocr}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      TTS_PROVIDER_API_KEY: ${TTS_PROVIDER_API_KEY:-}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost}
+      GOOGLE_REFRESH_TOKEN: ${GOOGLE_REFRESH_TOKEN:-}
+      GOOGLE_DRIVE_FOLDER_ID: ${GOOGLE_DRIVE_FOLDER_ID:-}
     ports:
       - "${CLOUD_API_PORT:-3333}:3333"
     volumes:
