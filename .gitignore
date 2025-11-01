@@ -10,3 +10,4 @@ mensagens/*
 ocr/*
 docs/*
 data/*
+*.env
