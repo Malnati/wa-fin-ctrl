@@ -58,6 +58,7 @@ services:
       - "${CLOUD_API_PORT:-3333}:3333"
     volumes:
       - ./cloud/api/extracted:/app/extracted
+      - ./data/extracted:/app/extracted
 
   cloud-ui:
     build:
