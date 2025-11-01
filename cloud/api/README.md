@@ -77,6 +77,47 @@ make clean         # Remove arquivos de build e node_modules
 make install       # Instala dependências
 ```
 
+### ⚙️ Variáveis de Ambiente Principais
+
+**Core e URLs**
+- `PORT` — Porta interna exposta pelo NestJS (`3333`).
+- `API_BASE_URL` — Base pública da API utilizada pelos clientes (`http://localhost:3333`).
+- `FILES_PUBLIC_URL` — Base para gerar links de download dos uploads (`http://localhost:3333/uploads`).
+- `AUTHORIZED_DOMAINS` — Lista separada por vírgula para restringir CORS (opcional).
+
+**Mensageria e histórico**
+- `MESSAGE_PREFIX` — Prefixo aplicado aos IDs de notificações mock (`MSG-`).
+- `SUCCESS_MESSAGE` — Texto retornado ao concluir a simulação de envio (`Notification registered successfully`).
+- `FILE_HISTORY_METADATA_FILE_NAME` — Arquivo JSON que persiste o histórico (`file-history-metadata.json`).
+- `FILE_HISTORY_STORAGE_DIR` — Diretório usado para armazenar o cache (`/app/storage/file-history`).
+- `FILE_HISTORY_UPLOADS_DIR` — Diretório com os arquivos enviados (`/app/storage/uploads`).
+- `UPLOAD_METADATA_STORAGE_DIR` — Diretório dos metadados do serviço de upload (`/app/storage/metadata`).
+- `FILE_HISTORY_CACHE_TTL` — Intervalo em milissegundos para recarregar o cache (`60000`).
+- `FILE_HISTORY_DEFAULT_PAGE_SIZE` — Tamanho padrão de paginação (`10`).
+- `FILE_HISTORY_MAX_PAGE_SIZE` — Limite máximo por página (`100`).
+
+**TTS e integrações de IA**
+- `TTS_PROVIDER` — Provedor ativo de texto para fala (`google` por padrão).
+- `TTS_PROVIDER_API_KEY` — Chave obrigatória para provedores externos (ex.: ElevenLabs).
+- `ELEVENLABS_VOICE_ID` — Identificador opcional da voz padrão da ElevenLabs.
+- `OPENAI_SERVICE_DISABLED_MESSAGE` — Mensagem exibida quando a integração OpenAI está desativada.
+- `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `OPENROUTER_PDF_MODEL`, `OPENROUTER_PDF_ENGINE` — Configuram o pipeline de OCR via OpenRouter.
+- `OPENAI_API_KEY` — Chave da API OpenAI (opcional quando usar somente OpenRouter).
+
+**Rate limiting e NGINX**
+- `NGINX_PORT` — Porta exposta pelo gateway (`8080`).
+- `NGINX_RATE_LIMIT_TTS` / `NGINX_BURST_TTS` — Limite e burst para chamadas de TTS (`1r/m` e `5`).
+- `NGINX_RATE_LIMIT_LLM` / `NGINX_BURST_LLM` — Limite e burst para LLM (`1r/m` e `5`).
+- `NGINX_RATE_LIMIT_GENERAL` / `NGINX_BURST_GENERAL` — Limite global para demais rotas (`10r/m` e `20`).
+- `OPENAI_RATE_LIMIT`, `TTS_RATE_LIMIT`, `GOOGLE_TTS_RATE_LIMIT`, `ELEVENLABS_RATE_LIMIT`, `COQUI_TTS_RATE_LIMIT` — Janela de rate limit monitorada para integrações externas.
+
+**Diagnósticos e saúde**
+- `DIAGNOSTICS_API_INTERNAL_PORT` — Porta interna utilizada pelos utilitários de diagnóstico (`3334`).
+
+**Autenticação mock**
+- `JWT_SECRET_MOCK` e `TOKEN_EXPIRATION_SECONDS` — Segredo e duração dos tokens emitidos para desenvolvimento.
+- `DEMO_USER_*`, `ADMIN_USER_*`, `TEST_USER_*` — Perfis pré-carregados no mock de autenticação.
+
 ---
 
 ## 🛡️ NGINX com Rate Limiting
