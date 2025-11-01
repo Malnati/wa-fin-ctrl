@@ -1,6 +1,7 @@
 __pycache__
 *.bak
 *.html
+!cloud/ui/index.html
 *.zip
 split/*
 tmp/*
